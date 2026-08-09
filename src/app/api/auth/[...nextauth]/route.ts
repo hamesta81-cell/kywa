@@ -6,6 +6,9 @@ import { prisma } from "@/lib/prisma"
 // 환경 변수 BOM 및 비-ASCII 오염 안전 소독
 if (process.env.NEXTAUTH_URL) {
   process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL.trim().replace(/[^\x20-\x7E]/g, "");
+  if (process.env.NODE_ENV === "production" && process.env.NEXTAUTH_URL.includes("localhost")) {
+    delete process.env.NEXTAUTH_URL; // 🌟 프로덕션 환경에서 localhost URL 오염 제거 (NextAuth 동적 호스트 감지 활성화)
+  }
 }
 if (process.env.KAKAO_CLIENT_ID) {
   process.env.KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID.trim()

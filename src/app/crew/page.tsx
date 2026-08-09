@@ -242,16 +242,26 @@ function CrewContent() {
         return finalReportList;
       });
 
-      // [내 팀 피드 실시간 반응형 동기화]
+      // [내 팀 피드 실시간 반응형 동기화 (팀명 수식어/특수문자/순번 오차로 인한 깜빡임 100% 차단)]
       setMyTeamActivities(prevMy => {
-        const userTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().trim();
-        const isAdminUser = currentUser?.role === "ADMIN" || currentUser?.username === "admin" || myTeamName === "총괄 관리자" || myTeamName === "총괄관리자";
+        const cleanUserTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+        const isAdminUser = currentUser?.role === "ADMIN" || currentUser?.username === "admin" || cleanUserTeam.includes("관리자") || cleanUserTeam.includes("운영본부") || cleanUserTeam.includes("총괄");
 
         const myExtracted = finalReportList.filter((item: any) => {
-          if (isAdminUser || !userTeam || userTeam.includes("운영본부") || userTeam.includes("총괄")) return true;
-          const itemTeam = (item.teamName || item.authorName || "").toLowerCase().trim();
-          if (!itemTeam) return true;
-          return userTeam.includes(itemTeam) || itemTeam.includes(userTeam) || userTeam === "홍보단" || itemTeam === "홍보단";
+          if (isAdminUser) return true;
+          const cleanItemTeam = (item.teamName || item.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+          if (!cleanItemTeam || !cleanUserTeam) return true;
+          
+          const coreUser = cleanUserTeam.replace(/^[0-9]+/, "");
+          const coreItem = cleanItemTeam.replace(/^[0-9]+/, "");
+
+          return (
+            cleanUserTeam.includes(cleanItemTeam) ||
+            cleanItemTeam.includes(cleanUserTeam) ||
+            (coreUser && coreItem && (coreUser.includes(coreItem) || coreItem.includes(coreUser))) ||
+            cleanUserTeam.includes("홍보단") ||
+            cleanItemTeam.includes("홍보단")
+          );
         });
 
         if (JSON.stringify(prevMy) === JSON.stringify(myExtracted)) return prevMy;

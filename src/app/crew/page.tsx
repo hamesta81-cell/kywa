@@ -200,7 +200,7 @@ function CrewContent() {
     // 1. [로컬 DB 100% 최우선 복원] 인터넷/서버 상태와 100% 독립하여 즉시 로드
     // 🌟 [원칙 14 충실 이행] 절대 빈 배열로 오류를 숨기지 않고 8대 정밀 에러 진단 세팅
     try {
-      const res = await fetch(`/api/crew-reports?view=feed&t=${Date.now()}`, {
+      const res = await fetch(`/api/crew-reports?view=all&t=${Date.now()}`, {
         cache: "no-store",
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",

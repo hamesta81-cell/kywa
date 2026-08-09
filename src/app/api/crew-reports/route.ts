@@ -273,16 +273,15 @@ async function persistCloudData(reports: any[]) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const view = searchParams.get("view") || "feed";
+  const { weeklyReports, stats } = await fetchCloudData();
 
-  const { weeklyReports, crewFeed, stats } = await fetchCloudData();
-
-  if (view === "all") {
-    return NextResponse.json({ success: true, count: weeklyReports.length, reports: weeklyReports, stats }, { headers: NO_CACHE_HEADERS });
-  }
-
-  return NextResponse.json({ success: true, count: crewFeed.length, reports: crewFeed, stats }, { headers: NO_CACHE_HEADERS });
+  // 🌟 항상 전체 주간보고서 목록(weeklyReports)을 반환하여 뷰 상태 오차로 인한 글 사라짐 100% 원천 방지
+  return NextResponse.json({ 
+    success: true, 
+    count: weeklyReports.length, 
+    reports: weeklyReports, 
+    stats 
+  }, { headers: NO_CACHE_HEADERS });
 }
 
 export async function POST(request: Request) {

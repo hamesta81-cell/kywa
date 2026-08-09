@@ -2963,7 +2963,7 @@ function CrewContent() {
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             {act.attachedPhotos.map((photoUrl: string, pIdx: number) => {
                               const isValidUrl = photoUrl && (photoUrl.startsWith('http://') || photoUrl.startsWith('https://') || photoUrl.startsWith('data:image/') || photoUrl.startsWith('/'));
-                              const displayImg = isValidUrl ? photoUrl : "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80";
+                              const displayImg = isValidUrl ? photoUrl : "";
 
                               return (
                                 <div 
@@ -2977,7 +2977,6 @@ function CrewContent() {
                                     className="w-full h-full object-cover group-hover:scale-105 transition-all" 
                                     onError={(e: any) => {
                                       e.target.onerror = null;
-                                      e.target.src = "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80";
                                     }}
                                   />
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-black">

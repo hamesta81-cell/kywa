@@ -67,11 +67,14 @@ function writeToDiskStore(reports: any[]) {
   }
 }
 
-// 🔑 [원칙 4] 고정 문서 ID 생성 규칙: teamId_weekKey (한글/영문/숫자 지원 중복 방지)
+// 🔑 [원칙 4 수정] 고유 문서 ID 생성 (기존 글 덮어쓰기로 인한 글 사라짐 현상 100% 방지)
 function generateDeterministicReportId(teamName: string, weekNumber: string, originalId?: any): string {
+  if (originalId && String(originalId).trim() && String(originalId) !== "null" && String(originalId) !== "undefined") {
+    return String(originalId);
+  }
   const cleanTeam = String(teamName || "crew").toLowerCase().trim().replace(/[\s\t\n]+/g, "_");
   const cleanWeek = String(weekNumber || "w1").toLowerCase().trim().replace(/[\s\t\n]+/g, "_");
-  return `${cleanTeam}_${cleanWeek}`;
+  return `${cleanTeam}_${cleanWeek}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 }
 
 function sanitizeReport(rep: any, existingRep?: any): any {
@@ -84,8 +87,8 @@ function sanitizeReport(rep: any, existingRep?: any): any {
   const teamId = String(teamName).toLowerCase().trim().replace(/[\s\t\n]+/g, "_");
   const weekKey = String(weekNumber).toLowerCase().trim().replace(/[\s\t\n]+/g, "_");
 
-  // 🔑 고정 ID 적용 (teamId_weekKey)
-  const reportId = generateDeterministicReportId(teamName, weekNumber);
+  // 🔑 고정 ID 대신 개별 작성 보고서 ID 보존 (동일 주차 다중 작성 시 이전 글 삭제 방지)
+  const reportId = generateDeterministicReportId(teamName, weekNumber, rep.id || rep.reportId || existingRep?.id);
 
   const sanitizeImage = (url: any) => {
     if (!url || typeof url !== "string") return null;

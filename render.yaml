@@ -5,6 +5,9 @@ services:
     plan: free
     buildCommand: npm run build
     startCommand: npm start
+    domains:
+      - kywasafe.kr
+      - www.kywasafe.kr
     envVars:
       - key: NODE_VERSION
         value: 20.10.0

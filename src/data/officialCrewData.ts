@@ -1,0 +1,477 @@
+// 한국청소년활동진흥원(KYWA) 2026 청소년 안전홍보단 발대식 자료집 & 지원신청서 100% 팩트 명세
+export interface OfficialCrewTeam {
+  id: number;
+  teamName: string;
+  representatives: string; // 대표자 (발대식 명부 팩트)
+  organization: string; // 소속기관 (발대식 팩트)
+  category1: string; // 분야1
+  category2: string; // 분야2
+  method: string; // 활동방법 (대면/비대면/혼합)
+  activityTitle: string; // 정식 활동명
+  region: string; // 활동지역
+  teamType: string; // 팀구분 (청소년팀 / 일반국민)
+  desc: string; // 발대식/신청서 팩트 원문 활동내용
+  planDetail: string; // 팩트 세부 실행계획
+  membersCount: number; // 팀 총 인원수
+  budget: string; // 소요예산
+  username: string;
+  pass: string;
+  borderLeft: string;
+  // 주요 활동 결과물 (카드뉴스, 숏폼 영상, 가이드북, SNS)
+  cardnewsGallery: Array<{ title: string; imgUrl: string }>;
+  videoUrl: string;
+  videoTitle: string;
+  guidebookPdf: string;
+  snsUrl: string;
+}
+
+export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
+  {
+    id: 1,
+    teamName: "SAFE CREW",
+    representatives: "전예주, 하보람, 하보라",
+    organization: "경북 청소년 연합팀",
+    category1: "청소년활동",
+    category2: "생활",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "SAFE ON! 우리가 만드는 청소년 안전지도",
+    region: "경북",
+    teamType: "청소년팀",
+    desc: "경상남도 및 경북 안전체험시설 방문을 통한 재난·생활안전 직접 체험, 지역 내 위험요소를 발굴·점검한다. 체험 내용을 바탕으로 숏폼 영상과 카드뉴스를 제작하여 SNS 및 지역사회 캠페인을 운영하고, 청소년이 쉽게 실천할 수 있는 생활 속 안전수칙을 홍보",
+    planDetail: "• 경북·경남 지역 안전체험시설 현장 모니터링\n• 숏폼 영상 및 안전지도 카드뉴스 시리즈 제작\n• SNS 및 지역 청소년 시설 연계 생활안전 캠페인 운영",
+    membersCount: 3,
+    budget: "2,000,000원",
+    username: "safecrew@kywa.or.kr",
+    pass: "safecrew2026!",
+    borderLeft: "border-l-4 border-l-[#1558C9]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 경북/경남 안전체험관 현장 탐방", imgUrl: "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 생활속 위험요소 발굴 지도", imgUrl: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 청소년 실천 10대 안전수칙", imgUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=safecrew_official",
+    videoTitle: "🎬 [Shorts] SAFE ON! 15초 만에 확인하는 횡단보도 스마트폰 멈춤 챌린지",
+    guidebookPdf: "SAFE_CREW_청소년_안전지도_가이드북_2026.pdf",
+    snsUrl: "https://www.instagram.com/safecrew_official"
+  },
+  {
+    id: 2,
+    teamName: "safe frame",
+    representatives: "최민서, 김태윤, 김미정",
+    organization: "광명청소년미디어센터",
+    category1: "청소년활동",
+    category2: "디지털",
+    method: "대면",
+    activityTitle: "안전한 울타리(safe frame)",
+    region: "경기",
+    teamType: "청소년팀",
+    desc: "청소년 활동 및 디지털 안전(사이버 폭력·개인정보 보호)을 주제로 한 숏폼 영상과 카드뉴스 제작 및 온·오프라인 채널로 콘텐츠를 확산하고, 센터 방문 청소년 대상 '디지털 안전 실천 캠페인'을 운영",
+    planDetail: "• 광명청소년미디어센터 연계 사이버폭력 예방 카드뉴스 제작\n• 센터 방문 청소년 대상 '디지털 안전 실천 캠페인' 부스 운영\n• SNS 미디어 채널 연계 디지털 안전 에티켓 배포",
+    membersCount: 15,
+    budget: "2,000,000원",
+    username: "safeframe@kywa.or.kr",
+    pass: "safeframe2026!",
+    borderLeft: "border-l-4 border-l-[#7557D9]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 광명청소년미디어센터 사이버폭력 예방", imgUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 개인정보 보호 울타리 3단계", imgUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 미디어 리터러시 서약서", imgUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=safeframe_official",
+    videoTitle: "🎬 [릴스] safe frame이 만드는 디지털 안심 울타리 다큐멘터리",
+    guidebookPdf: "safe_frame_디지털안전_울타리_매뉴얼.pdf",
+    snsUrl: "https://www.instagram.com/safeframe_kywa"
+  },
+  {
+    id: 3,
+    teamName: "청유",
+    representatives: "김규란, 강신아, 정승호",
+    organization: "가좌청소년센터 제7기 청소년운영위원회",
+    category1: "생활",
+    category2: "디지털",
+    method: "대면",
+    activityTitle: "청유랑 안전해you",
+    region: "인천",
+    teamType: "청소년팀",
+    desc: "인천국민안전체험관 연계 안전교육·체험 진행, 안전 캠페인 콘텐츠 제작 및 SNS 업로드, 안전 체험부스 운영, 안전한 가좌청소년센터 만들기 활동 진행 등",
+    planDetail: "• 인천국민안전체험관 연계 현장 안전체험\n• 가좌청소년센터 심폐소생술(CPR) & 소화기 체험 부스 운영\n• 안전한 가좌청소년센터 만들기 청소년 참여 릴레이",
+    membersCount: 21,
+    budget: "2,000,000원",
+    username: "cheongyu@kywa.or.kr",
+    pass: "cheongyu2026!",
+    borderLeft: "border-l-4 border-l-[#10B981]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 인천국민안전체험관 연계 교육 현장", imgUrl: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 가좌청소년센터 체험부스 가이드", imgUrl: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 청유랑 함께하는 안전해you 수칙", imgUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=cheongyu_incheon",
+    videoTitle: "🎬 [Shorts] 청유와 함께하는 1분 만에 끝내는 소화기 핀 뽑기",
+    guidebookPdf: "청유랑_안전해you_인천_체험가이드.pdf",
+    snsUrl: "https://www.instagram.com/cheongyu_incheon"
+  },
+  {
+    id: 4,
+    teamName: "디지털 쉼표",
+    representatives: "김효민, 오지윤, 심혜원",
+    organization: "중봉청소년수련관",
+    category1: "디지털",
+    category2: "심리-정서",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "스마트폰 과의존 RED RED.",
+    region: "경기",
+    teamType: "청소년팀",
+    desc: "AI 기반 마음건강 도우미를 기획·제작하고, 숏폼·카드뉴스 등 홍보 콘텐츠 제작, 디지털 디톡스·온라인 에티켓 캠페인, SNS 챌린지 및 체험부스 운영",
+    planDetail: "• AI 기반 청소년 마음건강 도우미 앱 기획\n• 스마트폰 과의존 예방 RED RED 숏폼 릴레이\n• 중봉청소년수련관 오프라인 디지털 디톡스 체험부스",
+    membersCount: 3,
+    budget: "2,000,000원",
+    username: "digitalcomma@kywa.or.kr",
+    pass: "digitalcomma2026!",
+    borderLeft: "border-l-4 border-l-[#F59E0B]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 중봉청소년수련관 디지털 디톡스", imgUrl: "https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 취침 전 1시간 쉼표 미션", imgUrl: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - AI 마음건강 도우미 가이드", imgUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=digital_comma",
+    videoTitle: "🎬 [Shorts] 화면을 끄면 시작되는 일상의 행복 - 디지털 쉼표",
+    guidebookPdf: "디지털_디톡스_청소년_가이드북.pdf",
+    snsUrl: "https://www.instagram.com/digital_comma_official"
+  },
+  {
+    id: 5,
+    teamName: "라이트(light)",
+    representatives: "김영창, 정승준, 문다연",
+    organization: "청원청소년문화의집",
+    category1: "생활",
+    category2: "디지털",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "멈칫! 밀어서 개인정보 해제",
+    region: "충북",
+    teamType: "청소년팀",
+    desc: "청소년의 눈높이에 맞춘 개인정보 보호 콘텐츠를 직접 기획·제작하고, 전문가 교육과 OX퀴즈, 다트, 보드게임, 스탬프 투어 등 다양한 참여형 활동을 운영한다. 또한 송장 지우개와 가이드북을 활용한 생활밀착형 캠페인 및 SNS 홍보",
+    planDetail: "• 청원청소년문화의집 연계 개인정보 보호 교재 기획\n• OX퀴즈, 다트, 보드게임 및 스탬프 투어 운영\n• 지우개 가이드북 활용 생활밀착형 캠페인",
+    membersCount: 9,
+    budget: "2,000,000원",
+    username: "light@kywa.or.kr",
+    pass: "light2026!",
+    borderLeft: "border-l-4 border-l-[#EF4444]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 청원청소년문화의집 개인정보 교재", imgUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - OX퀴즈 & 보드게임 부스 스케치", imgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 송장 지우개 활용 가이드북", imgUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=light_chungbuk",
+    videoTitle: "🎬 [영상] 충북 라이트 팀의 지우개 가이드북 부스 현장",
+    guidebookPdf: "라이트_개인정보보호_지우개가이드북.pdf",
+    snsUrl: "https://www.instagram.com/light_chungbuk"
+  },
+  {
+    id: 6,
+    teamName: "세이프 리더스",
+    representatives: "박찬빈, 김승하, 최민석",
+    organization: "대구 청소년 연합팀",
+    category1: "생활",
+    category2: "디지털",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "SAFE LINK - AI로 연결하는 안전, 청소년이 만드는 안전문화",
+    region: "대구",
+    teamType: "청소년팀",
+    desc: "AI 기술과 숏폼 콘텐츠를 활용해 디지털 안전과 생활안전 정보를 제작·홍보, SAFE LINK 웹앱을 통해 안전 퀴즈와 안전 미션을 직접 체험하게 하고, 학교·청소년시설과 연계한 캠페인 운영",
+    planDetail: "• SAFE LINK AI 웹앱 서비스 구축 및 퀴즈 연동\n• AI 기반 숏폼 콘텐츠 연재\n• 대구 지역 학교 및 청소년 수련시설 연계 캠페인",
+    membersCount: 3,
+    budget: "2,000,000원",
+    username: "safeleaders@kywa.or.kr",
+    pass: "safeleaders2026!",
+    borderLeft: "border-l-4 border-l-[#EC4899]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - SAFE LINK AI 웹앱 연동 가이드", imgUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - AI 딥페이크 판별 체크리스트", imgUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 대구 학교 연계 릴레이 미션", imgUrl: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=safe_leaders",
+    videoTitle: "🎬 [AI 영상] 세이프 리더스가 제안하는 AI 시대의 안전문화",
+    guidebookPdf: "SAFE_LINK_AI_안전문화_리포트.pdf",
+    snsUrl: "https://www.instagram.com/safeleaders_daegu"
+  },
+  {
+    id: 7,
+    teamName: "심리지원단 파인 (PINE)",
+    representatives: "장은빈, 문기태, 경율현",
+    organization: "중원유스센터",
+    category1: "심리-정서",
+    category2: "청소년활동",
+    method: "대면",
+    activityTitle: "I am Pine, We are Fine",
+    region: "경기",
+    teamType: "청소년팀",
+    desc: "몰입형 ‘힐링 우드 카빙’ 체험, 가림막과 대형 스크린을 활용해 내면을 치유하는 익명 ‘그림자 채팅’ 소통, 로비 내 개방형 쉼터인 ‘마음정거장’ 부스 상시 운영",
+    planDetail: "• 중원유스센터 로비 '마음정거장' 부스 상시 운영\n• 힐링 우드 카빙 체험 클래스\n• 익명 그림자 채팅 소통 및 마음 치유 캠페인",
+    membersCount: 14,
+    budget: "2,000,000원",
+    username: "pine@kywa.or.kr",
+    pass: "pine2026!",
+    borderLeft: "border-l-4 border-l-[#6366F1]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 중원유스센터 마음정거장 안내", imgUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 힐링 우드 카빙 체험 현장", imgUrl: "https://images.unsplash.com/photo-1499209974431-9dac3d5f9787?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 그림자 채팅 마음치유 이야기", imgUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=pine_healing",
+    videoTitle: "🎬 [감성 영상] 따뜻한 그림자 채팅 - 당신의 마음은 안녕한가요?",
+    guidebookPdf: "파인_PINE_청소년_마음건강_워크북.pdf",
+    snsUrl: "https://www.instagram.com/pine_support"
+  },
+  {
+    id: 8,
+    teamName: "안심ON ('안전'과 '마음(心)'을 켜다.)",
+    representatives: "조현정, 조윤주, 조영두",
+    organization: "국민 참여 서포터즈 팀",
+    category1: "디지털",
+    category2: "심리-정서",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "디지털 안전 ON, 마음 안전 ON 청소년 디지털 성범죄 예방 및 정서 안전망 구축 프로젝트",
+    region: "서울",
+    teamType: "일반국민",
+    desc: "청소년의 심리·디지털 안전을 위해 단체대화방 및 SNS 내에 성적 괴롭힘 상황 시 ‘마음 ON–도움 ON’ 수칙을 홍보하며, 청소년 디지털 성범죄 예방 및 정신건강 관련 콘텐츠 제작, 또래 손편지 멘토링 ‘마음우체통’ 및 센터 협업 캠페인운영",
+    planDetail: "• '마음 ON-도움 ON' 수칙 홍보 리플렛 제작\n• 또래 손편지 멘토링 '마음우체통' 부스 연계\n• 청소년 디지털 성범죄 예방 숏폼 배포",
+    membersCount: 4,
+    budget: "2,000,000원",
+    username: "ansimon@kywa.or.kr",
+    pass: "ansimon2026!",
+    borderLeft: "border-l-4 border-l-[#8B5CF6]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 마음 ON-도움 ON 예방수칙", imgUrl: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 또래 멘토링 마음우체통 소식", imgUrl: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 서울 지역 센터 협업 캠페인", imgUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=ansim_on",
+    videoTitle: "🎬 [캠페인 영상] 마음우체통 손편지가 전하는 따뜻한 위로",
+    guidebookPdf: "안심ON_디지털성범죄예방_안전망_매뉴얼.pdf",
+    snsUrl: "https://www.instagram.com/ansim_on_seoul"
+  },
+  {
+    id: 9,
+    teamName: "안전 탭앤톡 (Tap and Talk)",
+    representatives: "이문형, 김우중, 권재혁",
+    organization: "서울 청소년 연합팀",
+    category1: "재난",
+    category2: "생활",
+    method: "비대면",
+    activityTitle: "안전 밸브를 잠그다 - 여름철 재난·생활안전 홍보 캠페인",
+    region: "서울",
+    teamType: "청소년팀",
+    desc: "여름철 폭우·태풍 등 재난 안전 수칙과 가스밸브·에어컨 실외기 화재 예방 등 생활 안전 수칙을 카드뉴스·숏폼 영상으로 제작, 영등포구 일대에서 안전 체크리스트 리플릿 배포 및 홍보 부스 운영",
+    planDetail: "• 영등포구 일대 원룸단지 안전 체크리스트 배포\n• 여름철 재난 수칙 숏폼 제작 및 SNS 확산\n• 가스밸브 및 실외기 화재 예방 홍보 부스",
+    membersCount: 4,
+    budget: "1,200,000원",
+    username: "tapandtalk@kywa.or.kr",
+    pass: "tapandtalk2026!",
+    borderLeft: "border-l-4 border-l-[#14B8A6]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 영등포구 원룸단지 체크리스트", imgUrl: "https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 태풍 폭우 지하차도 대피 수칙", imgUrl: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 에어컨 실외기 화재 예방 가이드", imgUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=tap_and_talk",
+    videoTitle: "🎬 [Shorts] 10초 만에 잠그는 가스밸브 - Tap and Talk",
+    guidebookPdf: "안전탭앤톡_원룸단지_재난안전_리플렛.pdf",
+    snsUrl: "https://www.instagram.com/tapandtalk_safety"
+  },
+  {
+    id: 10,
+    teamName: "안전.zip",
+    representatives: "정윤이, 고건호, 조민지",
+    organization: "물금청소년문화의집",
+    category1: "청소년활동",
+    category2: "디지털",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "슬기로운 안전 커넥터",
+    region: "경남",
+    teamType: "청소년팀",
+    desc: "온라인에서는 패러디 숏폼, 선택형 쇼츠, AI 영상 제작 및 시설 안전 점검 과정 기록, 오프라인에서는 팝업 이벤트를 통한 룰렛 퀴즈, 개인정보 가리기, 딥페이크 구별 등 3대 스탬프 투어 운영, 위급 상황에 대비할 수 있는 유용한 호신용 경보기 키링 배포",
+    planDetail: "• 물금청소년문화의집 팝업 룰렛 퀴즈 이벤트\n• 개인정보 가리기 및 딥페이크 구별 3대 스탬프 투어\n• 호신용 경보기 키링 배포 오프라인 캠페인",
+    membersCount: 6,
+    budget: "2,000,000원",
+    username: "safezip@kywa.or.kr",
+    pass: "safezip2026!",
+    borderLeft: "border-l-4 border-l-[#3B82F6]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 물금청소년문화의집 스탬프 투어", imgUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 호신용 경보기 키링 작동법", imgUrl: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 딥페이크 구별 쇼츠 패러디", imgUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=safe_zip",
+    videoTitle: "🎬 [패러디 숏폼] 위급할 때 삐-! 경보기 키링 사용 꿀팁",
+    guidebookPdf: "안전zip_슬기로운_안전커넥터_가이드.pdf",
+    snsUrl: "https://www.instagram.com/safe_zip_official"
+  },
+  {
+    id: 11,
+    teamName: "안전지킴이 「청소년서포터즈 Y.E.S 6기」",
+    representatives: "김경서, 김시현, 박정은",
+    organization: "서울특별시립청소년활동진흥센터",
+    category1: "청소년활동",
+    category2: "생활",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "서울특별시립청소년활동진흥센터 「청소년서포터즈 Y.E.S 6기」",
+    region: "서울",
+    teamType: "청소년팀",
+    desc: "후기청소년이 직접 서울의 안전 이슈를 발굴하고, 청소년의 관심사와 최신 트렌드를 반영한 안전 콘텐츠 제작, 참여형 언론캠페인과 아웃리치 활동 운영",
+    planDetail: "• 서울 청소년 위험 요소 모니터링 & 카드뉴스\n• 참여형 언론 캠페인 기사 연재\n• 서울 주요 청소년 거리 오프라인 아웃리치 활동",
+    membersCount: 25,
+    budget: "2,000,000원",
+    username: "yes6th@kywa.or.kr",
+    pass: "yes6th2026!",
+    borderLeft: "border-l-4 border-l-[#F97316]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 서울시립청소년활동진흥센터 언론캠페인", imgUrl: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - Y.E.S 6기 트렌디 인포그래픽", imgUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 서울 청소년 아웃리치 현장", imgUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=yes_6th_seoul",
+    videoTitle: "🎬 [언론 스케치] 서울 청소년활동 진흥센터 Y.E.S 6기 현장 리포트",
+    guidebookPdf: "YES_6기_서울청소년_안전리포트_2026.pdf",
+    snsUrl: "https://www.instagram.com/yes_6th_official"
+  },
+  {
+    id: 12,
+    teamName: "우송대학교 아고라",
+    representatives: "정석민, 서찬희, 최인영",
+    organization: "우송대학교 청소년 멘토팀",
+    category1: "생활",
+    category2: "디지털",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "대학생과 함께하는 디지털·생활안전 실천 프로젝트 \"일상 속 안전, 내가 지킨다\"",
+    region: "대전",
+    teamType: "청소년팀",
+    desc: "개인정보 보호, AI 챗봇의 올바른 활용법 등 디지털 안전과 이동안전, 약물·의약품 오남용 예방 등 생활안전을 동등한 비중으로 교육하며, 실제 사례 기반의 토의·체크리스트 실습·나만의 안전수칙 만들기 등 참여형 활동 운영",
+    planDetail: "• 대학생 멘토와 함께하는 대전 청소년 토의 토크쇼\n• AI 챗봇 개인정보 유출 방지 및 약물 오남용 예방\n• 나만의 안전수칙 체크리스트 제작 부스",
+    membersCount: 3,
+    budget: "1,000,000원",
+    username: "wosongagora@kywa.or.kr",
+    pass: "wosongagora2026!",
+    borderLeft: "border-l-4 border-l-[#06B6D4]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 우송대 아고라 멘토링 현장", imgUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - AI 챗봇 유출 방지 가이드", imgUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 나만의 안전수칙 만들기", imgUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=wosong_agora",
+    videoTitle: "🎬 [특강 스케치] 우송대 아고라 대학생 멘토링 숏폼",
+    guidebookPdf: "우송대_아고라_생활디지털안전_가이드.pdf",
+    snsUrl: "https://www.instagram.com/wosong_agora"
+  },
+  {
+    id: 13,
+    teamName: "웰빙 크루",
+    representatives: "임백호, 양찬규, 정백",
+    organization: "서울 청소년 연합팀",
+    category1: "생활",
+    category2: "심리-정서",
+    method: "비대면",
+    activityTitle: "웰빙 크루: 오늘의 나를 지키는 일상 속 웰빙",
+    region: "서울",
+    teamType: "청소년팀",
+    desc: "미래 사회의 목표와 비전으로 여겨지는 웰빙(Well-being)을 청소년의 일상에서 풀어내고, 신체안전과 정서안전 자가점검을 통해 수면·식사·움직임·감정·관계 상태를 확인한 뒤 유형별 실천 미션 제공 활동 운영",
+    planDetail: "• 신체안전 및 정서안전 온라인 자가진단표 제작\n• 수면·식사·감정·관계 유형별 카드뉴스\n• 일상 속 웰빙 자가관리 미션 전달",
+    membersCount: 6,
+    budget: "2,000,000원",
+    username: "wellbeing@kywa.or.kr",
+    pass: "wellbeing2026!",
+    borderLeft: "border-l-4 border-l-[#84CC16]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 웰빙 자가진단 체크리스트", imgUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 수면 & 감정 자가관리 꿀팁", imgUrl: "https://images.unsplash.com/photo-1511295742362-92c96b124e52?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 웰빙 일기 실천 릴레이", imgUrl: "https://images.unsplash.com/photo-1499209974431-9dac3d5f9787?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=wellbeing_crew",
+    videoTitle: "🎬 [힐링 숏폼] 오늘 하루 나를 케어하는 웰빙 루틴",
+    guidebookPdf: "웰빙크루_일상속_웰빙가이드북.pdf",
+    snsUrl: "https://www.instagram.com/wellbeing_crew_official"
+  },
+  {
+    id: 14,
+    teamName: "이투스",
+    representatives: "이규현, 이새늘",
+    organization: "서울 청소년 연합팀",
+    category1: "재난",
+    category2: "생활",
+    method: "비대면",
+    activityTitle: "안전 LEVEL UP!",
+    region: "서울",
+    teamType: "청소년팀",
+    desc: "SNS 기반의 참여형 콘텐츠와 안전 MBTI검사·자신이 겪기 싫은 재난상황 월드컵 등 캠페인 운영, 영상으로 제작되어 직접 결론을 만들 수 있는 약물오남용 예방콘텐츠, 재난 사각지대 지도 및 카드뉴스 등을 제작·운영",
+    planDetail: "• 안전 MBTI 테스트 및 재난상황 월드컵 앱 연동\n• 인터랙티브 약물 오남용 예방 비디오 제작\n• 재난 사각지대 안심 지도 카드뉴스 연재",
+    membersCount: 2,
+    budget: "900,000원",
+    username: "etoos@kywa.or.kr",
+    pass: "etoos2026!",
+    borderLeft: "border-l-4 border-l-[#A855F7]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 안전 MBTI 결과 분석표", imgUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 재난 사각지대 지도", imgUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 약물 오남용 예방 인터랙티브", imgUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=etoos_safety",
+    videoTitle: "🎬 [인터랙티브 숏폼] 당신의 선택은? 재난 탈출 10초 퀴즈",
+    guidebookPdf: "이투스_안전LEVEL_UP_MBTI_리포트.pdf",
+    snsUrl: "https://www.instagram.com/etoos_safety_levelup"
+  },
+  {
+    id: 15,
+    teamName: "청디가드",
+    representatives: "김성철, 윤지한",
+    organization: "서울 청소년 연합팀",
+    category1: "생활",
+    category2: "디지털",
+    method: "비대면",
+    activityTitle: "청디가드 세이프런 : 위험을 넘어 안전으로",
+    region: "서울",
+    teamType: "청소년팀",
+    desc: "학교폭력예방, 약물중독예방, 도박중독예방, 재난·생활안전, 디지털 안전 콘텐츠를 로블록스 기반 5개 구역 미션맵으로 재구성하여 이를 플레이 영상 숏폼 콘텐츠와 퀴즈 콘텐츠로 제작·홍보",
+    planDetail: "• 로블록스 세이프런 5개 미션 맵 제작\n• 메타버스 런칭 플레이 숏폼 릴레이\n• 사이버 도박 및 약물 예방 퀴즈 연재",
+    membersCount: 7,
+    budget: "2,000,000원",
+    username: "cheongdiguard@kywa.or.kr",
+    pass: "cheongdiguard2026!",
+    borderLeft: "border-l-4 border-l-[#38BDF8]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 로블록스 세이프런 5개 맵 안내", imgUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 사이버 도박/약물 예방 퀴즈", imgUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 청디가드 메타버스 런칭 소식", imgUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=cheongdiguard",
+    videoTitle: "🎬 [메타버스 게임] 청디가드 세이프런 플레이 숏폼 하이라이트",
+    guidebookPdf: "청디가드_세이프런_로블록스_플레이가이드.pdf",
+    snsUrl: "https://www.instagram.com/cheongdiguard_official"
+  },
+  {
+    id: 16,
+    teamName: "한라우 안전활동가",
+    representatives: "박소은, 오지민, 양선호",
+    organization: "강원청소년활동진흥센터",
+    category1: "생활",
+    category2: "디지털",
+    method: "혼합 (대면+비대면)",
+    activityTitle: "스마트폰 멈춰! '심쿵!' 살리는 손길(CPR)",
+    region: "강원",
+    teamType: "청소년팀",
+    desc: "스마트폰 중독 예방 부스활동(원주, 강릉, 평창, 춘천 등) 및 미디어 중독 예방 및 심폐소생술 관련 온라인 활동 운영(월 1회, SNS 활용)",
+    planDetail: "• 원주, 강릉, 평창, 춘천 등 강원 4개 시·군 릴레이 부스\n• 미디어 중독 예방 및 스마트폰 멈춰 캠페인\n• 심폐소생술(CPR) '심쿵!' 온라인 영상 릴레이",
+    membersCount: 16,
+    budget: "2,000,000원",
+    username: "hanrauo@kywa.or.kr",
+    pass: "hanrauo2026!",
+    borderLeft: "border-l-4 border-l-[#F43F5E]",
+    cardnewsGallery: [
+      { title: "카드뉴스 #1 - 강원 4개 시·군 CPR 릴레이 부스", imgUrl: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #2 - 스마트폰 멈춰! 3대 예방법", imgUrl: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&w=600&q=80" },
+      { title: "카드뉴스 #3 - 원주·강릉 현장 시민 인터뷰", imgUrl: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80" }
+    ],
+    videoUrl: "https://www.youtube.com/watch?v=hanrauo_gangwon",
+    videoTitle: "🎬 [현장 숏폼] 강원 청소년들의 심쿵 CPR 릴레이 챌린지",
+    guidebookPdf: "한라우_심쿵_CPR_스마트폰멈춰_가이드.pdf",
+    snsUrl: "https://www.instagram.com/hanrauo_safety"
+  }
+];

@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  GUEST
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+
+  // Relations
+  crews    Crew[]
+  contests Contest[]
+  votes    Vote[]
+  surveys  Survey[]
+}
+
+model Crew {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  teamName  String
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now())
+}
+
+model Contest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  imageUrl  String
+  prompt    String
+  score     Int?
+  status    String   @default("PENDING") // PENDING, REVIEWED, WINNER
+  createdAt DateTime @default(now())
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contentId]) // 1인 1회 투표 방지 방어 로직
+}
+
+model Content {
+  id        String   @id @default(cuid())
+  title     String
+  type      String // VIDEO, IMAGE
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  votes Vote[]
+}
+
+model Survey {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  answers   Json
+  createdAt DateTime @default(now())
+}
+
+// 🛡️ 100% 영구 불멸 주간보고서 DB 모델
+model Report {
+  id             String   @id @default(cuid())
+  author         String?
+  teamName       String
+  week           String
+  title          String
+  detailContent  String?
+  location       String?
+  participants   Int      @default(0)
+  video          Int      @default(0)
+  videoViews     String   @default("0")
+  cardnews       Int      @default(0)
+  cardnewsViews  String   @default("0")
+  promo          Int      @default(0)
+  promoViews     String   @default("0")
+  youtubeUrl     String?
+  snsUrl         String?
+  photoUrl       String?
+  attachedPhotos String?  // JSON String Array
+  date           String
+  likes          Int      @default(0)
+  comments       String?  // JSON String Array
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// 🛡️ 100% 영구 불멸 Q&A 게시판 DB 모델
+model QaItem {
+  id         String      @id @default(cuid())
+  author     String
+  date       String
+  title      String
+  content    String
+  category   String      @default("운영 문의")
+  status     String      @default("답변대기")
+  answer     String?
+  answerDate String?
+  answers    QaAnswer[]
+  comments   QaComment[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model QaAnswer {
+  id        String   @id @default(cuid())
+  qaId      String
+  qaItem    QaItem   @relation(fields: [qaId], references: [id], onDelete: Cascade)
+  author    String
+  text      String
+  date      String
+  createdAt DateTime @default(now())
+}
+
+model QaComment {
+  id        String   @id @default(cuid())
+  qaId      String
+  qaItem    QaItem   @relation(fields: [qaId], references: [id], onDelete: Cascade)
+  author    String
+  text      String
+  date      String
+  createdAt DateTime @default(now())
+}

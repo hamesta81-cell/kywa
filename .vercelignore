@@ -1,0 +1,9 @@
+# Vercel Ignore File
+node_modules
+.next
+.git
+backups
+지원서
+*.hwpx
+*.zip
+*.log

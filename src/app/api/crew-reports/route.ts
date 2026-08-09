@@ -92,6 +92,7 @@ function sanitizeReport(rep: any, existingRep?: any): any {
 
   const sanitizeImage = (url: any) => {
     if (!url || typeof url !== "string") return null;
+    if (url.includes("unsplash.com")) return null; // ❌ 구버전 외부 더미 이미지 100% 차단
     return url;
   };
 
@@ -186,28 +187,30 @@ async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]
     }
   });
 
-  // 2. 외부 RESTful API 백업 동기화 시도
-  try {
-    const res = await fetch(`${CLOUD_STORE_URL}?t=${Date.now()}`, {
-      cache: "no-store",
-      headers: { "Accept": "application/json", "Cache-Control": "no-cache" }
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      const rawItems = Array.isArray(json?.data?.items) ? json.data.items : [];
-      
-      rawItems.forEach((item: any) => {
-        const itemKey = String(item.id || item.reportId || "");
-        if (itemKey && !map.has(itemKey) && !globalCloudStore.deletedIds.has(itemKey)) {
-          const sanitized = sanitizeReport(item, null);
-          if (sanitized && sanitized.id) {
-            map.set(sanitized.id, sanitized);
-          }
-        }
+  // 2. 외부 RESTful API 백업 동기화 (로컬/디스크 데이터가 전혀 없을 때만 폴백 수행하여 구버전 더미 덮어쓰기 방지)
+  if (map.size === 0) {
+    try {
+      const res = await fetch(`${CLOUD_STORE_URL}?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Accept": "application/json", "Cache-Control": "no-cache" }
       });
-    }
-  } catch (e) {}
+
+      if (res.ok) {
+        const json = await res.json();
+        const rawItems = Array.isArray(json?.data?.items) ? json.data.items : [];
+        
+        rawItems.forEach((item: any) => {
+          const itemKey = String(item.id || item.reportId || "");
+          if (itemKey && !map.has(itemKey) && !globalCloudStore.deletedIds.has(itemKey)) {
+            const sanitized = sanitizeReport(item, null);
+            if (sanitized && sanitized.id) {
+              map.set(sanitized.id, sanitized);
+            }
+          }
+        });
+      }
+    } catch (e) {}
+  }
 
   const allReports = Array.from(map.values()).sort((a: any, b: any) => 
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()

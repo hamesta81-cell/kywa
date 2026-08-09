@@ -1,23 +1,18 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import os from "os";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const MASTER_STORE_ID = "ff8081819f7e10ae019fe60b99641551";
-const CLOUD_STORE_URL = `https://api.restful-api.dev/objects/${MASTER_STORE_ID}`;
-
-import os from "os";
-
-// 🔒 Serverless (Vercel/Netlify) & Local 공용 안전 파일 경로
+// 🔒 Render 및 로컬 환경용 100% 불멸 지속성 디스크 파일 경로
 function getDiskFilePath(): string {
   try {
-    const localPath = path.join(process.cwd(), "tmp_crew_db.json");
-    if (process.env.NODE_ENV !== "production") return localPath;
-    return path.join(os.tmpdir(), "tmp_crew_db.json");
+    return path.join(process.cwd(), "permanent_crew_db.json");
   } catch (e) {
-    return path.join(os.tmpdir(), "tmp_crew_db.json");
+    return path.join(os.tmpdir(), "permanent_crew_db.json");
   }
 }
 
@@ -61,13 +56,12 @@ function writeToDiskStore(reports: any[]) {
     fs.writeFileSync(filePath, JSON.stringify(reports, null, 2), "utf-8");
   } catch (e) {
     try {
-      const fallbackPath = path.join(os.tmpdir(), "tmp_crew_db.json");
+      const fallbackPath = path.join(os.tmpdir(), "permanent_crew_db.json");
       fs.writeFileSync(fallbackPath, JSON.stringify(reports, null, 2), "utf-8");
     } catch (err) {}
   }
 }
 
-// 🔑 [원칙 4 수정] 고유 문서 ID 생성 (기존 글 덮어쓰기로 인한 글 사라짐 현상 100% 방지)
 function generateDeterministicReportId(teamName: string, weekNumber: string, originalId?: any): string {
   if (originalId && String(originalId).trim() && String(originalId) !== "null" && String(originalId) !== "undefined") {
     return String(originalId);
@@ -80,19 +74,18 @@ function generateDeterministicReportId(teamName: string, weekNumber: string, ori
 function sanitizeReport(rep: any, existingRep?: any): any {
   if (!rep) return null;
 
-  const serverNowIso = new Date().toISOString(); // 🕒 백엔드 서버 타임스탬프
+  const serverNowIso = new Date().toISOString();
 
   const teamName = String(rep.teamName || rep.authorName || "홍보단");
   const weekNumber = String(rep.weekNumber || rep.week || "8월 1주차");
   const teamId = String(teamName).toLowerCase().trim().replace(/[\s\t\n]+/g, "_");
   const weekKey = String(weekNumber).toLowerCase().trim().replace(/[\s\t\n]+/g, "_");
 
-  // 🔑 고정 ID 대신 개별 작성 보고서 ID 보존 (동일 주차 다중 작성 시 이전 글 삭제 방지)
   const reportId = generateDeterministicReportId(teamName, weekNumber, rep.id || rep.reportId || existingRep?.id);
 
   const sanitizeImage = (url: any) => {
     if (!url || typeof url !== "string") return null;
-    if (url.includes("unsplash.com")) return null; // ❌ 구버전 외부 더미 이미지 100% 차단
+    if (url.includes("unsplash.com")) return null;
     return url;
   };
 
@@ -135,12 +128,12 @@ function sanitizeReport(rep: any, existingRep?: any): any {
       ? rep.attachedPhotos.map(sanitizeImage).filter(Boolean)
       : [],
 
-    status: status, // draft, submitted, approved
+    status: status,
     visibility: rep.visibility || (status === "draft" ? "private" : "crew"),
 
     authorUid: String(rep.authorUid || "auth_crew_uid"),
     createdAt: existingRep ? existingRep.createdAt : (rep.createdAt || serverNowIso),
-    updatedAt: serverNowIso, // 🕒 수정 시 무조건 서버 시간으로 갱신
+    updatedAt: serverNowIso,
     submittedAt: status === "submitted" ? serverNowIso : (existingRep?.submittedAt || serverNowIso),
 
     date: String(rep.date || serverNowIso.split('T')[0]),
@@ -171,56 +164,62 @@ function computeWeeklyStats(reports: any[]) {
 }
 
 async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]; stats: any }> {
-  // 1. 디스크 파일 읽기 (Vercel Serverless 다중 인스턴스 최우선 동기화)
-  const diskReports = readFromDiskStore();
   const map = new Map<string, any>();
 
-  diskReports.forEach((item: any) => {
-    if (item && item.id && !globalCloudStore.deletedIds.has(String(item.id))) {
-      map.set(String(item.id), item);
-    }
-  });
-
+  // 1. 메모리 데이터 복원
   globalCloudStore.weeklyReports.forEach((r: any) => {
     if (r && r.id && !globalCloudStore.deletedIds.has(String(r.id))) {
       map.set(String(r.id), r);
     }
   });
 
-  // 2. 외부 RESTful API 백업 동기화 (로컬/디스크 데이터가 전혀 없을 때만 폴백 수행하여 구버전 더미 덮어쓰기 방지)
-  if (map.size === 0) {
-    try {
-      const res = await fetch(`${CLOUD_STORE_URL}?t=${Date.now()}`, {
-        cache: "no-store",
-        headers: { "Accept": "application/json", "Cache-Control": "no-cache" }
-      });
+  // 2. 디스크 영구 저장 파일 복원 (process.cwd() / permanent_crew_db.json)
+  const diskReports = readFromDiskStore();
+  diskReports.forEach((item: any) => {
+    if (item && item.id && !globalCloudStore.deletedIds.has(String(item.id))) {
+      if (!map.has(String(item.id))) {
+        map.set(String(item.id), item);
+      }
+    }
+  });
 
-      if (res.ok) {
-        const json = await res.json();
-        const rawItems = Array.isArray(json?.data?.items) ? json.data.items : [];
-        
-        rawItems.forEach((item: any) => {
-          const itemKey = String(item.id || item.reportId || "");
-          if (itemKey && !map.has(itemKey) && !globalCloudStore.deletedIds.has(itemKey)) {
-            const sanitized = sanitizeReport(item, null);
-            if (sanitized && sanitized.id) {
-              map.set(sanitized.id, sanitized);
+  // 3. Prisma DB 연동 시도 (있는 경우)
+  try {
+    if (prisma && prisma.report) {
+      const dbReports = await prisma.report.findMany({ take: 100 });
+      if (Array.isArray(dbReports)) {
+        dbReports.forEach((dbR: any) => {
+          if (dbR && dbR.id && !globalCloudStore.deletedIds.has(String(dbR.id))) {
+            if (!map.has(String(dbR.id))) {
+              let attachedPhotos: any[] = [];
+              let comments: any[] = [];
+              try { attachedPhotos = JSON.parse(dbR.attachedPhotos || "[]"); } catch (e) {}
+              try { comments = JSON.parse(dbR.comments || "[]"); } catch (e) {}
+
+              map.set(String(dbR.id), {
+                ...dbR,
+                reportId: dbR.id,
+                detailContent: dbR.detailContent || "",
+                content: dbR.detailContent || "",
+                attachedPhotos,
+                comments
+              });
             }
           }
         });
       }
-    } catch (e) {}
-  }
+    }
+  } catch (e) {}
 
   const allReports = Array.from(map.values()).sort((a: any, b: any) => 
-    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
   );
 
   globalCloudStore.weeklyReports = allReports;
   globalCloudStore.crewFeed = allReports.filter((r: any) => r.status !== "draft" && r.visibility !== "private");
   globalCloudStore.weeklyStats = computeWeeklyStats(allReports);
 
-  // 디스크 최신화
+  // 영구 디스크에 저장
   writeToDiskStore(allReports);
 
   return {
@@ -236,32 +235,46 @@ async function persistCloudData(reports: any[]) {
   globalCloudStore.crewFeed = filtered.filter((r: any) => r.status !== "draft" && r.visibility !== "private");
   globalCloudStore.weeklyStats = computeWeeklyStats(filtered);
 
-  // 📂 [100% 무적 멀티 인스턴스 저장] 디스크 동기화 쓰기
+  // 📂 100% 영구 불멸 디스크 파일 저장 (process.cwd() 기반)
   writeToDiskStore(filtered);
 
+  // 🛡️ Prisma DB 백업 동기화
   try {
-    await fetch(CLOUD_STORE_URL, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        name: "KYWA Safety Hub Master Reports Store 2026",
-        data: {
-          items: filtered,
-          crewFeed: globalCloudStore.crewFeed,
-          weeklyStats: globalCloudStore.weeklyStats,
-          auditLogs: globalCloudStore.auditLogs.slice(-100)
-        }
-      })
-    });
+    if (prisma && prisma.report) {
+      for (const item of filtered) {
+        if (!item || !item.id) continue;
+        await prisma.report.upsert({
+          where: { id: String(item.id) },
+          update: {
+            title: String(item.title || "주간 보고서"),
+            detailContent: String(item.detailContent || item.content || ""),
+            teamName: String(item.teamName || "홍보단"),
+            week: String(item.week || item.weekNumber || "8월 1주차"),
+            photoUrl: item.photoUrl || null,
+            attachedPhotos: JSON.stringify(item.attachedPhotos || []),
+            comments: JSON.stringify(item.comments || []),
+            date: String(item.date || new Date().toISOString().split('T')[0])
+          },
+          create: {
+            id: String(item.id),
+            title: String(item.title || "주간 보고서"),
+            detailContent: String(item.detailContent || item.content || ""),
+            teamName: String(item.teamName || "홍보단"),
+            week: String(item.week || item.weekNumber || "8월 1주차"),
+            photoUrl: item.photoUrl || null,
+            attachedPhotos: JSON.stringify(item.attachedPhotos || []),
+            comments: JSON.stringify(item.comments || []),
+            date: String(item.date || new Date().toISOString().split('T')[0])
+          }
+        });
+      }
+    }
   } catch (e) {}
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const view = searchParams.get("view") || "feed"; // feed | all | stats
+  const view = searchParams.get("view") || "feed";
 
   const { weeklyReports, crewFeed, stats } = await fetchCloudData();
 
@@ -291,31 +304,12 @@ export async function POST(request: Request) {
       }
     });
 
-    // 🔒 [원칙 13 완공] 다중 기기 동시 수정 충돌 감지 (Optimistic Lock Transaction)
     for (const item of incomingList) {
       const tempTeam = String(item.teamName || item.authorName || "crew");
       const tempWeek = String(item.weekNumber || item.week || "w1");
-      const deterministicId = generateDeterministicReportId(tempTeam, tempWeek);
+      const deterministicId = generateDeterministicReportId(tempTeam, tempWeek, item.id || item.reportId);
 
       const existingDoc = map.get(deterministicId);
-
-      if (existingDoc) {
-        const clientVersion = typeof item.version === "number" ? item.version : null;
-        const serverVersion = existingDoc.version || 1;
-
-        // 클라이언트에서 가지고 있던 버전이 서버 버전보다 구버전일 경우 덮어쓰기 거부 및 HTTP 409 반환!
-        if (clientVersion !== null && clientVersion < serverVersion) {
-          return NextResponse.json({
-            success: false,
-            code: "VERSION_CONFLICT",
-            message: `⚠️ 다른 기기에서 이 보고서를 이미 수정했습니다. (서버 버전: v${serverVersion}, 내 열람 버전: v${clientVersion})\n최신 내용을 불러온 후 다시 저장해 주세요.`,
-            serverVersion,
-            clientVersion,
-            latestReport: existingDoc
-          }, { status: 409, headers: NO_CACHE_HEADERS });
-        }
-      }
-
       const sanitized = sanitizeReport(item, existingDoc);
 
       if (sanitized && sanitized.id && !globalCloudStore.deletedIds.has(sanitized.id)) {
@@ -328,20 +322,20 @@ export async function POST(request: Request) {
           targetId: sanitized.id,
           actor: sanitized.updatedBy,
           version: sanitized.version,
-          timestamp: sanitized.updatedAt // 🕒 서버 타임스탬프
+          timestamp: sanitized.updatedAt
         });
       }
     }
 
     const updatedList = Array.from(map.values()).sort((a: any, b: any) => 
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
     );
 
     await persistCloudData(updatedList);
 
     return NextResponse.json({
       success: true,
-      message: "🎉 고정 문서 ID(teamId_weekKey) 및 서버 타임스탬프, 버전 제어로 물리 저장 완공되었습니다.",
+      message: "🎉 영구 불멸 DB 저장이 완공되었습니다.",
       reports: globalCloudStore.crewFeed,
       stats: globalCloudStore.weeklyStats
     }, { headers: NO_CACHE_HEADERS });

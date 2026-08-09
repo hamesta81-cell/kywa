@@ -22,6 +22,7 @@ if (process.env.KAKAO_CLIENT_SECRET) {
 }
 
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET || "kywa_safety_secret_key_2026",
   providers: [
     CredentialsProvider({
       name: "Credentials",

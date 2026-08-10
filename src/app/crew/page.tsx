@@ -1076,8 +1076,9 @@ function CrewContent() {
   const [isSavingReport, setIsSavingReport] = useState(false); // 🌟 저장 진행 상태 state
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false); // 🌟 [원칙 12] 이미지 중앙 클라우드 업로드 진행 상태 state
 
-  // 폼 state (🌟 세부 내용 필드 formDetailContent 추가!)
+  // 폼 state (🌟 세부 내용 필드 formDetailContent 및 날짜 선택 formDate 추가!)
   const [formWeek, setFormWeek] = useState("10월 4주차 (최종 마감)");
+  const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [formTitle, setFormTitle] = useState("");
   const [formDetailContent, setFormDetailContent] = useState(""); // 🌟 세부 활동 내용
   const [formLocation, setFormLocation] = useState("");
@@ -1130,6 +1131,7 @@ function CrewContent() {
       }
       setEditingItem(item);
       setFormWeek(item.weekNumber || item.week || "8월 1주차");
+      setFormDate(item.date || item.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0]);
       setFormTitle(item.title);
       setFormDetailContent(item.detailContent || "");
       setFormLocation(item.location);
@@ -1147,6 +1149,7 @@ function CrewContent() {
     } else {
       setEditingItem(null);
       setFormWeek("8월 1주차");
+      setFormDate(new Date().toISOString().split('T')[0]);
       setFormVersion(null);
       setFormTitle("");
       setFormDetailContent("");
@@ -3228,18 +3231,30 @@ function CrewContent() {
 
             <form onSubmit={handleSaveActivity} className="space-y-4 text-xs font-black text-[#0F172A]">
               
-              {/* 주차 선택 (8월 1주차부터) */}
-              <div>
-                <label className="block mb-1 text-[#0F172A]">• 주차 선택 (8월 1주차~10월 4주차):</label>
-                <select
-                  value={formWeek}
-                  onChange={e => setFormWeek(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-[#CBD5E1] rounded-[10px] text-xs font-black text-[#0F172A]"
-                >
-                  {allWeeksList.filter(w => w.key !== "all").map(w => (
-                    <option key={w.key} value={w.label}>{w.label}</option>
-                  ))}
-                </select>
+              {/* 주차 선택 및 작성일자 자유 선택 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1 text-[#0F172A]">• 주차 선택 (8월 1주차~10월 4주차):</label>
+                  <select
+                    value={formWeek}
+                    onChange={e => setFormWeek(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-[#CBD5E1] rounded-[10px] text-xs font-black text-[#0F172A]"
+                  >
+                    {allWeeksList.filter(w => w.key !== "all").map(w => (
+                      <option key={w.key} value={w.label}>{w.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-[#0F172A]">• 작성일자 / 활동일자 (날짜 자유 변경):</label>
+                  <input
+                    type="date"
+                    value={formDate}
+                    onChange={e => setFormDate(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-[#CBD5E1] rounded-[10px] text-xs font-black text-[#0F172A] focus:outline-none focus:border-[#1558C9]"
+                  />
+                </div>
               </div>
 
               {/* 🌟 [수치 직접 입력 구역] 매체 콘텐츠 제작 건수 및 매체별 최신 누적 수치 입력 */}

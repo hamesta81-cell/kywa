@@ -163,52 +163,6 @@ function computeWeeklyStats(reports: any[]) {
   };
 }
 
-import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
-
-function getOfficial1WeekReports(): any[] {
-  return (OFFICIAL_16_CREW_TEAMS || []).map((t, idx) => ({
-    id: `official_w1_report_${t.id}`,
-    reportId: `official_w1_report_${t.id}`,
-    teamId: String(t.teamName).toLowerCase().replace(/[\s\t\n]+/g, "_"),
-    teamName: t.teamName,
-    authorName: t.teamName,
-    week: "8월 1주차",
-    weekNumber: "8월 1주차",
-    weekKey: "aug_w1",
-    title: t.activityTitle,
-    summary: t.desc,
-    detailContent: `${t.desc}\n\n[세부 실행계획]\n${t.planDetail}`,
-    content: `${t.desc}\n\n[세부 실행계획]\n${t.planDetail}`,
-    location: `${t.region} 청소년 안전 현장`,
-    activityCount: 1,
-    participantCount: t.membersCount || 5,
-    participants: t.membersCount || 5,
-    contentsProduced: (t.cardnewsGallery?.length || 0) + (t.videoUrl ? 1 : 0) + 1,
-    video: t.videoUrl ? 1 : 1,
-    videoViews: "1,250",
-    cardnews: t.cardnewsGallery?.length || 3,
-    cardnewsViews: "2,400",
-    promo: 1,
-    promoViews: "1,800",
-    snsViews: 5450,
-    youtubeUrl: t.videoUrl || "",
-    snsUrl: t.snsUrl || "",
-    photoUrl: t.cardnewsGallery && t.cardnewsGallery[0] ? t.cardnewsGallery[0].imgUrl : null,
-    attachedPhotos: t.cardnewsGallery ? t.cardnewsGallery.map(c => c.imgUrl) : [],
-    status: "submitted",
-    visibility: "crew",
-    authorUid: "official_author",
-    createdAt: new Date(Date.now() - (idx + 1) * 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - (idx + 1) * 3600000).toISOString(),
-    submittedAt: new Date(Date.now() - (idx + 1) * 3600000).toISOString(),
-    date: new Date().toISOString().split('T')[0],
-    likes: 5 + idx,
-    isLiked: false,
-    comments: [],
-    version: 1
-  }));
-}
-
 async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]; stats: any }> {
   const map = new Map<string, any>();
 
@@ -256,16 +210,6 @@ async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]
       }
     }
   } catch (e) {}
-
-  // 🌟 [1주차 내용 100% 복구] 16개 정식 홍보단 1주차 기본 보고서 상시 유지 보장
-  const officialW1Reports = getOfficial1WeekReports();
-  officialW1Reports.forEach(w1 => {
-    if (w1 && w1.id && !globalCloudStore.deletedIds.has(String(w1.id))) {
-      if (!map.has(String(w1.id))) {
-        map.set(String(w1.id), w1);
-      }
-    }
-  });
 
   let allReports = Array.from(map.values()).sort((a: any, b: any) => 
     new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()

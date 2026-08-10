@@ -805,7 +805,7 @@ function CrewContent() {
             }
           });
           const finalQa = Array.from(map.values()).sort((a: any, b: any) => 
-            Number(String(b.id).replace(/\D/g, "") || 0) - Number(String(a.id).replace(/\D/g, "") || 0)
+            new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime()
           );
           if (JSON.stringify(prevQa) === JSON.stringify(finalQa)) {
             return prevQa;
@@ -818,6 +818,13 @@ function CrewContent() {
 
   useEffect(() => {
     fetchQaItems();
+
+    // 🚀 [원칙 6] Q&A 게시판 3초 실시간 자동 폴링 및 탭 간 동기화 추가
+    const qaPollingInterval = setInterval(() => {
+      fetchQaItems();
+    }, 3000);
+
+    return () => clearInterval(qaPollingInterval);
   }, []);
 
   const saveQaToVaultAndState = (updatedList: any[]) => {

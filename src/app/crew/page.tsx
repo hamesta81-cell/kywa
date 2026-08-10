@@ -1095,24 +1095,31 @@ function CrewContent() {
 
   // 🔒 본인 팀 및 관리자 권한 검사 (관리자는 모든 팀 주간보고서 수정/삭제 100% 가능)
   const canModifyItem = (itemTeamName: string) => {
-    if (
+    const cleanUserTeam = (myTeamName || currentUser?.teamName || currentUser?.name || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+
+    // 🌟 [관리자 100% 권한 허용] 관리자, 총괄, 운영본부, admin 계정, 진흥원 계정은 16개 전체 팀 보고서 수정/삭제 100% 허용
+    const isAdmin =
       currentUser?.role === "ADMIN" ||
       currentUser?.username === "admin" ||
       currentUser?.name === "admin" ||
-      currentUser?.teamName === "총괄관리자" ||
-      myTeamName === "총괄관리자" ||
-      myTeamName === "한국청소년활동진흥원 (운영본부)"
-    ) {
-      return true;
-    }
+      currentUser?.id === "admin" ||
+      cleanUserTeam.includes("관리자") ||
+      cleanUserTeam.includes("운영본부") ||
+      cleanUserTeam.includes("진흥원") ||
+      cleanUserTeam.includes("총괄") ||
+      (myTeamName && (myTeamName.includes("운영본부") || myTeamName.includes("진흥원") || myTeamName.includes("관리자") || myTeamName.includes("총괄")));
+
+    if (isAdmin) return true;
 
     if (!itemTeamName) return true;
 
-    const userTeam = (myTeamName || currentUser?.teamName || currentUser?.name || "").toLowerCase().trim();
-    const itemTeam = itemTeamName.toLowerCase().trim();
-    if (!userTeam) return true;
+    const cleanItemTeam = itemTeamName.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+    if (!cleanUserTeam || !cleanItemTeam) return true;
 
-    return userTeam.includes(itemTeam) || itemTeam.includes(userTeam);
+    return (
+      cleanUserTeam.includes(cleanItemTeam) ||
+      cleanItemTeam.includes(cleanUserTeam)
+    );
   };
 
   const handleOpenEditModal = (item?: any) => {

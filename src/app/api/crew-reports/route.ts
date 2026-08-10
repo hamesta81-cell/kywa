@@ -163,52 +163,6 @@ function computeWeeklyStats(reports: any[]) {
   };
 }
 
-import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
-
-function getInitialSeedReports(): any[] {
-  return (OFFICIAL_16_CREW_TEAMS || []).map((t, idx) => ({
-    id: `seed_report_${t.id}`,
-    reportId: `seed_report_${t.id}`,
-    teamId: String(t.teamName).toLowerCase().replace(/[\s\t\n]+/g, "_"),
-    teamName: t.teamName,
-    authorName: t.teamName,
-    week: "8월 1주차",
-    weekNumber: "8월 1주차",
-    weekKey: "aug_w1",
-    title: t.activityTitle,
-    summary: t.desc,
-    detailContent: `${t.desc}\n\n[세부 실행계획]\n${t.planDetail}`,
-    content: `${t.desc}\n\n[세부 실행계획]\n${t.planDetail}`,
-    location: `${t.region} 청소년 안전 현장`,
-    activityCount: 1,
-    participantCount: t.membersCount || 5,
-    participants: t.membersCount || 5,
-    contentsProduced: (t.cardnewsGallery?.length || 0) + (t.videoUrl ? 1 : 0) + 1,
-    video: t.videoUrl ? 1 : 1,
-    videoViews: "1,250",
-    cardnews: t.cardnewsGallery?.length || 3,
-    cardnewsViews: "2,400",
-    promo: 1,
-    promoViews: "1,800",
-    snsViews: 5450,
-    youtubeUrl: t.videoUrl || "",
-    snsUrl: t.snsUrl || "",
-    photoUrl: t.cardnewsGallery && t.cardnewsGallery[0] ? t.cardnewsGallery[0].imgUrl : null,
-    attachedPhotos: t.cardnewsGallery ? t.cardnewsGallery.map(c => c.imgUrl) : [],
-    status: "submitted",
-    visibility: "crew",
-    authorUid: "seed_author",
-    createdAt: new Date(Date.now() - (idx + 1) * 3600000).toISOString(),
-    updatedAt: new Date(Date.now() - (idx + 1) * 3600000).toISOString(),
-    submittedAt: new Date(Date.now() - (idx + 1) * 3600000).toISOString(),
-    date: new Date().toISOString().split('T')[0],
-    likes: 5 + idx,
-    isLiked: false,
-    comments: [],
-    version: 1
-  }));
-}
-
 async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]; stats: any }> {
   const map = new Map<string, any>();
 
@@ -260,14 +214,6 @@ async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]
   let allReports = Array.from(map.values()).sort((a: any, b: any) => 
     new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
   );
-
-  // 🌟 [원칙 1] 데이터 0개 시 16개 정식 홍보단 기본 시드 100% 자동 생성하여 빈 화면 방지
-  if (allReports.length === 0) {
-    const seedReports = getInitialSeedReports();
-    seedReports.forEach(r => map.set(r.id, r));
-    allReports = Array.from(map.values());
-    writeToDiskStore(allReports);
-  }
 
   globalCloudStore.weeklyReports = allReports;
   globalCloudStore.crewFeed = allReports.filter((r: any) => r.status !== "draft" && r.visibility !== "private");

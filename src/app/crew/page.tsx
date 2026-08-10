@@ -875,6 +875,11 @@ function CrewContent() {
 
   const saveQaToVaultAndState = (updatedList: any[]) => {
     setQaList(updatedList);
+    try {
+      if (typeof window !== "undefined" && Array.isArray(updatedList)) {
+        localStorage.setItem("kywa_qa_items_vault", JSON.stringify(updatedList));
+      }
+    } catch (e) {}
   };
 
   const handleSaveQa = async (e: React.FormEvent) => {

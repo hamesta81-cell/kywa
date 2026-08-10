@@ -1219,7 +1219,7 @@ function CrewContent() {
             status: "submitted"
           }
         : {
-            id: Date.now(),
+            id: `report_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
             teamName: myTeamName || "홍보단",
             authorName: myTeamName || "홍보단",
             week: formWeek,

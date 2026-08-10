@@ -301,12 +301,9 @@ export async function POST(request: Request) {
     });
 
     for (const item of incomingList) {
-      const tempTeam = String(item.teamName || item.authorName || "crew");
-      const tempWeek = String(item.weekNumber || item.week || "w1");
-      const deterministicId = generateDeterministicReportId(tempTeam, tempWeek, item.id || item.reportId);
-
-      const existingDoc = map.get(deterministicId);
-      const sanitized = sanitizeReport(item, existingDoc);
+      const targetId = (item.id || item.reportId) ? String(item.id || item.reportId) : `report_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const existingDoc = map.get(targetId);
+      const sanitized = sanitizeReport({ ...item, id: targetId }, existingDoc);
 
       if (sanitized && sanitized.id && !globalCloudStore.deletedIds.has(sanitized.id)) {
         sanitized.updatedBy = String(item.updatedBy || item.authorUid || item.authorName || "crew_user");

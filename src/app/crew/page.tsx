@@ -228,7 +228,48 @@ function CrewContent() {
         return; // ❌ 절대 빈 배열로 덮어쓰지 않고 기존 상태 유지!
       }
 
-      const finalReportList = serverReports.map((item: any) => ({
+      let mergedReports = serverReports;
+
+      // 🌟 [무적의 듀얼Vault 스토리지 보존] 서버 응답이 0개이거나 재배포로 리셋되었을 때 브라우저 로컬 스토리지에서 100% 즉시 복구 및 서버 자동 동기화
+      if (typeof window !== "undefined") {
+        try {
+          const rawVault = localStorage.getItem("kywa_saved_crew_reports_vault");
+          if (rawVault) {
+            const vaultReports: any[] = JSON.parse(rawVault);
+            if (Array.isArray(vaultReports) && vaultReports.length > 0) {
+              const reportMap = new Map<string, any>();
+              // 서버 리포트 추가
+              serverReports.forEach((r: any) => { if (r && r.id) reportMap.set(String(r.id), r); });
+              // 로컬 보관소 리포트 추가 (서버에 없는 신규 작성물 복구)
+              let hasNewRestoredItem = false;
+              vaultReports.forEach((v: any) => {
+                if (v && v.id && !reportMap.has(String(v.id))) {
+                  reportMap.set(String(v.id), v);
+                  hasNewRestoredItem = true;
+                }
+              });
+
+              mergedReports = Array.from(reportMap.values());
+
+              // 로컬에서 복구된 미동기 항목이 있으면 서버 백엔드로 즉시 백업 전송
+              if (hasNewRestoredItem) {
+                fetch("/api/crew-reports", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ reports: mergedReports })
+                }).catch(() => {});
+              }
+            }
+          }
+
+          // 최신 리포트 상태를 브라우저 로컬 보관소에 영구 백업
+          if (mergedReports.length > 0) {
+            localStorage.setItem("kywa_saved_crew_reports_vault", JSON.stringify(mergedReports));
+          }
+        } catch (vaultErr) {}
+      }
+
+      const finalReportList = mergedReports.map((item: any) => ({
         ...item,
         likes: typeof item?.likes === "number" ? item.likes : 0,
         comments: Array.isArray(item?.comments) ? item.comments : [],
@@ -1286,6 +1327,7 @@ function CrewContent() {
 
         const updatedAll = allTeamsFeed.map(feed => feed.id === editingItem.id ? targetPayloadItem : feed);
         setAllTeamsFeed(updatedAll);
+        try { localStorage.setItem("kywa_saved_crew_reports_vault", JSON.stringify(updatedAll)); } catch (e) {}
 
         alert(`🟢 [${myTeamName}] 팀의 ${formWeek} 보고서가 클라우드 DB에 성공적으로 100% 영구 저장되었습니다!`);
       } else {
@@ -1294,6 +1336,7 @@ function CrewContent() {
 
         const updatedAll = [targetPayloadItem, ...allTeamsFeed];
         setAllTeamsFeed(updatedAll);
+        try { localStorage.setItem("kywa_saved_crew_reports_vault", JSON.stringify(updatedAll)); } catch (e) {}
 
         alert(`🎉 [${myTeamName}] 팀의 신규 ${formWeek} 주간활동보고서가 클라우드 DB에 100% 성공적으로 저장 및 공유 게시 완료되었습니다!`);
       }

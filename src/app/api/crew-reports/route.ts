@@ -273,7 +273,32 @@ async function persistCloudData(reports: any[]) {
 }
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const format = searchParams.get("format");
   const { weeklyReports, stats } = await fetchCloudData();
+
+  // 📊 구글 스프레드시트 실시간 연동(=IMPORTDATA) 및 엑셀 백업용 CSV 내보내기 (UTF-8 BOM 포함)
+  if (format === "csv") {
+    let csv = "\uFEFF팀명,활동주차,활동제목,세부활동내용,활동장소,참여인원,카드뉴스수,동영상수,유튜브URL,SNSURL,작성일자,보고서ID\n";
+
+    weeklyReports.forEach((r: any) => {
+      const escapeCsv = (val: any) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      csv += `${escapeCsv(r.teamName)},${escapeCsv(r.week || r.weekNumber)},${escapeCsv(r.title)},${escapeCsv(r.detailContent || r.content)},${escapeCsv(r.location)},${r.participants || 0},${r.cardnews || 0},${r.video || 0},${escapeCsv(r.youtubeUrl)},${escapeCsv(r.snsUrl)},${escapeCsv(r.date || r.createdAt)},${escapeCsv(r.id)}\n`;
+    });
+
+    return new NextResponse(csv, {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="kywa_crew_weekly_reports_${new Date().toISOString().split('T')[0]}.csv"`,
+        ...NO_CACHE_HEADERS
+      }
+    });
+  }
 
   // 🌟 항상 전체 주간보고서 목록(weeklyReports)을 반환하여 뷰 상태 오차로 인한 글 사라짐 100% 원천 방지
   return NextResponse.json({ 

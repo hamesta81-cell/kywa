@@ -2321,17 +2321,34 @@ function CrewContent() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {(() => {
-                    const reportsToShow = (currentUser?.role === "ADMIN" || currentUser?.username === "admin" || currentUser?.name === "admin" || myTeamName === "총괄관리자" || myTeamName === "한국청소년활동진흥원 (운영본부)")
+                    const isAdmin = currentUser?.role === "ADMIN" || currentUser?.username === "admin" || currentUser?.name === "admin" || myTeamName === "총괄관리자" || myTeamName === "한국청소년활동진흥원 (운영본부)";
+                    
+                    const cleanUserTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+
+                    const reportsToShow = isAdmin
                       ? allTeamsFeed
-                      : (myTeamActivities.length > 0 ? myTeamActivities : allTeamsFeed);
+                      : allTeamsFeed.filter((item: any) => {
+                          const cleanItemTeam = (item.teamName || item.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                          if (!cleanItemTeam || !cleanUserTeam) return false;
+
+                          // 팀명 핵심 토큰 매칭
+                          const userCore = cleanUserTeam.replace(/^[0-9]+/, "").replace(/팀$/, "");
+                          const itemCore = cleanItemTeam.replace(/^[0-9]+/, "").replace(/팀$/, "");
+
+                          return (
+                            cleanUserTeam.includes(cleanItemTeam) ||
+                            cleanItemTeam.includes(cleanUserTeam) ||
+                            (userCore && itemCore && (userCore.includes(itemCore) || itemCore.includes(userCore)))
+                          );
+                        });
 
                     if (reportsToShow.length === 0) {
                       return (
                         <div className="col-span-full p-10 bg-slate-50 border border-dashed border-slate-300 rounded-[16px] text-center space-y-2">
                           <span className="text-3xl">📝</span>
-                          <p className="text-sm font-black text-[#0F172A]">등록된 주간 활동 보고서가 없습니다.</p>
+                          <p className="text-sm font-black text-[#0F172A]">아직 [{myTeamName}] 팀이 등록한 세부 주간 활동 보고서가 없습니다.</p>
                           <p className="text-xs font-bold text-slate-500">
-                            우측 상단 <span className="text-[#1558C9] font-black">[➕ 세부 주간보고서 작성]</span> 버튼을 눌러 첫 보고서를 등록해 보세요!
+                            우측 상단 <span className="text-[#1558C9] font-black">[➕ 세부 주간보고서 작성]</span> 버튼을 눌러 [{myTeamName}] 팀의 첫 보고서를 등록해 보세요!
                           </p>
                         </div>
                       );

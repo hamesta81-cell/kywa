@@ -387,21 +387,39 @@ function CrewContent() {
     setMyTeamActivities(filteredMy);
   }, [currentUser, allTeamsFeed]);
 
-  const handleToggleLike = (feedId: number) => {
-    setAllTeamsFeed(prev => prev.map(item => {
-      if (item.id === feedId) {
-        const nextLiked = !item.isLiked;
-        return {
-          ...item,
-          isLiked: nextLiked,
-          likes: nextLiked ? item.likes + 1 : item.likes - 1
-        };
-      }
-      return item;
-    }));
+  const handleToggleLike = async (feedId: any) => {
+    let updatedTargetItem: any = null;
+
+    setAllTeamsFeed(prev => {
+      const updated = prev.map(item => {
+        if (String(item.id) === String(feedId)) {
+          const nextLiked = !item.isLiked;
+          updatedTargetItem = {
+            ...item,
+            isLiked: nextLiked,
+            likes: nextLiked ? (item.likes || 0) + 1 : Math.max(0, (item.likes || 1) - 1)
+          };
+          return updatedTargetItem;
+        }
+        return item;
+      });
+
+      saveAllTeamsFeed(updated);
+      return updated;
+    });
+
+    if (updatedTargetItem) {
+      try {
+        await fetch("/api/crew-reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ report: updatedTargetItem })
+        });
+      } catch (e) {}
+    }
   };
 
-  const handleAddComment = (feedId: any) => {
+  const handleAddComment = async (feedId: any) => {
     if (!isCrewUser && !currentUser) {
       alert("🔒 홍보단 전용 계정으로 로그인 후 응원 댓글을 작성하실 수 있습니다!");
       return;
@@ -413,30 +431,42 @@ function CrewContent() {
     }
 
     const authorName = currentUser?.teamName || currentUser?.name || myTeamName || "안전홍보단";
+    let updatedTargetItem: any = null;
 
     setAllTeamsFeed(prev => {
       const updated = prev.map(item => {
-        if (item.id === feedId) {
-          return {
-            ...item,
-            comments: [
-              ...item.comments,
-              {
-                id: Date.now(),
-                author: authorName,
-                text: text,
-                time: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
-              }
-            ]
+        if (String(item.id) === String(feedId)) {
+          const newCommentObj = {
+            id: `cmt_${Date.now()}`,
+            author: authorName,
+            text: text,
+            time: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
           };
+          updatedTargetItem = {
+            ...item,
+            comments: [...(item.comments || []), newCommentObj]
+          };
+          return updatedTargetItem;
         }
         return item;
       });
+
       saveAllTeamsFeed(updated);
       return updated;
     });
 
     setCommentInputs(prev => ({ ...prev, [feedId]: "" }));
+
+    if (updatedTargetItem) {
+      try {
+        await fetch("/api/crew-reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ report: updatedTargetItem })
+        });
+      } catch (e) {}
+    }
+
     alert(`💬 [${authorName}] 명의로 응원 댓글이 성공적으로 등록되었습니다!`);
   };
 

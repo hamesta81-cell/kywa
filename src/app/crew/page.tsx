@@ -1487,6 +1487,59 @@ function CrewContent() {
     { key: "oct_w4", label: "10월 4주차 (최종 마감)" }
   ];
 
+  // 📸 [다중 사진 그리드 렌더러] 첨부된 모든 사진을 1장도 빠짐없이 고화질 그리드로 표출
+  const renderAttachedPhotosGallery = (reportItem: any) => {
+    if (!reportItem) return null;
+    const photoList: string[] = Array.isArray(reportItem.attachedPhotos) && reportItem.attachedPhotos.length > 0
+      ? reportItem.attachedPhotos.filter((img: any) => img && typeof img === "string" && (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:image/') || img.startsWith('/')))
+      : (reportItem.photoUrl && (reportItem.photoUrl.startsWith('http://') || reportItem.photoUrl.startsWith('https://') || reportItem.photoUrl.startsWith('data:image/') || reportItem.photoUrl.startsWith('/')) ? [reportItem.photoUrl] : []);
+
+    if (photoList.length === 0) return null;
+
+    return (
+      <div className="space-y-2 pt-1">
+        <div className="flex items-center justify-between text-[11px] font-black text-slate-700">
+          <span className="flex items-center gap-1">
+            <ImageIcon size={14} className="text-[#1558C9]" />
+            <span>📸 첨부 현장 활동 사진 ({photoList.length}장 전체)</span>
+          </span>
+          <span className="text-[10px] text-[#1558C9] font-bold">* 각 사진 클릭 시 원본 고화질 확대 & 즉시 다운로드</span>
+        </div>
+
+        <div className={`grid gap-2 ${
+          photoList.length === 1
+            ? "grid-cols-1"
+            : photoList.length === 2
+            ? "grid-cols-2"
+            : photoList.length === 3
+            ? "grid-cols-3"
+            : "grid-cols-3 sm:grid-cols-4"
+        }`}>
+          {photoList.map((imgUrl, imgIdx) => (
+            <div
+              key={imgIdx}
+              onClick={() => setSelectedOriginalImage(imgUrl)}
+              className="group relative cursor-pointer overflow-hidden rounded-[10px] border border-slate-300 aspect-video bg-slate-100 shadow-sm hover:border-[#1558C9] transition-all"
+            >
+              <img
+                src={imgUrl}
+                alt={`${reportItem.title || "활동 사진"} ${imgIdx + 1}`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+              />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white text-[10px] font-black">
+                <ZoomIn size={16} />
+                <span>확대/다운로드</span>
+              </div>
+              <span className="absolute top-1 left-1 text-[9px] font-black bg-black/75 text-white px-1.5 py-0.5 rounded backdrop-blur-sm">
+                #{imgIdx + 1}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const filteredTeams = crewTeams.filter(t => 
     (t.teamName && t.teamName.toLowerCase().includes(searchTerm.toLowerCase())) || 
     (t.activityTitle && t.activityTitle.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -2216,6 +2269,7 @@ function CrewContent() {
                           {report.detailContent}
                         </div>
                       )}
+                      {renderAttachedPhotosGallery(report)}
                       <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-600 font-bold pt-1 border-t border-slate-200">
                         <span>📅 {report.date || report.createdAt?.split('T')[0]}</span>
                         <span>📍 {report.location || "전국"}</span>
@@ -2503,6 +2557,7 @@ function CrewContent() {
                             {report.detailContent}
                           </div>
                         )}
+                        {renderAttachedPhotosGallery(report)}
                         <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-600 font-bold pt-1 border-t border-slate-200">
                           <span>📅 {report.date || report.createdAt?.split('T')[0]}</span>
                           <span>📍 {report.location || "전국"}</span>
@@ -2574,31 +2629,7 @@ function CrewContent() {
                         </div>
                       )}
 
-                      {(() => {
-                        const rawImg = feed.photoUrl || (feed.attachedPhotos && feed.attachedPhotos[0]);
-                        const isValidUrl = rawImg && (rawImg.startsWith('http://') || rawImg.startsWith('https://') || rawImg.startsWith('data:image/') || rawImg.startsWith('/'));
-                        if (!isValidUrl) return null;
-
-                        return (
-                          <div 
-                            onClick={() => setSelectedOriginalImage(rawImg)}
-                            className="relative group cursor-pointer overflow-hidden rounded-[12px] border border-slate-300 aspect-video bg-slate-100 shadow-sm"
-                          >
-                            <img 
-                              src={rawImg} 
-                              alt={feed.title || "활동 사진"} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-black">
-                              <ZoomIn size={18} />
-                              <span>🔍 원본 사진 크게 보기</span>
-                            </div>
-                            <span className="absolute bottom-2 right-2 text-[9px] font-black bg-black/70 text-white px-2 py-0.5 rounded backdrop-blur-sm">
-                              {feed.teamName} 현장 활동 컷
-                            </span>
-                          </div>
-                        );
-                      })()}
+                      {renderAttachedPhotosGallery(feed)}
                       
                       <div className="flex items-center justify-between pt-1">
                         <button

@@ -161,6 +161,13 @@ function CrewContent() {
         try { customPasses = JSON.parse(rawCustom); } catch (e) {}
       }
       customPasses[myTeamName] = updatedPass;
+      const cleanTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+      if (currentUser?.role === "ADMIN" || currentUser?.username === "admin" || cleanTeam.includes("관리자") || cleanTeam.includes("총괄") || cleanTeam.includes("운영본부")) {
+        customPasses["총괄 관리자"] = updatedPass;
+        customPasses["총괄관리자"] = updatedPass;
+        customPasses["admin"] = updatedPass;
+        customPasses["admin@kywa.or.kr"] = updatedPass;
+      }
       if (typeof window !== "undefined") {
         localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(customPasses));
       }

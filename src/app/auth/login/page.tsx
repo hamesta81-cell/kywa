@@ -23,11 +23,42 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (username === "admin@kywa.or.kr" || username === "admin") {
-      if (password !== "admin2026!" && password !== "1234") {
+    if (username === "admin@kywa.or.kr" || username === "admin" || username === "총괄관리자" || username === "총괄 관리자") {
+      let isAdminPasswordValid = (password === "admin2026!" || password === "1234");
+
+      try {
+        // 1. 클라우드 DB 서버 API 우선 검증
+        const cloudRes = await fetch("/api/crew-passwords", { cache: "no-store" });
+        if (cloudRes.ok) {
+          const cloudJson = await cloudRes.json();
+          const cloudPasses = cloudJson?.passwords || {};
+          const customAdminPass = cloudPasses["총괄 관리자"] || cloudPasses["총괄관리자"] || cloudPasses["admin"] || cloudPasses["admin@kywa.or.kr"];
+          if (customAdminPass && customAdminPass === password) {
+            isAdminPasswordValid = true;
+            if (typeof window !== "undefined") {
+              localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(cloudPasses));
+            }
+          }
+        }
+
+        // 2. 만약 클라우드 응답 미도달 시 로컬 백업 검증
+        if (!isAdminPasswordValid && typeof window !== "undefined") {
+          const rawCustom = localStorage.getItem("kywa_crew_custom_passwords");
+          if (rawCustom) {
+            const customPasses = JSON.parse(rawCustom);
+            const customAdminPass = customPasses["총괄 관리자"] || customPasses["총괄관리자"] || customPasses["admin"] || customPasses["admin@kywa.or.kr"];
+            if (customAdminPass && customAdminPass === password) {
+              isAdminPasswordValid = true;
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (!isAdminPasswordValid) {
         alert("⚠️ 관리자 비밀번호가 올바르지 않습니다.");
         return;
       }
+
       const adminObj = { name: "총괄 관리자", role: "ADMIN", teamId: 999 };
       sessionStorage.setItem("user", JSON.stringify(adminObj));
       localStorage.setItem("user", JSON.stringify(adminObj));

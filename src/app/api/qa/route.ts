@@ -40,6 +40,18 @@ function readFromDiskStore(): any[] {
       }
     }
   } catch (e) {}
+
+  try {
+    const fallbackPath = path.join(os.tmpdir(), "permanent_qa_db.json");
+    if (fs.existsSync(fallbackPath)) {
+      const raw = fs.readFileSync(fallbackPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
   return [];
 }
 
@@ -47,12 +59,12 @@ function writeToDiskStore(items: any[]) {
   try {
     const filePath = getDiskFilePath();
     fs.writeFileSync(filePath, JSON.stringify(items, null, 2), "utf-8");
-  } catch (e) {
-    try {
-      const fallbackPath = path.join(os.tmpdir(), "permanent_qa_db.json");
-      fs.writeFileSync(fallbackPath, JSON.stringify(items, null, 2), "utf-8");
-    } catch (err) {}
-  }
+  } catch (e) {}
+
+  try {
+    const fallbackPath = path.join(os.tmpdir(), "permanent_qa_db.json");
+    fs.writeFileSync(fallbackPath, JSON.stringify(items, null, 2), "utf-8");
+  } catch (err) {}
 }
 
 function sanitizeQa(q: any): any {

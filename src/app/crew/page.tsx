@@ -824,11 +824,11 @@ function CrewContent() {
   const [qaAnswerInputs, setQaAnswerInputs] = useState<{ [key: string]: string }>({});
 
   // 🌟 Q&A 게시판 불멸의 이중 영구 보존 동기화
-  // 🌟 Q&A 게시판 100% 중앙 클라우드 단일 공급원 동기화 (Single Source of Truth)
   const fetchQaItems = async () => {
     try {
-      // 🛡️ 삭제된 Q&A 블랙리스트 로드
+      // 🛡️ 1. 삭제된 Q&A 블랙리스트 및 브라우저 보관소 로드
       let deletedQaIdsSet = new Set<string>();
+      let localVaultItems: any[] = [];
       try {
         if (typeof window !== "undefined") {
           const rawDel = localStorage.getItem("kywa_deleted_qa_ids");
@@ -836,41 +836,77 @@ function CrewContent() {
             const arr = JSON.parse(rawDel);
             if (Array.isArray(arr)) deletedQaIdsSet = new Set(arr.map(id => String(id)));
           }
+
+          const rawVault = localStorage.getItem("kywa_qa_items_vault") || localStorage.getItem("kywa_permanent_qa_vault_v1");
+          if (rawVault) {
+            const parsed = JSON.parse(rawVault);
+            if (Array.isArray(parsed)) localVaultItems = parsed;
+          }
         }
       } catch (e) {}
 
-      const res = await fetch(`/api/qa?t=${Date.now()}`, {
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" }
-      });
-      const data = await res.json();
-      if (data && data.success && Array.isArray(data.qaItems)) {
-        const filteredServerQa = data.qaItems
-          .filter((q: any) => q && q.id && !deletedQaIdsSet.has(String(q.id)))
-          .sort((a: any, b: any) => Number(String(b.id).replace(/\D/g, "") || 0) - Number(String(a.id).replace(/\D/g, "") || 0));
-        
-        // 🛡️ 무손실 Q&A 병합 방어막
-        setQaList(prevQa => {
-          const map = new Map();
-          (prevQa || []).forEach((item: any) => {
-            if (item && item.id && !deletedQaIdsSet.has(String(item.id))) {
-              map.set(String(item.id), item);
-            }
-          });
-          (filteredServerQa || []).forEach((item: any) => {
-            if (item && item.id && !deletedQaIdsSet.has(String(item.id))) {
-              map.set(String(item.id), item);
-            }
-          });
-          const finalQa = Array.from(map.values()).sort((a: any, b: any) => 
-            new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime()
-          );
-          if (JSON.stringify(prevQa) === JSON.stringify(finalQa)) {
-            return prevQa;
-          }
-          return finalQa;
+      // 🛡️ 2. 서버 클라우드 DB 연동
+      let serverQaList: any[] = [];
+      try {
+        const res = await fetch(`/api/qa?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" }
         });
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.qaItems)) {
+          serverQaList = data.qaItems;
+        }
+      } catch (e) {}
+
+      // 🛡️ 3. 무손실 Q&A 이중 병합 (로컬 보관소 + 클라우드 DB)
+      const map = new Map<string, any>();
+
+      localVaultItems.forEach((item: any) => {
+        if (item && item.id && !deletedQaIdsSet.has(String(item.id))) {
+          map.set(String(item.id), item);
+        }
+      });
+
+      serverQaList.forEach((item: any) => {
+        if (item && item.id && !deletedQaIdsSet.has(String(item.id))) {
+          const existing = map.get(String(item.id));
+          map.set(String(item.id), {
+            ...existing,
+            ...item,
+            answers: (item.answers && item.answers.length > 0) ? item.answers : (existing?.answers || []),
+            comments: (item.comments && item.comments.length > 0) ? item.comments : (existing?.comments || [])
+          });
+        }
+      });
+
+      const finalQa = Array.from(map.values()).sort((a: any, b: any) => 
+        new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime()
+      );
+
+      setQaList(prevQa => {
+        if (JSON.stringify(prevQa) === JSON.stringify(finalQa)) return prevQa;
+        return finalQa;
+      });
+
+      // 🛡️ 4. 로컬 보관소에 100% 이중 영구 저장
+      try {
+        if (typeof window !== "undefined" && finalQa.length > 0) {
+          localStorage.setItem("kywa_qa_items_vault", JSON.stringify(finalQa));
+          localStorage.setItem("kywa_permanent_qa_vault_v1", JSON.stringify(finalQa));
+        }
+      } catch (e) {}
+
+      // 🛡️ 5. 서버에 미반영된 로컬 Q&A 글이 있다면 클라우드 DB로 즉시 백업 동기화
+      if (localVaultItems.length > 0 && serverQaList.length < finalQa.length) {
+        try {
+          await fetch("/api/qa", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ qaItems: finalQa })
+          });
+        } catch (syncErr) {}
       }
+
     } catch (e) {}
   };
 
@@ -1043,10 +1079,8 @@ function CrewContent() {
     saveQaToVaultAndState(updatedQaList);
 
     try {
-      await fetch("/api/qa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "DELETE", id })
+      await fetch(`/api/qa?id=${encodeURIComponent(targetIdStr)}`, {
+        method: "DELETE"
       });
     } catch (err) {}
 

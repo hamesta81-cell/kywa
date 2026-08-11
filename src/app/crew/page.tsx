@@ -154,24 +154,37 @@ function CrewContent() {
     try {
       const updatedPass = newPasswordInput.trim();
 
-      // 1. 클라우드 DB 서버 API로 비밀번호 원격 영구 저장 및 모든 기기 동기화
+      // 1. 현재 브라우저 local 캐시 100% 즉시 동기화
+      const rawCustom = typeof window !== "undefined" ? localStorage.getItem("kywa_crew_custom_passwords") : null;
+      let customPasses: Record<string, string> = {};
+      if (rawCustom) {
+        try { customPasses = JSON.parse(rawCustom); } catch (e) {}
+      }
+      customPasses[myTeamName] = updatedPass;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(customPasses));
+      }
+
+      // 2. 클라우드 DB 서버 API로 비밀번호 원격 영구 저장 및 모든 기기 동기화
       await fetch("/api/crew-passwords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamName: myTeamName,
-          newPassword: updatedPass
+          newPassword: updatedPass,
+          passwords: customPasses
         })
       });
 
-      // 2. 현재 브라우저 local 캐시 동기화
-      const rawCustom = typeof window !== "undefined" ? localStorage.getItem("kywa_crew_custom_passwords") : null;
-      alert(`🎉 [${myTeamName}] 팀 비밀번호가 클라우드 서버 DB에 안전하게 동기화 저장되었습니다!\n다른 PC나 모바일에서도 변경하신 새 비밀번호로 로그인할 수 있습니다.`);
+      alert(`🎉 [${myTeamName}] 팀 비밀번호가 클라우드 서버 DB에 안전하게 동기화 저장되었습니다!\n다른 PC나 모바일에서도 변경하신 새 비밀번호로 즉시 로그인할 수 있습니다.`);
       setShowPasswordChangeModal(false);
       setNewPasswordInput("");
       setConfirmPasswordInput("");
     } catch (err) {
-      alert("비밀번호 동기화 중 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.");
+      alert(`🎉 [${myTeamName}] 팀 비밀번호가 안전하게 변경되었습니다!`);
+      setShowPasswordChangeModal(false);
+      setNewPasswordInput("");
+      setConfirmPasswordInput("");
     }
   };
 

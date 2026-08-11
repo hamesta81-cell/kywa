@@ -9,6 +9,36 @@ import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
 // 공식 단일 소스 모듈 연결 (안전 폴백 배열 포함)
 export const CREW_16_ACCOUNTS = OFFICIAL_16_CREW_TEAMS || [];
 
+// ⚡ [유연 비밀번호 검증 헬퍼] 팀명 특수문자/공백/풀네임 차이(예: 안심ON vs 안심ON ('안전'과 '마음(心)'을 켜다.))를 100% 무결점 보정
+function checkCustomPassword(passes: Record<string, string>, teamName: string, username: string, inputPass: string): boolean {
+  if (!passes || typeof passes !== "object") return false;
+
+  // 1. 단순 정확 매칭
+  if (passes[teamName] === inputPass || passes[username] === inputPass) return true;
+
+  // 2. 정규화 정밀 매칭
+  const normTeam = teamName.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+  const normUser = username.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+
+  for (const [key, val] of Object.entries(passes)) {
+    if (val !== inputPass) continue;
+    const normKey = key.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+    if (!normKey) continue;
+
+    if (
+      normKey === normTeam ||
+      normKey === normUser ||
+      (normTeam.length > 2 && normKey.includes(normTeam)) ||
+      (normTeam.length > 2 && normTeam.includes(normKey)) ||
+      (normUser.length > 2 && normKey.includes(normUser))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export default function LoginPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [loginMode, setLoginMode] = useState<"general" | "crew">("general");
@@ -32,8 +62,7 @@ export default function LoginPage() {
         if (cloudRes.ok) {
           const cloudJson = await cloudRes.json();
           const cloudPasses = cloudJson?.passwords || {};
-          const customAdminPass = cloudPasses["총괄 관리자"] || cloudPasses["총괄관리자"] || cloudPasses["admin"] || cloudPasses["admin@kywa.or.kr"];
-          if (customAdminPass && customAdminPass === password) {
+          if (checkCustomPassword(cloudPasses, "총괄 관리자", "admin", password)) {
             isAdminPasswordValid = true;
             if (typeof window !== "undefined") {
               localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(cloudPasses));
@@ -46,8 +75,7 @@ export default function LoginPage() {
           const rawCustom = localStorage.getItem("kywa_crew_custom_passwords");
           if (rawCustom) {
             const customPasses = JSON.parse(rawCustom);
-            const customAdminPass = customPasses["총괄 관리자"] || customPasses["총괄관리자"] || customPasses["admin"] || customPasses["admin@kywa.or.kr"];
-            if (customAdminPass && customAdminPass === password) {
+            if (checkCustomPassword(customPasses, "총괄 관리자", "admin", password)) {
               isAdminPasswordValid = true;
             }
           }
@@ -73,7 +101,8 @@ export default function LoginPage() {
       // 16개 정식 홍보단 매핑 검색
       const matchedAccount = CREW_16_ACCOUNTS.find(
         acc => acc.username.toLowerCase() === username.toLowerCase() || 
-               acc.teamName.toLowerCase().includes(username.toLowerCase())
+               acc.teamName.toLowerCase().includes(username.toLowerCase()) ||
+               username.toLowerCase().includes(acc.teamName.toLowerCase())
       );
 
       if (matchedAccount) {
@@ -85,7 +114,7 @@ export default function LoginPage() {
           if (cloudRes.ok) {
             const cloudJson = await cloudRes.json();
             const cloudPasses = cloudJson?.passwords || {};
-            if (cloudPasses[matchedAccount.teamName] && cloudPasses[matchedAccount.teamName] === password) {
+            if (checkCustomPassword(cloudPasses, matchedAccount.teamName, matchedAccount.username, password)) {
               isValidPassword = true;
               if (typeof window !== "undefined") {
                 localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(cloudPasses));
@@ -98,7 +127,7 @@ export default function LoginPage() {
             const rawCustom = localStorage.getItem("kywa_crew_custom_passwords");
             if (rawCustom) {
               const customPasses = JSON.parse(rawCustom);
-              if (customPasses[matchedAccount.teamName] && customPasses[matchedAccount.teamName] === password) {
+              if (checkCustomPassword(customPasses, matchedAccount.teamName, matchedAccount.username, password)) {
                 isValidPassword = true;
               }
             }

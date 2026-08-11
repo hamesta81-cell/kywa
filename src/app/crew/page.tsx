@@ -295,35 +295,32 @@ function CrewContent() {
         return finalReportList;
       });
 
-      // [내 팀 피드 실시간 반응형 동기화 (계정 불일치로 인한 글 숨김 100% 원천 차단 안전 폴백)]
+      // [내 팀 피드 실시간 반응형 동기화 (내 팀 전용 엄격 격리)]
       setMyTeamActivities(prevMy => {
         const cleanUserTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
         const isAdminUser = currentUser?.role === "ADMIN" || currentUser?.username === "admin" || cleanUserTeam.includes("관리자") || cleanUserTeam.includes("운영본부") || cleanUserTeam.includes("총괄");
 
+        if (isAdminUser) {
+          if (JSON.stringify(prevMy) === JSON.stringify(finalReportList)) return prevMy;
+          return finalReportList;
+        }
+
         const myExtracted = finalReportList.filter((item: any) => {
-          if (isAdminUser || !cleanUserTeam) return true;
           const cleanItemTeam = (item.teamName || item.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-          if (!cleanItemTeam) return true;
-          
-          const coreUser = cleanUserTeam.replace(/^[0-9]+/, "");
-          const coreItem = cleanItemTeam.replace(/^[0-9]+/, "");
+          if (!cleanItemTeam || !cleanUserTeam) return false;
+          if (cleanUserTeam === cleanItemTeam) return true;
+
+          const coreUser = cleanUserTeam.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
+          const coreItem = cleanItemTeam.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
 
           return (
-            cleanUserTeam.includes(cleanItemTeam) ||
-            cleanItemTeam.includes(cleanUserTeam) ||
-            (coreUser && coreItem && (coreUser.includes(coreItem) || coreItem.includes(coreUser))) ||
-            cleanUserTeam.includes("홍보단") ||
-            cleanItemTeam.includes("홍보단") ||
-            cleanItemTeam.includes("안전") ||
-            cleanUserTeam.includes("안전")
+            (coreUser && coreItem && (coreUser === coreItem || coreUser.includes(coreItem) || coreItem.includes(coreUser))) ||
+            (cleanUserTeam.length > 2 && cleanItemTeam.length > 2 && (cleanUserTeam.includes(cleanItemTeam) || cleanItemTeam.includes(cleanUserTeam)))
           );
         });
 
-        // 🌟 팀명 미매칭 시에도 전체 보고서 목록을 폴백으로 100% 노출하여 글 사라짐 완전 방지
-        const finalDisplayList = (myExtracted.length > 0) ? myExtracted : finalReportList;
-
-        if (JSON.stringify(prevMy) === JSON.stringify(finalDisplayList)) return prevMy;
-        return finalDisplayList;
+        if (JSON.stringify(prevMy) === JSON.stringify(myExtracted)) return prevMy;
+        return myExtracted;
       });
 
     } catch (e: any) {
@@ -2267,34 +2264,55 @@ function CrewContent() {
               </div>
             </div>
 
-            {/* 🌟 [오피스 상단 전면 배치] 최근 주간활동 보고서 통합 렌더링 섹션 (모든 작성물 100% 즉시 표출) */}
+            {/* 🌟 [{myTeamName}] 팀 전용 주간활동 보고서 섹션 */}
             <div className="krds-public-card p-6 bg-white border border-[#CBD5E1] rounded-[20px] space-y-5 shadow-md">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#CBD5E1] pb-4">
                 <div>
                   <span className="text-xs font-black text-blue-900 bg-blue-100 px-3 py-1 rounded-md border border-blue-300">
-                    REALTIME WEEKLY REPORTS
+                    MY TEAM REPORTS
                   </span>
                   <h3 className="text-lg font-black text-[#0F172A] mt-1 flex items-center gap-2">
-                    📝 최근 제출 및 수정된 주간활동 보고서 (실시간 등록/수정/삭제 현황)
+                    📝 [{myTeamName}] 팀 제출 세부 주간활동 보고서 목록
                   </h3>
                 </div>
-                <button
-                  onClick={() => handleOpenEditModal()}
-                  className="px-4 py-2.5 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 self-start sm:self-auto transition-all cursor-pointer"
-                >
-                  <PlusCircle size={15} />
-                  <span>[➕ 세부 주간보고서 새로 작성]</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setOfficeMenu("all_feeds")}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-[#1558C9] font-black text-xs rounded-xl border border-slate-300 transition-all flex items-center gap-1"
+                  >
+                    <span>🌐 타 홍보단 소식 구경</span>
+                  </button>
+                  <button
+                    onClick={() => handleOpenEditModal()}
+                    className="px-4 py-2 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <PlusCircle size={15} />
+                    <span>[➕ 세부 주간보고서 작성]</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {allTeamsFeed.length === 0 ? (
-                  <div className="col-span-full p-8 bg-slate-50 border border-dashed border-slate-300 rounded-[16px] text-center space-y-2">
+                {myTeamActivities.length === 0 ? (
+                  <div className="col-span-full p-8 bg-slate-50 border border-dashed border-slate-300 rounded-[16px] text-center space-y-3">
                     <span className="text-3xl">📝</span>
-                    <p className="text-sm font-black text-[#0F172A]">등록된 보고서가 없습니다.</p>
+                    <p className="text-sm font-black text-[#0F172A]">
+                      아직 <span className="text-[#1558C9]">[{myTeamName}]</span> 팀이 제출한 세부 주간활동 보고서가 없습니다.
+                    </p>
+                    <p className="text-xs font-bold text-slate-500">
+                      상단의 <span className="text-[#1558C9] font-black">[➕ 세부 주간보고서 작성]</span> 버튼을 눌러 소식을 전해보세요!
+                    </p>
+                    <div className="pt-2">
+                      <button
+                        onClick={() => setOfficeMenu("all_feeds")}
+                        className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-[#1558C9] border border-blue-200 rounded-lg text-xs font-black transition-all"
+                      >
+                        🌐 다른 홍보단 활동 소식 구경하러 가기 →
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  allTeamsFeed.slice(0, 10).map(report => (
+                  myTeamActivities.slice(0, 10).map(report => (
                     <div key={report.id} className="p-5 bg-slate-50 border border-[#CBD5E1] rounded-[16px] space-y-3 shadow-sm hover:border-blue-400 transition-all">
                       <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
                         <div className="flex items-center gap-2">

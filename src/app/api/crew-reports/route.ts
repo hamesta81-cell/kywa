@@ -311,7 +311,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    let body: any;
+    try {
+      const text = await request.text();
+      if (!text) {
+        return NextResponse.json({ success: false, error: "전송 데이터가 비어있습니다." }, { status: 400 });
+      }
+      body = JSON.parse(text);
+    } catch (jsonErr: any) {
+      return NextResponse.json({
+        success: false,
+        error: `⚠️ 전송 데이터 용량(이미지 파일)이 커서 파싱이 중단되었습니다. (${jsonErr.message})\n이미지 첨부를 완료하신 후 다시 제출해 주세요.`
+      }, { status: 400, headers: NO_CACHE_HEADERS });
+    }
+
     let incomingList: any[] = [];
 
     if (body.report) incomingList = [body.report];

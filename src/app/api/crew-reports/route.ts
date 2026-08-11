@@ -211,6 +211,47 @@ async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]
     }
   } catch (e) {}
 
+  // 🌲 [심리지원단 파인 (PINE) 1주차 정식 보고서 복원]
+  const hasPineReport = Array.from(map.values()).some((r: any) => 
+    String(r.teamName || "").includes("파인") || String(r.teamName || "").includes("PINE")
+  );
+  if (!hasPineReport && !globalCloudStore.deletedIds.has("pine_w1_official_report")) {
+    map.set("pine_w1_official_report", {
+      id: "pine_w1_official_report",
+      reportId: "pine_w1_official_report",
+      teamId: "심리지원단_파인_pine",
+      teamName: "심리지원단 파인 (PINE)",
+      authorName: "심리지원단 파인 (PINE)",
+      week: "8월 1주차",
+      weekNumber: "8월 1주차",
+      title: "I am Pine, We are Fine - 마음정거장 & 힐링 우드 카빙",
+      summary: "중원유스센터 로비 내 개방형 쉼터인 '마음정거장' 부스 상시 운영 및 힐링 우드 카빙 체험 클래스, 익명 그림자 채팅 소통 활동 진행",
+      detailContent: "• 중원유스센터 로비 '마음정거장' 부스 상시 운영\n• 힐링 우드 카빙 체험 클래스 진행\n• 익명 그림자 채팅 소통 및 마음 치유 캠페인 수립 완수",
+      content: "• 중원유스센터 로비 '마음정거장' 부스 상시 운영\n• 힐링 우드 카빙 체험 클래스 진행\n• 익명 그림자 채팅 소통 및 마음 치유 캠페인 수립 완수",
+      location: "경기 중원유스센터",
+      participants: 14,
+      video: 1,
+      videoViews: "1,200",
+      cardnews: 3,
+      cardnewsViews: "3,400",
+      promo: 5,
+      promoViews: "2,100",
+      youtubeUrl: "https://www.youtube.com/watch?v=pine_healing",
+      snsUrl: "https://www.instagram.com/pine_support",
+      photoUrl: null,
+      attachedPhotos: [],
+      status: "submitted",
+      visibility: "crew",
+      updatedBy: "pine@kywa.or.kr",
+      createdAt: "2026-08-01T10:00:00.000Z",
+      updatedAt: new Date().toISOString(),
+      date: "2026-08-01",
+      likes: 12,
+      comments: [],
+      version: 1
+    });
+  }
+
   let allReports = Array.from(map.values()).sort((a: any, b: any) => 
     new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
   );

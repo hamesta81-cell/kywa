@@ -3757,10 +3757,11 @@ function CrewContent() {
                   href={selectedOriginalImage}
                   target="_blank"
                   rel="noreferrer"
+                  download="kywa_crew_activity_photo.jpg"
                   className="px-3.5 py-1.5 bg-[#1558C9] hover:bg-blue-600 text-white rounded-full text-xs font-black shadow flex items-center gap-1 transition-all"
                 >
-                  <ExternalLink size={13} />
-                  <span>[새 탭에서 원본 보기/다운로드]</span>
+                  <Download size={13} />
+                  <span>[📥 원본 사진 바로 다운로드]</span>
                 </a>
                 <button
                   onClick={() => setSelectedOriginalImage(null)}

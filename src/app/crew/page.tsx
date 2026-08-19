@@ -135,6 +135,9 @@ function CrewContent() {
   // 🔒 현재 로그인된 팀명 (널 방어 체계)
   const myTeamName = currentUser?.teamName || currentUser?.name || "안전홍보단";
 
+  // 🏷️ 타 홍보단 소식 홍보단별 필터링 탭 선택 상태
+  const [selectedTeamTab, setSelectedTeamTab] = useState<string>("all");
+
   // 🔑 홍보단 비밀번호 변경 모달 State
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
   const [newPasswordInput, setNewPasswordInput] = useState("");
@@ -213,6 +216,34 @@ function CrewContent() {
       return url;
     }
     return "";
+  };
+
+  // 📅 작성일(date / createdAt) 기준 최신일 우선 내림차순 정렬 헬퍼
+  const sortReportsByDateDesc = (a: any, b: any) => {
+    const getTimestamp = (item: any) => {
+      if (!item) return 0;
+      if (item.date && typeof item.date === "string") {
+        const parsedDate = new Date(item.date).getTime();
+        if (!isNaN(parsedDate) && parsedDate > 0) return parsedDate;
+      }
+      const altDate = item.createdAt || item.submittedAt || item.updatedAt;
+      if (altDate) {
+        const parsedAlt = new Date(altDate).getTime();
+        if (!isNaN(parsedAlt) && parsedAlt > 0) return parsedAlt;
+      }
+      return 0;
+    };
+
+    const timeA = getTimestamp(a);
+    const timeB = getTimestamp(b);
+
+    if (timeB !== timeA) {
+      return timeB - timeA; // 최신 작성일 우선
+    }
+
+    const createdA = new Date(a.createdAt || a.submittedAt || a.updatedAt || 0).getTime();
+    const createdB = new Date(b.createdAt || b.submittedAt || b.updatedAt || 0).getTime();
+    return createdB - createdA;
   };
 
   // 🌟 [오류 100% 원천 차단 엔진] Local-First Zero-Failure Data Architecture
@@ -307,7 +338,7 @@ function CrewContent() {
         comments: Array.isArray(item?.comments) ? item.comments : [],
         photoUrl: fixInvalidImageUrl(item?.photoUrl),
         attachedPhotos: (Array.isArray(item?.attachedPhotos) ? item.attachedPhotos : []).map((p: any) => fixInvalidImageUrl(p)).filter(Boolean)
-      })).sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime());
+      })).sort(sortReportsByDateDesc);
 
       // [공유 피드 실시간 반응형 동기화]
       setAllTeamsFeed(prevFeed => {
@@ -399,7 +430,7 @@ function CrewContent() {
       const itemTeam = (item.teamName || "").trim().toLowerCase();
       if (!userTeam || !itemTeam) return false;
       return itemTeam.includes(userTeam) || userTeam.includes(itemTeam) || itemTeam === userTeam;
-    });
+    }).sort(sortReportsByDateDesc);
 
     setMyTeamActivities(filteredMy);
   }, [currentUser, allTeamsFeed]);
@@ -1342,6 +1373,24 @@ function CrewContent() {
     });
   };
 
+  // 🔄 [동시 업로드 네트워크 재시도 헬퍼] 순간 혼잡으로 인한 오류 발생 시 지수 백오프 자동 재시도
+  const fetchWithRetry = async (url: string, options: RequestInit, retries = 3, backoff = 1000): Promise<Response> => {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok && res.status >= 500 && retries > 0) {
+        await new Promise((r) => setTimeout(r, backoff));
+        return fetchWithRetry(url, options, retries - 1, backoff * 1.5);
+      }
+      return res;
+    } catch (err) {
+      if (retries > 0) {
+        await new Promise((r) => setTimeout(r, backoff));
+        return fetchWithRetry(url, options, retries - 1, backoff * 1.5);
+      }
+      throw err;
+    }
+  };
+
   // 🌟 [원칙 12 완공] 사진 중앙 클라우드 업로드 파이프라인 (초경량 압축 및 다른 컴퓨터 엑박 100% 방지)
   const handleRealPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -1351,8 +1400,8 @@ function CrewContent() {
       try {
         const uploadedUrls: string[] = [];
         for (const file of selectedFiles) {
-          // 1) 클라이언트 Canvas 초경량 압축 진행
-          const compressedDataUrl = await compressImageFile(file, 1200, 1200, 0.75);
+          // 1) 클라이언트 Canvas 초경량 압축 진행 (1000px, 퀄리티 0.7)
+          const compressedDataUrl = await compressImageFile(file, 1000, 1000, 0.7);
 
           // 2) FormData 생성 후 백엔드 전송
           const formData = new FormData();
@@ -1364,7 +1413,7 @@ function CrewContent() {
             formData.append("file", file);
           }
 
-          const res = await fetch("/api/upload-local", {
+          const res = await fetchWithRetry("/api/upload-local", {
             method: "POST",
             body: formData
           });
@@ -1486,8 +1535,8 @@ function CrewContent() {
             comments: []
           };
 
-      // 📡 [상태 전환 2] 백엔드 Cloud DB 물리 전송 및 동기적 대기
-      const res = await fetch(`/api/crew-reports?t=${Date.now()}`, {
+      // 📡 [상태 전환 2] 백엔드 Cloud DB 물리 전송 및 동기적 대기 (지수 백오프 자동 재시도 적용)
+      const res = await fetchWithRetry(`/api/crew-reports?t=${Date.now()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
         body: JSON.stringify({ report: targetPayloadItem })
@@ -2591,7 +2640,7 @@ function CrewContent() {
                     
                     const cleanUserTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
 
-                    const reportsToShow = isAdmin
+                    const rawReportsToShow = isAdmin
                       ? allTeamsFeed
                       : allTeamsFeed.filter((item: any) => {
                           const cleanItemTeam = (item.teamName || item.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
@@ -2607,6 +2656,8 @@ function CrewContent() {
                             (userCore && itemCore && (userCore.includes(itemCore) || itemCore.includes(userCore)))
                           );
                         });
+
+                    const reportsToShow = [...rawReportsToShow].sort(sortReportsByDateDesc);
 
                     if (reportsToShow.length === 0) {
                       return (
@@ -2672,26 +2723,79 @@ function CrewContent() {
               </div>
             ) : officeMenu === "all_feeds" ? (
               <div className="krds-public-card p-6 bg-white border border-[#CBD5E1] rounded-[20px] space-y-6 shadow-md">
-                <div className="border-b border-[#CBD5E1] pb-3">
-                  <span className="text-xs font-black text-rose-600 bg-rose-100 px-3 py-1 rounded-md border border-rose-300">
-                    INTER-TEAM NETWORKING
-                  </span>
-                  <h3 className="text-lg font-black text-[#0F172A] mt-1">🎉 다른 홍보단 활동 피드 구경하기 (응원 댓글 및 좋아요)</h3>
+                <div className="border-b border-[#CBD5E1] pb-3 space-y-3">
+                  <div>
+                    <span className="text-xs font-black text-rose-600 bg-rose-100 px-3 py-1 rounded-md border border-rose-300">
+                      INTER-TEAM NETWORKING
+                    </span>
+                    <h3 className="text-lg font-black text-[#0F172A] mt-1">🎉 다른 홍보단 활동 피드 구경하기 (응원 댓글 및 좋아요)</h3>
+                  </div>
+
+                  {/* 🛡️ 홍보단별 선택 탭 바 */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200">
+                    <button
+                      onClick={() => setSelectedTeamTab("all")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                        selectedTeamTab === "all"
+                          ? "bg-[#1558C9] text-white shadow-md border border-blue-700"
+                          : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
+                      }`}
+                    >
+                      <span>🌐 전체 보기</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${selectedTeamTab === "all" ? "bg-white text-[#1558C9]" : "bg-slate-200 text-slate-700"}`}>
+                        {allTeamsFeed.length}
+                      </span>
+                    </button>
+
+                    {Array.from(new Set(allTeamsFeed.map(f => (f.teamName || f.authorName || "안전홍보단").trim()).filter(Boolean)))
+                      .sort()
+                      .map((teamName) => {
+                        const count = allTeamsFeed.filter(f => (f.teamName || f.authorName || "").trim() === teamName).length;
+                        const isSelected = selectedTeamTab === teamName;
+                        return (
+                          <button
+                            key={teamName}
+                            onClick={() => setSelectedTeamTab(teamName)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? "bg-[#1558C9] text-white shadow-md border border-blue-700"
+                                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
+                            }`}
+                          >
+                            <span>🛡️ {teamName}</span>
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${isSelected ? "bg-white text-[#1558C9]" : "bg-slate-200 text-slate-700"}`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {allTeamsFeed.length === 0 ? (
-                    <div className="col-span-full p-10 bg-slate-50 border border-dashed border-slate-300 rounded-[16px] text-center space-y-2">
-                      <span className="text-3xl">📝</span>
-                      <p className="text-sm font-black text-[#0F172A]">
-                        아직 등록된 다른 홍보단 활동 피드가 없습니다.
-                      </p>
-                      <p className="text-xs font-bold text-slate-500">
-                        상단의 <span className="text-[#1558C9] font-black">[➕ 세부 주간보고서 작성]</span> 버튼을 눌러 첫 번째 소식을 전해보세요!
-                      </p>
-                    </div>
-                  ) : (
-                    allTeamsFeed.map(feed => (
+                  {(() => {
+                    const displayFeeds = (selectedTeamTab === "all"
+                      ? allTeamsFeed
+                      : allTeamsFeed.filter(f => (f.teamName || f.authorName || "").trim() === selectedTeamTab)
+                    ).sort(sortReportsByDateDesc);
+
+                    if (displayFeeds.length === 0) {
+                      return (
+                        <div className="col-span-full p-10 bg-slate-50 border border-dashed border-slate-300 rounded-[16px] text-center space-y-2">
+                          <span className="text-3xl">📝</span>
+                          <p className="text-sm font-black text-[#0F172A]">
+                            {selectedTeamTab === "all" 
+                              ? "아직 등록된 다른 홍보단 활동 피드가 없습니다."
+                              : `[${selectedTeamTab}] 팀이 등록한 활동 피드가 아직 없습니다.`}
+                          </p>
+                          <p className="text-xs font-bold text-slate-500">
+                            상단의 <span className="text-[#1558C9] font-black">[➕ 세부 주간보고서 작성]</span> 버튼을 눌러 첫 번째 소식을 전해보세요!
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return displayFeeds.map(feed => (
                     <div key={feed.id} className="p-5 bg-slate-50 border border-[#CBD5E1] rounded-[16px] space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-black text-white bg-[#1558C9] px-2.5 py-1 rounded-full">
@@ -2767,7 +2871,8 @@ function CrewContent() {
                         </button>
                       </div>
                     </div>
-                  )))}
+                  ));
+                })()}
                 </div>
               </div>
             ) : officeMenu === "content" ? (

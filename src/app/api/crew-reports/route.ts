@@ -36,9 +36,65 @@ if (!globalCloudStore.weeklyStats) globalCloudStore.weeklyStats = {};
 if (!globalCloudStore.auditLogs) globalCloudStore.auditLogs = [];
 if (!globalCloudStore.deletedIds) globalCloudStore.deletedIds = new Set<string>();
 
+// 🔒 동시 요청 병목 및 쓰기 충돌 원천 차단을 위한 Async Lock (Mutex)
+class AsyncLock {
+  private promise: Promise<void> = Promise.resolve();
+
+  async acquire<T>(fn: () => Promise<T>): Promise<T> {
+    let release: () => void;
+    const nextPromise = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const currentPromise = this.promise;
+    this.promise = nextPromise;
+
+    await currentPromise;
+    try {
+      return await fn();
+    } finally {
+      release!();
+    }
+  }
+}
+
+const fileOperationLock = new AsyncLock();
+
+// 📅 작성일(date / createdAt) 기준 최신일 우선 내림차순 정렬 헬퍼
+function sortReportsByDateDesc(a: any, b: any): number {
+  const getTimestamp = (item: any) => {
+    if (!item) return 0;
+    if (item.date && typeof item.date === "string") {
+      const parsedDate = new Date(item.date).getTime();
+      if (!isNaN(parsedDate) && parsedDate > 0) return parsedDate;
+    }
+    const altDate = item.createdAt || item.submittedAt || item.updatedAt;
+    if (altDate) {
+      const parsedAlt = new Date(altDate).getTime();
+      if (!isNaN(parsedAlt) && parsedAlt > 0) return parsedAlt;
+    }
+    return 0;
+  };
+
+  const timeA = getTimestamp(a);
+  const timeB = getTimestamp(b);
+
+  if (timeB !== timeA) {
+    return timeB - timeA; // 최신 작성일 우선 정렬
+  }
+
+  // 작성일자가 동일한 경우 생성/수정 시각 기준 2차 내림차순 정렬
+  const createdA = new Date(a.createdAt || a.submittedAt || a.updatedAt || 0).getTime();
+  const createdB = new Date(b.createdAt || b.submittedAt || b.updatedAt || 0).getTime();
+  return createdB - createdA;
+}
+
 function readFromDiskStore(): any[] {
+  const filePath = getDiskFilePath();
+  const backupPath = filePath + ".bak";
+
+  // 1. 주 파일 읽기 시도
   try {
-    const filePath = getDiskFilePath();
     if (fs.existsSync(filePath)) {
       const raw = fs.readFileSync(filePath, "utf-8");
       const parsed = JSON.parse(raw);
@@ -47,13 +103,38 @@ function readFromDiskStore(): any[] {
       }
     }
   } catch (e) {}
+
+  // 2. 주 파일 손상 시 백업 파일(.bak)에서 자동 복구 시도 (데이터 유실 방지)
+  try {
+    if (fs.existsSync(backupPath)) {
+      const raw = fs.readFileSync(backupPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
   return [];
 }
 
 function writeToDiskStore(reports: any[]) {
   try {
     const filePath = getDiskFilePath();
-    fs.writeFileSync(filePath, JSON.stringify(reports, null, 2), "utf-8");
+    const backupPath = filePath + ".bak";
+    const tempPath = filePath + ".tmp";
+    const content = JSON.stringify(reports, null, 2);
+
+    // 1. 기존 정상 파일 백업 생성 (데이터 100% 보존)
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.copyFileSync(filePath, backupPath);
+      } catch (backupErr) {}
+    }
+
+    // 2. 임시 파일 쓰기 후 원자적 교체 (Atomic Write)
+    fs.writeFileSync(tempPath, content, "utf-8");
+    fs.renameSync(tempPath, filePath);
   } catch (e) {
     try {
       const fallbackPath = path.join(os.tmpdir(), "permanent_crew_db.json");
@@ -211,9 +292,7 @@ async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]
     }
   } catch (e) {}
 
-  let allReports = Array.from(map.values()).sort((a: any, b: any) => 
-    new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
-  );
+  let allReports = Array.from(map.values()).sort(sortReportsByDateDesc);
 
   globalCloudStore.weeklyReports = allReports;
   globalCloudStore.crewFeed = allReports.filter((r: any) => r.status !== "draft" && r.visibility !== "private");
@@ -310,105 +389,107 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  try {
-    let body: any;
+  return fileOperationLock.acquire(async () => {
     try {
-      const text = await request.text();
-      if (!text) {
-        return NextResponse.json({ success: false, error: "전송 데이터가 비어있습니다." }, { status: 400 });
+      let body: any;
+      try {
+        const text = await request.text();
+        if (!text) {
+          return NextResponse.json({ success: false, error: "전송 데이터가 비어있습니다." }, { status: 400 });
+        }
+        body = JSON.parse(text);
+      } catch (jsonErr: any) {
+        return NextResponse.json({
+          success: false,
+          error: `⚠️ 전송 데이터 용량(이미지 파일)이 커서 파싱이 중단되었습니다. (${jsonErr.message})\n이미지 첨부를 완료하신 후 다시 제출해 주세요.`
+        }, { status: 400, headers: NO_CACHE_HEADERS });
       }
-      body = JSON.parse(text);
-    } catch (jsonErr: any) {
+
+      let incomingList: any[] = [];
+
+      if (body.report) incomingList = [body.report];
+      else if (Array.isArray(body.reportList)) incomingList = body.reportList;
+      else if (Array.isArray(body.reports)) incomingList = body.reports;
+      else if (body.id) incomingList = [body];
+
+      const { weeklyReports } = await fetchCloudData();
+      const map = new Map<string, any>();
+
+      weeklyReports.forEach((r: any) => {
+        if (r && r.id && !globalCloudStore.deletedIds.has(String(r.id))) {
+          map.set(String(r.id), r);
+        }
+      });
+
+      for (const item of incomingList) {
+        const targetId = (item.id || item.reportId) ? String(item.id || item.reportId) : `report_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const existingDoc = map.get(targetId);
+        const sanitized = sanitizeReport({ ...item, id: targetId }, existingDoc);
+
+        if (sanitized && sanitized.id && !globalCloudStore.deletedIds.has(sanitized.id)) {
+          sanitized.updatedBy = String(item.updatedBy || item.authorUid || item.authorName || "crew_user");
+          map.set(sanitized.id, sanitized);
+
+          globalCloudStore.auditLogs.push({
+            id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            action: existingDoc ? "UPSERT_OVERWRITE_REPORT" : "CREATE_REPORT",
+            targetId: sanitized.id,
+            actor: sanitized.updatedBy,
+            version: sanitized.version,
+            timestamp: sanitized.updatedAt
+          });
+        }
+      }
+
+      const updatedList = Array.from(map.values()).sort(sortReportsByDateDesc);
+
+      await persistCloudData(updatedList);
+
       return NextResponse.json({
-        success: false,
-        error: `⚠️ 전송 데이터 용량(이미지 파일)이 커서 파싱이 중단되었습니다. (${jsonErr.message})\n이미지 첨부를 완료하신 후 다시 제출해 주세요.`
-      }, { status: 400, headers: NO_CACHE_HEADERS });
+        success: true,
+        message: "🎉 영구 불멸 DB 저장이 완공되었습니다.",
+        reports: globalCloudStore.crewFeed,
+        stats: globalCloudStore.weeklyStats
+      }, { headers: NO_CACHE_HEADERS });
+
+    } catch (e: any) {
+      return NextResponse.json({ success: false, error: e.message }, { status: 500, headers: NO_CACHE_HEADERS });
     }
-
-    let incomingList: any[] = [];
-
-    if (body.report) incomingList = [body.report];
-    else if (Array.isArray(body.reportList)) incomingList = body.reportList;
-    else if (Array.isArray(body.reports)) incomingList = body.reports;
-    else if (body.id) incomingList = [body];
-
-    const { weeklyReports } = await fetchCloudData();
-    const map = new Map<string, any>();
-
-    weeklyReports.forEach((r: any) => {
-      if (r && r.id && !globalCloudStore.deletedIds.has(String(r.id))) {
-        map.set(String(r.id), r);
-      }
-    });
-
-    for (const item of incomingList) {
-      const targetId = (item.id || item.reportId) ? String(item.id || item.reportId) : `report_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const existingDoc = map.get(targetId);
-      const sanitized = sanitizeReport({ ...item, id: targetId }, existingDoc);
-
-      if (sanitized && sanitized.id && !globalCloudStore.deletedIds.has(sanitized.id)) {
-        sanitized.updatedBy = String(item.updatedBy || item.authorUid || item.authorName || "crew_user");
-        map.set(sanitized.id, sanitized);
-
-        globalCloudStore.auditLogs.push({
-          id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-          action: existingDoc ? "UPSERT_OVERWRITE_REPORT" : "CREATE_REPORT",
-          targetId: sanitized.id,
-          actor: sanitized.updatedBy,
-          version: sanitized.version,
-          timestamp: sanitized.updatedAt
-        });
-      }
-    }
-
-    const updatedList = Array.from(map.values()).sort((a: any, b: any) => 
-      new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
-    );
-
-    await persistCloudData(updatedList);
-
-    return NextResponse.json({
-      success: true,
-      message: "🎉 영구 불멸 DB 저장이 완공되었습니다.",
-      reports: globalCloudStore.crewFeed,
-      stats: globalCloudStore.weeklyStats
-    }, { headers: NO_CACHE_HEADERS });
-
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500, headers: NO_CACHE_HEADERS });
-  }
+  });
 }
 
 export async function DELETE(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ success: false, message: "ID 없음" }, { status: 400 });
+  return fileOperationLock.acquire(async () => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get("id");
+      if (!id) return NextResponse.json({ success: false, message: "ID 없음" }, { status: 400 });
 
-    const targetId = String(id);
-    globalCloudStore.deletedIds.add(targetId);
+      const targetId = String(id);
+      globalCloudStore.deletedIds.add(targetId);
 
-    const { weeklyReports } = await fetchCloudData();
-    const remainingList = weeklyReports.filter((r: any) => String(r.id) !== targetId && String(r.reportId) !== targetId);
+      const { weeklyReports } = await fetchCloudData();
+      const remainingList = weeklyReports.filter((r: any) => String(r.id) !== targetId && String(r.reportId) !== targetId);
 
-    globalCloudStore.auditLogs.push({
-      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      action: "DELETE_REPORT",
-      targetId: targetId,
-      actor: "홍보단/관리자",
-      timestamp: new Date().toISOString()
-    });
+      globalCloudStore.auditLogs.push({
+        id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        action: "DELETE_REPORT",
+        targetId: targetId,
+        actor: "홍보단/관리자",
+        timestamp: new Date().toISOString()
+      });
 
-    await persistCloudData(remainingList);
+      await persistCloudData(remainingList);
 
-    return NextResponse.json({
-      success: true,
-      message: "🎉 주간 보고서가 100% 영구 삭제되었습니다.",
-      reports: globalCloudStore.crewFeed,
-      stats: globalCloudStore.weeklyStats
-    }, { headers: NO_CACHE_HEADERS });
+      return NextResponse.json({
+        success: true,
+        message: "🎉 주간 보고서가 100% 영구 삭제되었습니다.",
+        reports: globalCloudStore.crewFeed,
+        stats: globalCloudStore.weeklyStats
+      }, { headers: NO_CACHE_HEADERS });
 
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500, headers: NO_CACHE_HEADERS });
-  }
+    } catch (e: any) {
+      return NextResponse.json({ success: false, error: e.message }, { status: 500, headers: NO_CACHE_HEADERS });
+    }
+  });
 }

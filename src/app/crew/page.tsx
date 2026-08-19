@@ -2039,8 +2039,64 @@ function CrewContent() {
               </span>
             </div>
 
+            {/* 🛡️ 홍보단별 선택 탭 바 */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 pb-2 border-b border-slate-200">
+              <button
+                onClick={() => setSelectedTeamTab("all")}
+                className={`px-3 py-1.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                  selectedTeamTab === "all"
+                    ? "bg-[#1558C9] text-white shadow-md border border-blue-700"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
+                }`}
+              >
+                <span>🌐 전체 보기</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${selectedTeamTab === "all" ? "bg-white text-[#1558C9]" : "bg-slate-200 text-slate-700"}`}>
+                  {allTeamsFeed.length}
+                </span>
+              </button>
+
+              {Array.from(
+                new Set([
+                  ...OFFICIAL_16_CREW_TEAMS.map(t => t.teamName),
+                  ...allTeamsFeed.map(f => (f.teamName || f.authorName || "").trim()).filter(Boolean)
+                ])
+              )
+                .sort()
+                .map((teamName) => {
+                  const cleanT = teamName.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                  const count = allTeamsFeed.filter(f => {
+                    const cleanF = (f.teamName || f.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                    return cleanF && cleanT && (cleanF.includes(cleanT) || cleanT.includes(cleanF));
+                  }).length;
+                  const isSelected = selectedTeamTab === teamName;
+                  return (
+                    <button
+                      key={teamName}
+                      onClick={() => setSelectedTeamTab(teamName)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isSelected
+                          ? "bg-[#1558C9] text-white shadow-md border border-blue-700"
+                          : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
+                      }`}
+                    >
+                      <span>🛡️ {teamName}</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${isSelected ? "bg-white text-[#1558C9]" : "bg-slate-200 text-slate-700"}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {allTeamsFeed.map(feed => (
+              {(selectedTeamTab === "all"
+                ? allTeamsFeed
+                : allTeamsFeed.filter(f => {
+                    const cleanF = (f.teamName || f.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                    const cleanSel = selectedTeamTab.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                    return cleanF && cleanSel && (cleanF.includes(cleanSel) || cleanSel.includes(cleanF));
+                  })
+              ).map(feed => (
                 <div key={feed.id} className="p-6 bg-slate-50 border border-[#CBD5E1] rounded-[20px] space-y-4 hover:border-[#1558C9] transition-all flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
@@ -2333,104 +2389,7 @@ function CrewContent() {
               </div>
             </div>
 
-            {/* 🌟 [{myTeamName}] 팀 전용 주간활동 보고서 섹션 */}
-            <div className="krds-public-card p-6 bg-white border border-[#CBD5E1] rounded-[20px] space-y-5 shadow-md">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#CBD5E1] pb-4">
-                <div>
-                  <span className="text-xs font-black text-blue-900 bg-blue-100 px-3 py-1 rounded-md border border-blue-300">
-                    MY TEAM REPORTS
-                  </span>
-                  <h3 className="text-lg font-black text-[#0F172A] mt-1 flex items-center gap-2">
-                    📝 [{myTeamName}] 팀 제출 세부 주간활동 보고서 목록
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setOfficeMenu("all_feeds")}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-[#1558C9] font-black text-xs rounded-xl border border-slate-300 transition-all flex items-center gap-1"
-                  >
-                    <span>🌐 타 홍보단 소식 구경</span>
-                  </button>
-                  <button
-                    onClick={() => handleOpenEditModal()}
-                    className="px-4 py-2 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <PlusCircle size={15} />
-                    <span>[➕ 세부 주간보고서 작성]</span>
-                  </button>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {myTeamActivities.length === 0 ? (
-                  <div className="col-span-full p-8 bg-slate-50 border border-dashed border-slate-300 rounded-[16px] text-center space-y-3">
-                    <span className="text-3xl">📝</span>
-                    <p className="text-sm font-black text-[#0F172A]">
-                      아직 <span className="text-[#1558C9]">[{myTeamName}]</span> 팀이 제출한 세부 주간활동 보고서가 없습니다.
-                    </p>
-                    <p className="text-xs font-bold text-slate-500">
-                      상단의 <span className="text-[#1558C9] font-black">[➕ 세부 주간보고서 작성]</span> 버튼을 눌러 소식을 전해보세요!
-                    </p>
-                    <div className="pt-2">
-                      <button
-                        onClick={() => setOfficeMenu("all_feeds")}
-                        className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-[#1558C9] border border-blue-200 rounded-lg text-xs font-black transition-all"
-                      >
-                        🌐 다른 홍보단 활동 소식 구경하러 가기 →
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  myTeamActivities.slice(0, 10).map(report => (
-                    <div key={report.id} className="p-5 bg-slate-50 border border-[#CBD5E1] rounded-[16px] space-y-3 shadow-sm hover:border-blue-400 transition-all">
-                      <div className="flex justify-between items-center border-b border-slate-200 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-white bg-[#1558C9] px-2.5 py-1 rounded-full">
-                            🛡️ {report.teamName || "안전홍보단"}
-                          </span>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200">
-                            v{report.version || 1}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-black text-slate-500 mr-1">{report.week}</span>
-                          {canModifyItem(report.teamName) && (
-                            <>
-                              <button
-                                onClick={() => handleOpenEditModal(report)}
-                                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md text-[11px] font-black shadow-sm flex items-center gap-1 cursor-pointer transition-all"
-                                title="주간보고서 수정"
-                              >
-                                ✏️ 수정
-                              </button>
-                              <button
-                                onClick={() => handleDeleteActivity(report)}
-                                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-[11px] font-black shadow-sm flex items-center gap-1 cursor-pointer transition-all"
-                                title="주간보고서 삭제"
-                              >
-                                🗑️ 삭제
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <h4 className="text-sm font-black text-[#0F172A]">{report.title}</h4>
-                      {report.detailContent && (
-                        <div className="p-3 bg-white rounded-[10px] border border-slate-300 text-xs font-medium text-slate-800 whitespace-pre-wrap leading-relaxed">
-                          {report.detailContent}
-                        </div>
-                      )}
-                      {renderAttachedPhotosGallery(report)}
-                      <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-600 font-bold pt-1 border-t border-slate-200">
-                        <span>📅 {report.date || report.createdAt?.split('T')[0]}</span>
-                        <span>📍 {report.location || "전국"}</span>
-                        <span>👥 {report.participants || 0}명 참여</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
 
             {/* 오피스 메뉴 분기 렌더링 */}
             {officeMenu === "qa" ? (
@@ -2747,10 +2706,19 @@ function CrewContent() {
                       </span>
                     </button>
 
-                    {Array.from(new Set(allTeamsFeed.map(f => (f.teamName || f.authorName || "안전홍보단").trim()).filter(Boolean)))
+                    {Array.from(
+                      new Set([
+                        ...OFFICIAL_16_CREW_TEAMS.map(t => t.teamName),
+                        ...allTeamsFeed.map(f => (f.teamName || f.authorName || "").trim()).filter(Boolean)
+                      ])
+                    )
                       .sort()
                       .map((teamName) => {
-                        const count = allTeamsFeed.filter(f => (f.teamName || f.authorName || "").trim() === teamName).length;
+                        const cleanT = teamName.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                        const count = allTeamsFeed.filter(f => {
+                          const cleanF = (f.teamName || f.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                          return cleanF && cleanT && (cleanF.includes(cleanT) || cleanT.includes(cleanF));
+                        }).length;
                         const isSelected = selectedTeamTab === teamName;
                         return (
                           <button
@@ -2776,7 +2744,11 @@ function CrewContent() {
                   {(() => {
                     const displayFeeds = (selectedTeamTab === "all"
                       ? allTeamsFeed
-                      : allTeamsFeed.filter(f => (f.teamName || f.authorName || "").trim() === selectedTeamTab)
+                      : allTeamsFeed.filter(f => {
+                          const cleanF = (f.teamName || f.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                          const cleanSel = selectedTeamTab.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                          return cleanF && cleanSel && (cleanF.includes(cleanSel) || cleanSel.includes(cleanF));
+                        })
                     ).sort(sortReportsByDateDesc);
 
                     if (displayFeeds.length === 0) {

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     let finalUrl = dataUrl;
 
-    // 📂 디스크에 영구 파일로 저장하고 경량 URL 경로 발급 (서버 페이로드 과다 방지)
+    // 📂 디스크 파일 저장 시도 (서버 내 로컬 캐시용)
     try {
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(uploadsDir)) {
@@ -33,11 +33,8 @@ export async function POST(req: NextRequest) {
       const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
       const filePath = path.join(uploadsDir, sanitizedFileName);
       fs.writeFileSync(filePath, buffer);
-      
-      // 디스크 쓰기 성공 시 경량 상대 URL 경로 우선 사용
-      finalUrl = `/uploads/${sanitizedFileName}`;
     } catch (writeErr) {
-      console.warn("디스크 파일 쓰기 실패, Base64 폴백 적용:", writeErr);
+      console.warn("디스크 파일 쓰기 실패:", writeErr);
     }
 
     return NextResponse.json({

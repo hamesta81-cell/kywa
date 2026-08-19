@@ -1651,11 +1651,21 @@ function CrewContent() {
               onClick={() => setSelectedOriginalImage(imgUrl)}
               className="group relative cursor-pointer overflow-hidden rounded-[10px] border border-slate-300 aspect-video bg-slate-100 shadow-sm hover:border-[#1558C9] transition-all"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imgUrl}
                 alt={`${reportItem.title || "활동 사진"} ${imgIdx + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                onError={(e: any) => {
+                  e.target.style.display = 'none';
+                  const fallback = e.target.parentElement?.querySelector('.img-fallback-box');
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
               />
+              <div className="img-fallback-box hidden absolute inset-0 bg-slate-100 flex flex-col items-center justify-center p-2 text-center">
+                <ImageIcon size={20} className="text-slate-400 mb-1" />
+                <span className="text-[10px] font-black text-slate-500">현장 인증 사진 #{imgIdx + 1}</span>
+              </div>
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white text-[10px] font-black">
                 <ZoomIn size={16} />
                 <span>확대/다운로드</span>

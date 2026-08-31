@@ -4,14 +4,22 @@
   :root {
     --primary-700: #1558c9;
     --primary-900: #102a43;
+    --neon-green: #22c55e;
+    --neon-lime: #84cc16;
+    --neon-cyan: #06b6d4;
+    --neon-blue: #38bdf8;
+    --neon-purple: #a855f7;
+    --dark-bg: #0b0f19;
+    --dark-surface: #121826;
+    --dark-card: #182234;
     --surface: #ffffff;
-    --background: #f5f7fb;
-    --border: #e2e8f0;
+    --background: #0b0f19;
+    --border: #1e293b;
   }
 
   body {
-    background-color: var(--background);
-    color: #172033;
+    background-color: var(--dark-bg);
+    color: #f1f5f9;
     font-family: "Pretendard Variable", "Noto Sans KR", system-ui, -apple-system, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     font-variant-numeric: tabular-nums;
@@ -49,27 +57,80 @@ input[type="checkbox"], input[type="radio"] {
   appearance: checkbox;
 }
 
+/* 🎮 YOUTH SAFETY OS 게이미피케이션 & 네온 프리미엄 스타일 */
+.os-dark-card {
+  background-color: #121826;
+  border-radius: 20px;
+  border: 1px solid #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+}
+
+.os-dark-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow: 0 15px 35px -5px rgba(34, 197, 94, 0.15), 0 0 20px 0 rgba(34, 197, 94, 0.1);
+}
+
+.os-glass-card {
+  background: rgba(18, 24, 38, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+}
+
+.neon-btn-primary {
+  background: #22c55e;
+  color: #0b0f19;
+  font-weight: 900;
+  border-radius: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.45);
+}
+
+.neon-btn-primary:hover {
+  background: #4ade80;
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(34, 197, 94, 0.7);
+}
+
+.neon-btn-cyan {
+  background: #06b6d4;
+  color: #0b0f19;
+  font-weight: 900;
+  border-radius: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.45);
+}
+
+.neon-btn-cyan:hover {
+  background: #38bdf8;
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(6, 182, 212, 0.7);
+}
+
 /* KRDS 공공 및 프리미엄 세련된 비주얼 디자인 유틸리티 */
 .krds-public-card {
-  background-color: #ffffff;
+  background-color: #121826;
   border-radius: 20px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #1e293b;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px -2px rgba(16, 42, 67, 0.05);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
 
 .krds-public-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px -4px rgba(21, 88, 201, 0.12);
-  border-color: rgba(21, 88, 201, 0.3);
+  box-shadow: 0 12px 30px -4px rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.4);
 }
 
 .krds-glass-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(18, 24, 38, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(16, 42, 67, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
 .krds-public-button {
@@ -99,7 +160,7 @@ input[type="checkbox"], input[type="radio"] {
   outline: none;
   ring: 2px;
   ring-offset: 2px;
-  ring-color: #1558c9;
+  ring-color: #22c55e;
   border-radius: 6px;
 }
 
@@ -107,20 +168,36 @@ input[type="checkbox"], input[type="radio"] {
 @keyframes radar-pulse {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(21, 88, 201, 0.7);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
   }
   70% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 12px rgba(21, 88, 201, 0);
+    box-shadow: 0 0 0 14px rgba(34, 197, 94, 0);
   }
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(21, 88, 201, 0);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
 }
 
 .animate-radar {
   animation: radar-pulse 2s infinite;
+}
+
+/* 네온 깜빡임 애니메이션 */
+@keyframes neon-glow {
+  0%, 100% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.9));
+  }
+}
+
+.neon-pulse {
+  animation: neon-glow 3s ease-in-out infinite;
 }
 
 /* 커스텀 스크롤바 */
@@ -130,15 +207,14 @@ input[type="checkbox"], input[type="radio"] {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
+  background: #0b0f19;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #1e293b;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #334155;
 }

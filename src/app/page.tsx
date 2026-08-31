@@ -1,494 +1,651 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, BookOpen, Compass, Gamepad2, Award, Users, ArrowRight, ShieldCheck, MapPin, Sparkles, Trophy, CheckCircle2, ChevronRight, Zap, Target, Lock, Clock, Heart, AlertTriangle } from "lucide-react";
+import { 
+  Play, BookOpen, Compass, Gamepad2, Award, Users, ArrowRight, 
+  ShieldCheck, MapPin, Sparkles, Trophy, CheckCircle2, ChevronRight, 
+  Zap, Target, Lock, Clock, Heart, AlertTriangle, Radio, Flame, 
+  Smartphone, CloudRain, Activity, Smile, Share2, Eye
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeZone, setActiveZone] = useState<string>("digital");
+  const [radarCount, setRadarCount] = useState(4820);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedUser = sessionStorage.getItem("user");
+      const savedUser = sessionStorage.getItem("user") || localStorage.getItem("user");
       if (savedUser) setIsLoggedIn(true);
     }
   }, []);
 
+  const safetyZones = [
+    {
+      id: "living",
+      title: "생활안전",
+      subtitle: "Living Safety",
+      desc: "가정, 학교, 교통, 일상 속 낙상 및 화재 예방",
+      color: "#f59e0b",
+      badge: "ZONE 01",
+      icon: Flame,
+      questCount: 14,
+      link: "/campaign/cpr-basics"
+    },
+    {
+      id: "digital",
+      title: "디지털안전",
+      subtitle: "Digital Safety",
+      desc: "피싱, 딥페이크 범죄, 사이버불링, 개인정보 보호",
+      color: "#06b6d4",
+      badge: "ZONE 02",
+      icon: Smartphone,
+      questCount: 18,
+      link: "/campaign/cyber-bullying"
+    },
+    {
+      id: "disaster",
+      title: "재난안전",
+      subtitle: "Disaster Safety",
+      desc: "집중호우, 지진, 태풍, 대피로 확보 및 행동요령",
+      color: "#3b82f6",
+      badge: "ZONE 03",
+      icon: CloudRain,
+      questCount: 12,
+      link: "/campaign/disaster-evacuation"
+    },
+    {
+      id: "activity",
+      title: "활동안전",
+      subtitle: "Activity Safety",
+      desc: "수련활동, 야외체험, 물놀이 시설 안전 점검",
+      color: "#22c55e",
+      badge: "ZONE 04",
+      icon: Activity,
+      questCount: 15,
+      link: "/campaign/fire-escape"
+    },
+    {
+      id: "mind",
+      title: "마음안전",
+      subtitle: "Mind Safety",
+      desc: "청소년 마음건강, 힐링 우드카빙, 스트레스 해소",
+      color: "#a855f7",
+      badge: "ZONE 05",
+      icon: Smile,
+      questCount: 10,
+      link: "/campaign/crowd-safety"
+    }
+  ];
+
+  const quickMissions = [
+    {
+      id: "mission-01",
+      code: "MISSION 01",
+      category: "디지털안전",
+      title: "피싱 & 스미싱 의심 링크 감별 훈련",
+      desc: "택배 배송 조회, 모바일 부고장 등 교묘한 스미싱 문자 3초 만에 구분하기",
+      level: "EASY",
+      levelColor: "text-[#22c55e] border-[#22c55e]/40 bg-[#22c55e]/10",
+      time: "3분",
+      xp: "+50 XP",
+      link: "/campaign/cyber-bullying"
+    },
+    {
+      id: "mission-02",
+      code: "MISSION 02",
+      category: "재난안전",
+      title: "집중호우 시 지하차도 & 침수지역 탈출",
+      desc: "수위가 타이어 2/3 지점에 도달했을 때의 최적 탈출 타이밍 판단",
+      level: "NORMAL",
+      levelColor: "text-[#06b6d4] border-[#06b6d4]/40 bg-[#06b6d4]/10",
+      time: "3분",
+      xp: "+80 XP",
+      link: "/campaign/disaster-evacuation"
+    },
+    {
+      id: "mission-03",
+      code: "MISSION 03",
+      category: "생활안전",
+      title: "심폐소생술 4분의 기적 (CPR & AED)",
+      desc: "의식 확인부터 119 신고, 가슴 압박 30회와 자동심장충격기 적용 실전",
+      level: "NORMAL",
+      levelColor: "text-[#06b6d4] border-[#06b6d4]/40 bg-[#06b6d4]/10",
+      time: "3분",
+      xp: "+80 XP",
+      link: "/campaign/cpr-basics"
+    },
+    {
+      id: "mission-04",
+      code: "MISSION 04",
+      category: "활동안전",
+      title: "체험활동 중 화재 대피 및 완강기 사용법",
+      desc: "비상벨이 울렸을 때 젖은 수건으로 코와 입을 막고 낮은 자세로 탈출하기",
+      level: "HARD",
+      levelColor: "text-rose-400 border-rose-400/40 bg-rose-400/10",
+      time: "4분",
+      xp: "+100 XP",
+      link: "/campaign/fire-escape"
+    }
+  ];
+
+  const fieldNotes = [
+    {
+      title: "딥페이크 성범죄 예방 및 AI 가짜 사진 구별 가이드",
+      category: "디지털안전",
+      team: "세이프 리더스",
+      date: "2026.08",
+      views: "1,420",
+      accent: "from-cyan-500 to-blue-600",
+      link: "/archive"
+    },
+    {
+      title: "물놀이 & 야외 청소년 수련시설 3단계 안전점검",
+      category: "활동안전",
+      team: "안전.zip",
+      date: "2026.08",
+      views: "2,150",
+      accent: "from-emerald-500 to-teal-600",
+      link: "/archive"
+    },
+    {
+      title: "[그림자채팅] 청소년 마음건강 회복 힐링 프로그램",
+      category: "마음안전",
+      team: "심리지원단 파인",
+      date: "2026.08",
+      views: "980",
+      accent: "from-purple-500 to-pink-600",
+      link: "/archive"
+    },
+    {
+      title: "지하철 및 번화가 인파 밀집 사고 예방 4대 원칙",
+      category: "생활안전",
+      team: "안전 탭앤톡",
+      date: "2026.08",
+      views: "1,890",
+      accent: "from-amber-500 to-orange-600",
+      link: "/archive"
+    }
+  ];
+
   return (
-    <div className="relative min-h-screen bg-[#F5F7FB] text-[#172033] font-sans selection:bg-[#1558C9] selection:text-white">
+    <div className="relative min-h-screen bg-[#0b0f19] text-slate-100 font-sans selection:bg-[#22c55e] selection:text-slate-950">
       
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-24 space-y-12">
+      {/* 백그라운드 네온 글로우 오버레이 */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-[140px]" />
+      </div>
+
+      <div className="relative z-10 max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-24 space-y-20">
         
-        {/* 상단 로그인/비로그인 시연 토글 바 */}
-        <div className="flex justify-end">
+        {/* 상단 모드 인디케이터 바 */}
+        <div className="flex justify-between items-center border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-ping" />
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+              YOUTH SAFETY OS <span className="text-[#22c55e]">v2.6 ONLINE</span>
+            </span>
+          </div>
+
           <button
             onClick={() => setIsLoggedIn(!isLoggedIn)}
-            className="px-3.5 py-1.5 rounded-full text-xs font-black bg-[#102A43] text-white shadow-sm hover:bg-slate-900 transition-all flex items-center gap-1.5 touch-target"
+            className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700 transition-all flex items-center gap-1.5"
           >
-            <span>{isLoggedIn ? "👤 로그인 대시보드 상태 (클릭 시 비로그인 메인)" : "🔓 비로그인 메인 상태 (클릭 시 로그인 대시보드)"}</span>
+            <span>{isLoggedIn ? "👤 로그인 대시보드 뷰" : "🔓 게스트 모드 뷰"}</span>
           </button>
         </div>
 
         {/* -------------------------------------------------------------------------- */}
-        {/* 5-1. 비로그인 메인 화면                                                    */}
+        {/* 1. 히어로 섹션 (HERO SECTION - YOUTH SAFETY OS)                            */}
         {/* -------------------------------------------------------------------------- */}
-        {!isLoggedIn ? (
-          <div className="space-y-16 animate-in fade-in duration-300">
-            
-            {/* 1. 히어로 영역 */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white p-8 sm:p-12 rounded-[20px] border border-[#E2E8F0] shadow-sm">
-              <div className="lg:col-span-7 space-y-6">
-                <div className="space-y-3">
-                  <span className="inline-block text-xs font-black text-[#1558C9] bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-100 uppercase tracking-wide">
-                    KYWA PLAY SAFE
-                  </span>
-                  
-                  <h1 className="text-4xl sm:text-5xl font-black text-[#102A43] tracking-tight leading-tight">
-                    오늘의 안전을<br />
-                    <span className="text-[#1558C9]">3분 미션으로.</span>
-                  </h1>
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
+          
+          {/* 좌측 메인 카피 */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#22c55e]/10 border border-[#22c55e]/30 text-[#22c55e] text-xs font-black tracking-wider uppercase">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>청소년 안전 퀘스트 플랫폼</span>
+            </div>
 
-                  <p className="text-base text-[#102A43] font-bold leading-relaxed max-w-lg">
-                    일상 속 위험을 발견하고, 판단하고, 안전하게 행동해요.
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]">
+              위험은 갑자기 온다.<br />
+              준비는 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22c55e] via-[#4ade80] to-[#06b6d4]">3분이면 된다.</span>
+            </h1>
+
+            <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-xl">
+              대한민국 청소년을 위한 실전 안전 판단 훈련. 매일 3분, 퀘스트를 클리어하고 나만의 안전 레벨을 높여보세요.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 pt-3">
+              <Link
+                href="/campaign/cyber-bullying"
+                className="neon-btn-primary px-8 py-4 text-sm flex items-center gap-2.5 touch-target"
+              >
+                <Play size={18} className="fill-slate-950" />
+                <span>오늘의 미션 시작</span>
+              </Link>
+
+              <Link
+                href="/campaign"
+                className="px-6 py-4 bg-slate-800/90 hover:bg-slate-800 text-white font-bold text-sm rounded-[14px] border border-slate-700 hover:border-slate-600 transition-all flex items-center gap-2 touch-target"
+              >
+                <Compass size={18} className="text-[#06b6d4]" />
+                <span>전체 퀘스트 덱</span>
+              </Link>
+            </div>
+
+            {/* 통계 스트립 */}
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 max-w-lg">
+              <div>
+                <div className="text-xl sm:text-2xl font-black text-white tabular-nums">41+</div>
+                <div className="text-xs text-slate-400 font-bold mt-0.5">누적 현장 보고서</div>
+              </div>
+              <div>
+                <div className="text-xl sm:text-2xl font-black text-[#22c55e] tabular-nums">14개 팀</div>
+                <div className="text-xs text-slate-400 font-bold mt-0.5">전국 안전홍보단</div>
+              </div>
+              <div>
+                <div className="text-xl sm:text-2xl font-black text-[#06b6d4] tabular-nums">99.8%</div>
+                <div className="text-xs text-slate-400 font-bold mt-0.5">훈련 완주율</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 우측 오늘의 퀘스트 대시보드 카드 */}
+          <div className="lg:col-span-5">
+            <div className="os-dark-card p-6 sm:p-7 space-y-5 relative overflow-hidden group">
+              
+              {/* 상단 펄스 헤더 */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-radar" />
+                  <span className="text-xs font-black text-[#22c55e] tracking-wider uppercase">
+                    TODAY'S SPECIAL QUEST
+                  </span>
+                </div>
+                <span className="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 tabular-nums">
+                  보상 +80 XP
+                </span>
+              </div>
+
+              {/* 퀘스트 콘텐츠 */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-[#06b6d4] bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">
+                    디지털안전 02
+                  </span>
+                  <span className="text-xs text-slate-400 font-bold flex items-center gap-1">
+                    <Clock size={12} /> 소요시간 약 3분
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-black text-white group-hover:text-[#22c55e] transition-colors">
+                  피싱 문자를 찾아라! 📱
+                </h3>
+
+                <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                  "택배 주소 불일치 확인", "모바일 부고장 링크" 등 실제 스미싱 사례를 보고 안전 여부를 3초 안에 판별하세요.
+                </p>
+              </div>
+
+              {/* 진행률 게이지 */}
+              <div className="space-y-1.5 pt-2">
+                <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                  <span>오늘 전국 청소년 참여</span>
+                  <span className="text-white font-black">1,842명 클리어</span>
+                </div>
+                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#22c55e] to-[#06b6d4] h-full w-[78%]" />
+                </div>
+              </div>
+
+              {/* 액션 버튼 */}
+              <Link
+                href="/campaign/cyber-bullying"
+                className="w-full py-3.5 bg-gradient-to-r from-[#22c55e] to-emerald-500 hover:from-[#16a34a] hover:to-emerald-600 text-slate-950 font-black text-xs rounded-xl text-center block shadow-lg shadow-emerald-500/20 transition-all touch-target"
+              >
+                [지금 퀘스트 플레이]
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* -------------------------------------------------------------------------- */}
+        {/* 2. 5대 안전 영역 탐색 (EXPLORE 5 ZONES)                                    */}
+        {/* -------------------------------------------------------------------------- */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <div className="text-xs font-black text-[#22c55e] uppercase tracking-wider">
+                EXPLORE 5 ZONES
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
+                5대 안전 영역 맵
+              </h2>
+            </div>
+            <p className="text-xs text-slate-400 font-medium max-w-sm">
+              청소년 생활 전반에 걸친 5대 핵심 안전 분야의 실전 퀘스트를 선택하세요.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {safetyZones.map((zone) => {
+              const Icon = zone.icon;
+              return (
+                <Link
+                  key={zone.id}
+                  href={zone.link}
+                  className="os-dark-card p-5 space-y-4 group hover:border-slate-600 transition-all block relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between">
+                    <span 
+                      className="text-[10px] font-black px-2 py-0.5 rounded"
+                      style={{ color: zone.color, backgroundColor: `${zone.color}15`, border: `1px solid ${zone.color}30` }}
+                    >
+                      {zone.badge}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400">
+                      {zone.questCount} 퀘스트
+                    </span>
+                  </div>
+
+                  <div 
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${zone.color}15`, border: `1px solid ${zone.color}40` }}
+                  >
+                    <Icon className="h-6 w-6" style={{ color: zone.color }} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-white group-hover:text-[#22c55e] transition-colors">
+                      {zone.title}
+                    </h3>
+                    <p className="text-[11px] text-slate-400 font-medium line-clamp-2 leading-relaxed">
+                      {zone.desc}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[11px] font-black text-slate-300 group-hover:text-white">
+                    <span>훈련 입장</span>
+                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* -------------------------------------------------------------------------- */}
+        {/* 3. 3분 퀵 플레이 미션 덱 (3 MINUTE QUICK PLAY)                             */}
+        {/* -------------------------------------------------------------------------- */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <div className="text-xs font-black text-[#06b6d4] uppercase tracking-wider">
+                3-MINUTE QUICK PLAY
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
+                인기 퀵 미션 덱
+              </h2>
+            </div>
+            <Link
+              href="/campaign"
+              className="text-xs font-black text-[#22c55e] hover:underline flex items-center gap-1"
+            >
+              <span>전체 덱 보기</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {quickMissions.map((m) => (
+              <div 
+                key={m.id} 
+                className="os-dark-card p-6 flex flex-col justify-between space-y-4 group hover:border-[#22c55e]/60 transition-all"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-400 tracking-wider">
+                      {m.code}
+                    </span>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${m.levelColor}`}>
+                      {m.level}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-black text-white leading-snug group-hover:text-[#22c55e] transition-colors">
+                    {m.title}
+                  </h3>
+
+                  <p className="text-xs text-slate-300 font-medium leading-relaxed">
+                    {m.desc}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <Link
-                    href="/campaign/cyber-bullying"
-                    className="krds-public-button px-7 py-4 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-sm rounded-[14px] shadow-lg transition-all flex items-center gap-2 touch-target"
-                  >
-                    <Play size={18} className="fill-white" />
-                    <span>무료 체험 미션 시작</span>
-                  </Link>
-
-                  <Link
-                    href="/campaign"
-                    className="krds-public-button px-6 py-4 bg-slate-100 hover:bg-slate-200 text-[#172033] font-bold text-sm rounded-[14px] transition-all flex items-center gap-1.5 touch-target"
-                  >
-                    <span>안전 미션 둘러보기</span>
-                  </Link>
-                </div>
-              </div>
-
-              <div className="lg:col-span-5">
-                <div className="krds-public-card p-6 border-l-4 border-l-[#7557D9] space-y-4 bg-slate-50/50 shadow-md">
-                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                    <span className="text-xs font-black text-[#7557D9] bg-purple-50 px-2.5 py-1 rounded-md tracking-wider">
-                      TODAY'S QUEST
-                    </span>
-                    <span className="text-xs font-bold text-[#159A83] bg-emerald-50 px-2.5 py-1 rounded-md tabular-nums">
-                      보상 +80 XP
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-black text-[#102A43]">피싱 문자를 찾아라</h3>
-                    <div className="text-xs text-[#5D6B7E] font-bold space-y-1">
-                      <div>• 분야: <strong className="text-[#7557D9]">디지털안전</strong> | 소요시간: <strong className="text-[#102A43]">약 3분</strong></div>
-                      <div>• 난이도: <strong className="text-[#102A43]">보통</strong></div>
-                    </div>
+                <div className="space-y-3 pt-3 border-t border-slate-800">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+                    <span className="flex items-center gap-1"><Clock size={12} /> {m.time}</span>
+                    <span className="text-[#22c55e] font-black flex items-center gap-0.5"><Zap size={12} className="fill-[#22c55e]" /> {m.xp}</span>
                   </div>
 
                   <Link
-                    href="/campaign/cyber-bullying"
-                    className="krds-public-button w-full py-3 bg-[#102A43] hover:bg-black text-white font-black text-xs rounded-[14px] text-center block shadow-md transition-all touch-target"
+                    href={m.link}
+                    className="w-full py-2.5 bg-slate-800 hover:bg-[#22c55e] hover:text-slate-950 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-all touch-target"
                   >
-                    [지금 시작]
+                    <Play size={14} className="fill-current" />
+                    <span>지금 플레이</span>
                   </Link>
                 </div>
               </div>
-            </section>
+            ))}
+          </div>
+        </section>
 
-            {/* 2. 5개 안전구역 시각적 지도 */}
-            <section className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl sm:text-2xl font-black text-[#102A43] flex items-center gap-2">
-                  <MapPin size={22} className="text-[#1558C9]" /> 🏙️ 5대 안전구역 시각적 지도
-                </h2>
-                <span className="text-xs text-[#5D6B7E] font-bold">클릭하여 해당 구역으로 이동 🗺️</span>
+        {/* -------------------------------------------------------------------------- */}
+        {/* 4. 2026 시즌 퀘스트 & 전국 안전 레이더망                                      */}
+        {/* -------------------------------------------------------------------------- */}
+        <section className="os-dark-card p-8 sm:p-10 relative overflow-hidden bg-gradient-to-br from-[#121826] via-[#121826] to-[#0b1528] border-slate-700/80">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            {/* 좌측 카피 */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[#06b6d4] text-xs font-black tracking-wider uppercase">
+                <Radio className="h-3.5 w-3.5 animate-pulse" />
+                <span>2026 SEASON QUEST</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                <Link href="/campaign" className="krds-public-card p-5 border-l-4 border-l-[#1558C9] hover:bg-blue-50/50 transition-all group">
-                  <span className="text-2xl block mb-2">🏢</span>
-                  <h3 className="text-sm font-black text-[#102A43] group-hover:text-[#1558C9]">생활안전</h3>
-                  <p className="text-[11px] text-[#5D6B7E] font-medium mt-1">통학로·PM·약물</p>
-                </Link>
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                전국 안전 레이더망 점등 프로젝트
+              </h2>
 
-                <Link href="/campaign" className="krds-public-card p-5 border-l-4 border-l-[#7557D9] hover:bg-purple-50/50 transition-all group">
-                  <span className="text-2xl block mb-2">💻</span>
-                  <h3 className="text-sm font-black text-[#102A43] group-hover:text-[#7557D9]">디지털안전</h3>
-                  <p className="text-[11px] text-[#5D6B7E] font-medium mt-1">피싱·딥페이크</p>
-                </Link>
-
-                <Link href="/campaign" className="krds-public-card p-5 border-l-4 border-l-[#EA580C] hover:bg-orange-50/50 transition-all group">
-                  <span className="text-2xl block mb-2">🌋</span>
-                  <h3 className="text-sm font-black text-[#102A43] group-hover:text-[#EA580C]">재난안전</h3>
-                  <p className="text-[11px] text-[#5D6B7E] font-medium mt-1">지진·폭우대처</p>
-                </Link>
-
-                <Link href="/campaign" className="krds-public-card p-5 border-l-4 border-l-[#159A83] hover:bg-emerald-50/50 transition-all group">
-                  <span className="text-2xl block mb-2">🏕️</span>
-                  <h3 className="text-sm font-black text-[#102A43] group-hover:text-[#159A83]">활동안전</h3>
-                  <p className="text-[11px] text-[#5D6B7E] font-medium mt-1">캠핑·R.I.C.E</p>
-                </Link>
-
-                <Link href="/campaign/dodac" className="krds-public-card p-5 border-l-4 border-l-[#EC4899] hover:bg-pink-50/50 transition-all group col-span-1 sm:col-span-1">
-                  <span className="text-2xl block mb-2">🎧</span>
-                  <h3 className="text-sm font-black text-[#102A43] group-hover:text-[#EC4899]">마음안전</h3>
-                  <p className="text-[11px] text-[#5D6B7E] font-medium mt-1">도닥 AI 힐링</p>
-                </Link>
-              </div>
-            </section>
-
-            {/* 3. 3분 퀵플레이 */}
-            <section className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl sm:text-2xl font-black text-[#102A43]">⚡ 3분 퀵플레이</h2>
-                <Link href="/campaign" className="text-xs font-bold text-[#1558C9] hover:underline">전체보기 →</Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="krds-public-card p-5 border-l-4 border-l-[#1558C9] space-y-3">
-                  <span className="text-[10px] font-black bg-blue-50 text-[#1558C9] px-2.5 py-0.5 rounded-md uppercase">생활안전</span>
-                  <h3 className="text-sm font-black text-[#102A43]">나의 안전 MBTI 성향 진단</h3>
-                  <div className="text-[11px] text-[#5D6B7E] font-bold space-y-1 tabular-nums">
-                    <div>• 소요시간: 약 3분 | 난이도: 보통</div>
-                    <div>• 보상: +50 XP</div>
-                  </div>
-                  <Link href="/campaign/mbti" className="krds-public-button w-full py-2.5 bg-[#102A43] text-white font-bold rounded-[14px] text-xs text-center block touch-target">
-                    플레이 →
-                  </Link>
-                </div>
-
-                <div className="krds-public-card p-5 border-l-4 border-l-[#7557D9] space-y-3">
-                  <span className="text-[10px] font-black bg-purple-50 text-[#7557D9] px-2.5 py-0.5 rounded-md uppercase">디지털안전</span>
-                  <h3 className="text-sm font-black text-[#102A43]">사이버 폭력 & 피싱 판별</h3>
-                  <div className="text-[11px] text-[#5D6B7E] font-bold space-y-1 tabular-nums">
-                    <div>• 소요시간: 약 3분 | 난이도: 보통</div>
-                    <div>• 보상: +70 XP</div>
-                  </div>
-                  <Link href="/campaign/cyber-bullying" className="krds-public-button w-full py-2.5 bg-[#102A43] text-white font-bold rounded-[14px] text-xs text-center block touch-target">
-                    플레이 →
-                  </Link>
-                </div>
-
-                <div className="krds-public-card p-5 border-l-4 border-l-[#EC4899] space-y-3">
-                  <span className="text-[10px] font-black bg-pink-50 text-[#EC4899] px-2.5 py-0.5 rounded-md uppercase">마음안전</span>
-                  <h3 className="text-sm font-black text-[#102A43]">도닥 AI 또래 힐링 상담</h3>
-                  <div className="text-[11px] text-[#5D6B7E] font-bold space-y-1 tabular-nums">
-                    <div>• 소요시간: 약 4분 | 난이도: 보통</div>
-                    <div>• 보상: +60 XP</div>
-                  </div>
-                  <Link href="/campaign/dodac" className="krds-public-button w-full py-2.5 bg-[#102A43] text-white font-bold rounded-[14px] text-xs text-center block touch-target">
-                    플레이 →
-                  </Link>
-                </div>
-              </div>
-            </section>
-
-            {/* 4. 2026 장마 시즌 공동미션 */}
-            <section className="bg-gradient-to-r from-[#102A43] to-[#1e3a8a] text-white p-8 rounded-[20px] shadow-md space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-yellow-300 bg-yellow-950/80 px-3 py-1 rounded-md border border-yellow-500/30">
-                  🌧️ 2026 장마 시즌 대국민 공동미션
-                </span>
-                <span className="text-xs font-bold text-cyan-300">레인 가디언 수여</span>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-white">집중호우·물놀이 안전 퀴즈 대국민 공동 도전!</h3>
-                <p className="text-xs text-slate-300 font-medium leading-relaxed">
-                  전국 이용자가 함께 장마철 보도 위 위험 지점 수칙 퀴즈를 풀고 디재스터 구역 조명을 켭니다.
-                </p>
-              </div>
-
-              <Link href="/archive" className="krds-public-button px-5 py-2.5 bg-[#1558C9] hover:bg-blue-600 text-white font-bold text-xs rounded-[14px] inline-block touch-target">
-                시즌 미션 참여하기 →
-              </Link>
-            </section>
-
-            {/* 5. 이번 달 꼭 알아야 할 안전정보 */}
-            <section className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl sm:text-2xl font-black text-[#102A43]">📚 이번 달 꼭 알아야 할 안전정보</h2>
-                <Link href="/archive" className="text-xs font-bold text-[#1558C9] hover:underline">28종 전체보기 →</Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <Link href="/archive" className="krds-public-card p-4 hover:border-[#1558C9] transition-all space-y-2 group">
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-900/5">
-                    <Image src="/images/cards/card_01_heatwave.jpg" alt="폭염 온열질환 예방" fill className="object-contain group-hover:scale-105 transition-transform" />
-                  </div>
-                  <span className="text-[10px] font-bold text-[#1558C9] block">#01 6월 · 재난</span>
-                  <h4 className="text-xs font-bold text-[#102A43] truncate">체육대회 폭염 온열질환 예방 수칙</h4>
-                </Link>
-
-                <Link href="/archive" className="krds-public-card p-4 hover:border-[#1558C9] transition-all space-y-2 group">
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-900/5">
-                    <Image src="/images/cards/card_02_rice.jpg" alt="발목 R.I.C.E 대처법" fill className="object-contain group-hover:scale-105 transition-transform" />
-                  </div>
-                  <span className="text-[10px] font-bold text-[#159A83] block">#02 6월 · 활동</span>
-                  <h4 className="text-xs font-bold text-[#102A43] truncate">발목 접질렸을 때 R.I.C.E 대처법</h4>
-                </Link>
-
-                <Link href="/archive" className="krds-public-card p-4 hover:border-[#1558C9] transition-all space-y-2 group">
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-900/5">
-                    <Image src="/images/cards/card_03_pm_safety.jpg" alt="전동킥보드 법적 의무" fill className="object-contain group-hover:scale-105 transition-transform" />
-                  </div>
-                  <span className="text-[10px] font-bold text-[#1558C9] block">#03 6월 · 일상</span>
-                  <h4 className="text-xs font-bold text-[#102A43] truncate">전동킥보드 탑승 전 꼭 확인할 3가지</h4>
-                </Link>
-
-                <Link href="/archive" className="krds-public-card p-4 hover:border-[#1558C9] transition-all space-y-2 group">
-                  <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-slate-900/5">
-                    <Image src="/images/cards/card_04_digital_security.jpg" alt="스마트폰 3대 보안" fill className="object-contain group-hover:scale-105 transition-transform" />
-                  </div>
-                  <span className="text-[10px] font-bold text-[#7557D9] block">#04 6월 · 디지털</span>
-                  <h4 className="text-xs font-bold text-[#102A43] truncate">스마트폰과 계정을 지키는 3대 보안</h4>
-                </Link>
-              </div>
-            </section>
-
-            {/* 6. 함께 만든 안전 변화 */}
-            <section className="krds-public-card p-8 space-y-4">
-              <h2 className="text-xl sm:text-2xl font-black text-[#102A43]">🌱 함께 만든 안전 변화</h2>
-              <p className="text-xs text-[#5D6B7E] font-medium leading-relaxed">
-                전국 16개 지역 청소년 안전홍보단과 대국민의 정기 보고 및 검수를 거친 실질적 성과 기록입니다.
+              <p className="text-sm text-slate-300 font-medium leading-relaxed max-w-lg">
+                서울부터 제주까지, 14개 청소년 안전홍보단과 전국의 대원들이 함께 안전 위험 요소를 발굴하고 안전지도를 완성합니다.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 tabular-nums">
-                <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">
-                  <span className="text-xs text-[#5D6B7E] font-bold block">공모 선정 안전홍보단</span>
-                  <strong className="text-xl font-black text-[#1558C9] block">16개 공식 팀</strong>
-                  <span className="text-[10px] text-slate-400">전국 16개 시·도 진흥원 연계</span>
+              <div className="space-y-2 pt-2">
+                <div className="flex justify-between text-xs font-bold text-slate-300">
+                  <span>전국 레이더망 활성화율</span>
+                  <span className="text-[#22c55e] font-black text-sm">84.7% (ON)</span>
                 </div>
-
-                <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">
-                  <span className="text-xs text-[#5D6B7E] font-bold block">정식 발간 안전 정보</span>
-                  <strong className="text-xl font-black text-[#159A83] block">28종 공식 카드뉴스</strong>
-                  <span className="text-[10px] text-slate-400">6월부터 12월까지 매월 4종 발행</span>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">
-                  <span className="text-xs text-[#5D6B7E] font-bold block">정기 보고 마감 체계</span>
-                  <strong className="text-xl font-black text-[#7557D9] block">매주 월요일 23:00</strong>
-                  <span className="text-[10px] text-slate-400">주차별 활동 보고 검수 진행</span>
+                <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                  <div className="bg-gradient-to-r from-[#22c55e] via-emerald-400 to-[#06b6d4] h-full rounded-full w-[84.7%]" />
                 </div>
               </div>
-            </section>
 
-            {/* 7. 안전공모전 & 전국 안전홍보단 */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="krds-public-card p-6 border-l-4 border-l-[#F4B740] space-y-3">
-                <h3 className="text-lg font-black text-[#102A43]">🏆 2026 청소년활동 안전 공모전</h3>
-                <p className="text-xs text-[#5D6B7E] font-medium leading-relaxed">
-                  청소년 숏폼, 4컷 만화, 아이디어 작품을 출품하고 우수 작품 갤러리를 관람하세요.
-                </p>
-                <Link href="/contest" className="krds-public-button px-4 py-2.5 bg-[#102A43] text-white text-xs font-bold rounded-[14px] inline-block touch-target">
-                  공모전 안내 & 접수 →
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  href="/crew"
+                  className="neon-btn-cyan px-7 py-3.5 text-xs flex items-center gap-2 touch-target"
+                >
+                  <Users size={16} />
+                  <span>홍보단 활동 현장 피드</span>
                 </Link>
-              </div>
-
-              <div className="krds-public-card p-6 border-l-4 border-l-[#1558C9] space-y-3">
-                <h3 className="text-lg font-black text-[#102A43]">🛡️ 전국 16개 안전홍보단</h3>
-                <p className="text-xs text-[#5D6B7E] font-medium leading-relaxed">
-                  16개 지역 팀의 활동 피드, 주간 보고서 및 공식 양식을 자유롭게 둘러보세요.
-                </p>
-                <Link href="/crew" className="krds-public-button px-4 py-2.5 bg-[#1558C9] text-white text-xs font-bold rounded-[14px] inline-block touch-target">
-                  홍보단 피드 보기 →
-                </Link>
-              </div>
-            </section>
-
-          </div>
-        ) : (
-          /* ==================================================================== */
-          /* 5-2. 로그인 메인 대시보드 (유저 와이어프레임 & 개인화 5단계 100% 반영!)   */
-          /* ==================================================================== */
-          <div className="space-y-8 animate-in fade-in duration-300">
-            
-            {/* 프로필 헤더: 안녕하세요, 디지털 쉴더 민지님 / Lv.18 / 2,340 / 3,000 XP / 이번 주 4개 미션 완료 / 오늘 안전 등급: 보통 */}
-            <section className="krds-public-card p-8 bg-[#102A43] text-white space-y-6 shadow-xl border border-white/10">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold text-[#159A83] bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500/30">
-                      GUARDIAN DASHBOARD
-                    </span>
-                    <span className="text-xs font-bold text-yellow-300 bg-yellow-950/80 px-3 py-1 rounded-full border border-yellow-500/30">
-                      오늘 안전 등급: 보통 🟢
-                    </span>
-                  </div>
-                  <h1 className="text-3xl font-black text-white">
-                    안녕하세요, <span className="text-cyan-300">디지털 쉴더 민지</span>님 🛡️
-                  </h1>
-                </div>
-
-                <div className="flex items-center gap-4 bg-slate-900/80 p-4 rounded-[16px] border border-white/10 shrink-0 tabular-nums">
-                  <div className="w-14 h-14 rounded-[12px] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center font-black text-slate-950 text-base shadow-md">
-                    Lv.18
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="text-xs font-bold text-cyan-300">2,340 / 3,000 XP</div>
-                    <div className="text-[11px] text-slate-300">이번 주 <strong className="text-yellow-300 font-bold">4개 미션</strong> 완료 완료</div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 🎯 개인화 1순위: 진행 중인 미션 [마지막 플레이 이어하기] */}
-            <section className="krds-public-card p-6 border-l-4 border-l-[#7557D9] space-y-4 bg-purple-50/20">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-[#7557D9] bg-purple-100 px-2.5 py-1 rounded-md">
-                    1순위 · 진행 중인 미션
-                  </span>
-                  <span className="text-xs font-bold text-[#102A43]">▶️ 마지막 플레이 이어하기</span>
-                </div>
-                <span className="text-xs font-bold text-[#1558C9] tabular-nums">진행률 60% · 남은 시간 약 2분</span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-black text-[#102A43]">피싱 스와이프 미션</h3>
-                  <p className="text-xs text-[#5D6B7E] mt-0.5 font-medium">스미싱 판별 및 문자 다이어트 리라이트 미션 진행 중입니다.</p>
-                </div>
 
                 <Link
-                  href="/campaign/cyber-bullying"
-                  className="krds-public-button px-6 py-3 bg-[#1558C9] hover:bg-blue-700 text-white text-xs font-black rounded-[14px] shadow-md transition-all shrink-0 flex items-center justify-center gap-1.5 touch-target"
+                  href="/archive"
+                  className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition-all"
                 >
-                  <Play size={14} className="fill-white" />
-                  <span>1초 만에 계속 플레이</span>
+                  <span>위험요소 발굴 지도</span>
                 </Link>
               </div>
-            </section>
-
-            {/* 🎯 개인화 2순위: 오늘의 추천 미션 & 3순위: 취약 안전 분야 추천 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* 2순위: 오늘의 추천 미션 */}
-              <div className="krds-public-card p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                  <h3 className="text-base font-black text-[#102A43] flex items-center gap-2">
-                    <Target size={18} className="text-[#1558C9]" /> 2순위 · [오늘의 추천 미션]
-                  </h3>
-                  <span className="text-[10px] font-bold bg-blue-50 text-[#1558C9] px-2 py-0.5 rounded-md">매일 밤 12시 갱신</span>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="p-3.5 bg-slate-50 rounded-[12px] border border-[#E2E8F0] flex justify-between items-center">
-                    <div>
-                      <h4 className="font-bold text-[#102A43]">• PM 전동킥보드 법적 수칙 퀴즈</h4>
-                      <span className="text-[10px] text-[#5D6B7E]">보상: +50 XP | 소요시간 2분</span>
-                    </div>
-                    <span className="text-xs font-bold text-[#159A83]">🟢 완료</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-50 rounded-[12px] border border-[#E2E8F0] flex justify-between items-center">
-                    <div>
-                      <h4 className="font-bold text-[#102A43]">• 식중독 예방 수칙 카드뉴스 정독</h4>
-                      <span className="text-[10px] text-[#5D6B7E]">보상: +70 XP | 소요시간 3분</span>
-                    </div>
-                    <Link href="/archive" className="krds-public-button px-3.5 py-1.5 bg-[#1558C9] text-white font-bold rounded-[10px] text-[11px]">도전</Link>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3순위: 내 안전 스킬 (취약 분야 추천) */}
-              <div className="krds-public-card p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                  <h3 className="text-base font-black text-[#102A43] flex items-center gap-2">
-                    <Zap size={18} className="text-[#F4B740]" /> 3순위 · [내 안전 스킬 & 취약 분야]
-                  </h3>
-                  <span className="text-[10px] font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md">취약 보완 필요</span>
-                </div>
-
-                <div className="space-y-3 text-xs tabular-nums">
-                  <div>
-                    <div className="flex justify-between font-bold text-[#102A43] mb-1">
-                      <span>• 디지털 보안 스킬</span>
-                      <span className="text-[#7557D9]">Lv.8 (80%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2">
-                      <div className="bg-[#7557D9] h-2 rounded-full w-[80%]"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between font-bold text-[#102A43] mb-1">
-                      <span>• 재난 대피 보완 스킬 (취약)</span>
-                      <span className="text-[#EA580C]">Lv.5 (50%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2">
-                      <div className="bg-[#EA580C] h-2 rounded-full w-[50%]"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
-            {/* 🎯 개인화 4순위: 시즌 공동미션 */}
-            <section className="bg-gradient-to-r from-[#102A43] to-[#1e3a8a] text-white p-6 rounded-[20px] shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-yellow-300 bg-yellow-950/80 px-2.5 py-0.5 rounded-md border border-yellow-500/30">
-                  4순위 · [시즌 공동미션]
-                </span>
-                <h3 className="text-base font-black text-white">🌧️ 2026 장마 시즌 집중호우 퀴즈 대국민 공동 도전</h3>
-              </div>
-              <Link href="/archive" className="krds-public-button px-5 py-2.5 bg-[#1558C9] hover:bg-blue-600 text-white font-bold text-xs rounded-[14px] shrink-0 touch-target">
-                시즌 미션 도전 →
-              </Link>
-            </section>
+            {/* 우측 레이더 핑 그래픽 카드 */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full border border-cyan-500/20 bg-slate-900/60 flex items-center justify-center shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+                
+                {/* 레이더 링 */}
+                <div className="absolute inset-4 rounded-full border border-dashed border-cyan-500/30" />
+                <div className="absolute inset-16 rounded-full border border-cyan-500/20" />
+                <div className="absolute inset-28 rounded-full border border-cyan-500/40 bg-cyan-950/20 flex items-center justify-center">
+                  <ShieldCheck className="h-8 w-8 text-[#22c55e]" />
+                </div>
 
-            {/* 🎯 개인화 5순위: 획득 가능한 배지 & 소속 길드 활동 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* 5순위-A: 획득 가능한 배지 */}
-              <div className="krds-public-card p-6 space-y-3">
-                <h3 className="text-base font-black text-[#102A43] flex items-center gap-2">
-                  <Award size={18} className="text-[#F4B740]" /> 5순위 · [획득 가능한 배지]
-                </h3>
-                <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1">
-                  <div className="p-3 bg-amber-50 rounded-[12px] border border-amber-200 space-y-1">
-                    <span className="text-lg">🛡️</span>
-                    <span className="font-bold text-amber-900 block text-[11px]">안전 가디언</span>
-                  </div>
-                  <div className="p-3 bg-cyan-50 rounded-[12px] border border-cyan-200 space-y-1">
-                    <span className="text-lg">🌧️</span>
-                    <span className="font-bold text-cyan-900 block text-[11px]">레인 가디언</span>
-                  </div>
-                  <div className="p-3 bg-purple-50 rounded-[12px] border border-purple-200 space-y-1">
-                    <span className="text-lg">🎧</span>
-                    <span className="font-bold text-purple-900 block text-[11px]">도닥이 마음</span>
-                  </div>
+                {/* 전국 활동 핑 */}
+                <div className="absolute top-10 left-20 flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-radar" />
+                  <span className="text-[10px] font-black text-white bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-700">서울 양천</span>
+                </div>
+
+                <div className="absolute top-24 right-10 flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#06b6d4] animate-radar" />
+                  <span className="text-[10px] font-black text-white bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-700">춘천 한라우</span>
+                </div>
+
+                <div className="absolute bottom-16 left-16 flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-radar" />
+                  <span className="text-[10px] font-black text-white bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-700">대전 아고라</span>
+                </div>
+
+                <div className="absolute bottom-8 right-16 flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-radar" />
+                  <span className="text-[10px] font-black text-white bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-700">제주 청디가드</span>
                 </div>
               </div>
-
-              {/* 5순위-B: 소속 길드 활동 */}
-              <div className="krds-public-card p-6 space-y-3">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-base font-black text-[#102A43] flex items-center gap-2">
-                    <Users size={18} className="text-[#1558C9]" /> 5순위 · [소속 길드 활동]
-                  </h3>
-                  <span className="text-[10px] font-bold bg-emerald-50 text-[#159A83] px-2 py-0.5 rounded-md">SAFE CREW</span>
-                </div>
-                <p className="text-xs text-[#5D6B7E] font-medium bg-slate-50 p-3 rounded-[12px] border border-[#E2E8F0]">
-                  교내 통학로 위험 펜스 지도 제작 및 150명 현장 모니터링 수행 완료 소식.
-                </p>
-                <Link href="/crew" className="krds-public-button w-full py-2.5 bg-[#102A43] text-white font-bold rounded-[14px] text-xs text-center block touch-target">
-                  홍보단 워크스페이스 이동 →
-                </Link>
-              </div>
-
             </div>
-
           </div>
-        )}
+        </section>
+
+        {/* -------------------------------------------------------------------------- */}
+        {/* 5. 안전 필드 노트 (SAFETY FIELD NOTES)                                     */}
+        {/* -------------------------------------------------------------------------- */}
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <div className="text-xs font-black text-purple-400 uppercase tracking-wider">
+                SAFETY FIELD NOTES
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
+                청소년 안전 카드뉴스 & 가이드
+              </h2>
+            </div>
+            <Link
+              href="/archive"
+              className="text-xs font-black text-[#22c55e] hover:underline flex items-center gap-1"
+            >
+              <span>아카이브 전체보기</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {fieldNotes.map((note, idx) => (
+              <Link
+                key={idx}
+                href={note.link}
+                className="os-dark-card group overflow-hidden flex flex-col justify-between hover:border-slate-500 transition-all block"
+              >
+                {/* 상단 그래픽 헤더 */}
+                <div className={`h-28 bg-gradient-to-tr ${note.accent} p-4 flex flex-col justify-between relative`}>
+                  <span className="self-start text-[10px] font-black px-2 py-0.5 rounded bg-black/40 text-white backdrop-blur-sm">
+                    {note.category}
+                  </span>
+                  <div className="flex items-center justify-between text-white/90 text-xs">
+                    <span className="font-bold">{note.team}</span>
+                    <span className="text-[10px] opacity-80">{note.date}</span>
+                  </div>
+                </div>
+
+                {/* 본문 요약 */}
+                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                  <h3 className="text-sm font-bold text-white group-hover:text-[#22c55e] transition-colors leading-snug line-clamp-2">
+                    {note.title}
+                  </h3>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-[11px] text-slate-400">
+                    <span className="flex items-center gap-1"><Eye size={12} /> {note.views}</span>
+                    <span className="font-bold text-[#22c55e] group-hover:translate-x-1 transition-transform flex items-center gap-0.5">
+                      상세보기 →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* -------------------------------------------------------------------------- */}
+        {/* 6. 공모전 & 홍보단 참여 배너                                                */}
+        {/* -------------------------------------------------------------------------- */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* 공모전 배너 */}
+          <div className="os-dark-card p-7 sm:p-8 bg-gradient-to-br from-[#121826] to-amber-950/30 border-amber-500/30 space-y-4 relative overflow-hidden group">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/30">
+                2026 CONTEST
+              </span>
+              <Trophy className="h-6 w-6 text-amber-400" />
+            </div>
+
+            <h3 className="text-xl font-black text-white">
+              청소년 안전 숏폼 공모전
+            </h3>
+
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              나만의 기발한 안전 꿀팁과 숏폼 영상으로 총 상금 500만원의 주인공에 도전하세요!
+            </p>
+
+            <Link
+              href="/contest"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md touch-target"
+            >
+              <span>공모전 출품 & 투표하기</span>
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+
+          {/* 안전크루 배너 */}
+          <div className="os-dark-card p-7 sm:p-8 bg-gradient-to-br from-[#121826] to-cyan-950/30 border-cyan-500/30 space-y-4 relative overflow-hidden group">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-[#06b6d4] bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/30">
+                SAFETY CREWS
+              </span>
+              <Users className="h-6 w-6 text-[#06b6d4]" />
+            </div>
+
+            <h3 className="text-xl font-black text-white">
+              전국 14개 안전홍보단 오피스
+            </h3>
+
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              매주 등록되는 팀별 활동 현황, 주간보고서 작성 및 승인, 상호 응원 피드를 확인하세요.
+            </p>
+
+            <Link
+              href="/crew"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#06b6d4] hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md touch-target"
+            >
+              <span>크루 오피스 바로가기</span>
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </section>
 
       </div>
     </div>

@@ -91,19 +91,19 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* 2. 메인 네비게이션 */}
-          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+          {/* 2. 메인 네비게이션 (5대 핵심 메뉴) */}
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-1.5">
             <Link 
               href="/campaign" 
-              className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-[#1558C9] hover:bg-slate-100 rounded-full transition-all"
+              className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#1558C9] hover:bg-slate-100 rounded-full transition-all"
             >
               <Target className="h-3.5 w-3.5 text-[#1558C9]" />
               <span>안전 미션 덱</span>
             </Link>
 
             <Link 
-              href="/contest" 
-              className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all group"
+              href="/contest?tab=vote" 
+              className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all group"
             >
               <Trophy className="h-3.5 w-3.5 text-amber-600 group-hover:scale-110 transition-transform" />
               <span>숏폼 챌린지</span>
@@ -113,8 +113,16 @@ export default function Header() {
             </Link>
 
             <Link 
+              href="/contest?tab=info" 
+              className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#1558C9] hover:bg-blue-50 rounded-full transition-all"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-[#1558C9]" />
+              <span>AI 공모전</span>
+            </Link>
+
+            <Link 
               href="/crew" 
-              className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-[#0284C7] hover:bg-slate-100 rounded-full transition-all"
+              className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#0284C7] hover:bg-slate-100 rounded-full transition-all"
             >
               <Users className="h-3.5 w-3.5 text-[#0284C7]" />
               <span>안전크루 현장</span>
@@ -122,10 +130,10 @@ export default function Header() {
 
             <Link 
               href="/archive" 
-              className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-purple-600 hover:bg-slate-100 rounded-full transition-all"
+              className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-all"
             >
               <FolderOpen className="h-3.5 w-3.5 text-purple-600" />
-              <span>필드 아카이브</span>
+              <span>필드 아카데미</span>
             </Link>
           </nav>
 

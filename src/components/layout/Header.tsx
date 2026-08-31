@@ -102,19 +102,22 @@ export default function Header() {
             </Link>
 
             <Link 
+              href="/contest" 
+              className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all group"
+            >
+              <Trophy className="h-3.5 w-3.5 text-amber-600 group-hover:scale-110 transition-transform" />
+              <span>숏폼 챌린지</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-black bg-amber-100 text-amber-800 border border-amber-300 rounded-full animate-pulse">
+                HOT
+              </span>
+            </Link>
+
+            <Link 
               href="/crew" 
               className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-[#0284C7] hover:bg-slate-100 rounded-full transition-all"
             >
               <Users className="h-3.5 w-3.5 text-[#0284C7]" />
               <span>안전크루 현장</span>
-            </Link>
-
-            <Link 
-              href="/contest" 
-              className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-amber-600 hover:bg-slate-100 rounded-full transition-all"
-            >
-              <Trophy className="h-3.5 w-3.5 text-amber-600" />
-              <span>숏폼 공모전</span>
             </Link>
 
             <Link 
@@ -194,10 +197,10 @@ export default function Header() {
                       <Link 
                         href="/contest" 
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2 px-4 py-2 text-xs text-slate-700 hover:text-[#1558C9] hover:bg-slate-50 transition-colors"
+                        className="flex items-center space-x-2 px-4 py-2 text-xs text-slate-700 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                       >
                         <Trophy className="h-3.5 w-3.5 text-amber-600" />
-                        <span>공모전 출품작 확인</span>
+                        <span>숏폼 챌린지 출품 & 투표</span>
                       </Link>
                     </div>
 

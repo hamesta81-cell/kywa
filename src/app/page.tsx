@@ -601,28 +601,28 @@ export default function Home() {
         {/* -------------------------------------------------------------------------- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* 공모전 배너 */}
+          {/* 숏폼 챌린지 배너 */}
           <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 border border-amber-200/90 rounded-2xl p-7 sm:p-8 space-y-4 relative overflow-hidden group shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded border border-amber-300">
-                2026 CONTEST
+                2026 SHORT-FORM CHALLENGE
               </span>
               <Trophy className="h-6 w-6 text-amber-600" />
             </div>
 
             <h3 className="text-xl font-black text-[#0F172A]">
-              청소년 안전 숏폼 공모전
+              청소년 안전 숏폼 챌린지 🎬
             </h3>
 
             <p className="text-xs text-[#334155] font-semibold leading-relaxed">
-              나만의 기발한 안전 꿀팁과 숏폼 영상으로 총 상금 500만원의 주인공에 도전하세요!
+              나만의 기발한 안전 꿀팁과 숏폼 영상으로 총 상금 500만원의 주인공에 도전하세요! (대국민 실시간 투표 진행 중)
             </p>
 
             <Link
               href="/contest"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl transition-all shadow-sm touch-target"
             >
-              <span>공모전 출품 & 투표하기</span>
+              <span>숏폼 챌린지 참가 & 투표하기</span>
               <ChevronRight size={14} />
             </Link>
           </div>

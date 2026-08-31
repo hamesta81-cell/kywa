@@ -2,9 +2,13 @@ services:
   - type: web
     name: kywa-safety-hub
     env: node
-    plan: free
+    plan: starter
     buildCommand: npm run build
     startCommand: npm start
+    disk:
+      name: crew-data
+      mountPath: /var/data
+      sizeGB: 1
     domains:
       - kywasafe.kr
       - www.kywasafe.kr
@@ -13,3 +17,5 @@ services:
         value: 20.10.0
       - key: PORT
         value: 3000
+      - key: DATA_DIR
+        value: /var/data

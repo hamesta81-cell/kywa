@@ -309,15 +309,18 @@ function CrewContent() {
                 }
               });
 
-              mergedReports = Array.from(reportMap.values());
-
-              // 로컬에서 복구된 미동기 항목이 있으면 서버 백엔드로 즉시 백업 전송
+              // 🔒 [안전성 강화] 이전 브라우저 캐시로 서버 전체 덮어쓰기 원천 차단
+              // 서버에 없는 새로운 로컬 작성 글만 단일 보고서 단위로 안전 등록
               if (hasNewRestoredItem) {
-                fetch("/api/crew-reports", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ reports: mergedReports })
-                }).catch(() => {});
+                vaultReports.forEach((v: any) => {
+                  if (v && v.id && !deletedSet.has(String(v.id)) && !serverReports.some((sr: any) => String(sr.id) === String(v.id))) {
+                    fetch("/api/crew-reports", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ report: v })
+                    }).catch(() => {});
+                  }
+                });
               }
             }
           }
@@ -356,18 +359,54 @@ function CrewContent() {
           return finalReportList;
         }
 
-        const myExtracted = finalReportList.filter((item: any) => {
-          const cleanItemTeam = (item.teamName || item.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-          if (!cleanItemTeam || !cleanUserTeam) return false;
-          if (cleanUserTeam === cleanItemTeam) return true;
+        const isTeamMatched = (userTeamStr: string, itemTeamStr: string) => {
+          const u = (userTeamStr || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+          const i = (itemTeamStr || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+          if (!u || !i) return false;
+          if (u === i) return true;
 
-          const coreUser = cleanUserTeam.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
-          const coreItem = cleanItemTeam.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
+          // 🌟 [핵심] 영문 <-> 한글 상호 별칭 완벽 매핑
+          const aliases: Record<string, string[]> = {
+            "safeframe": ["세이프프레임", "세이프", "safeframe", "safe"],
+            "세이프프레임": ["safeframe", "세이프프레임", "세이프"],
+            "safecrew": ["세이프크루", "safecrew", "safe"],
+            "세이프크루": ["safecrew", "세이프크루", "safe"],
+            "light": ["라이트", "light"],
+            "라이트": ["light", "라이트"],
+            "pine": ["파인", "심리지원단파인", "pine"],
+            "파인": ["pine", "심리지원단파인", "파인"],
+            "tapandtalk": ["탭앤톡", "안전탭앤톡", "tapandtalk"],
+            "탭앤톡": ["tapandtalk", "안전탭앤톡", "탭앤톡"],
+            "yes": ["예스", "yes", "yes6", "예스6기", "청소년서포터즈yes"],
+            "예스": ["yes", "예스", "yes6", "예스6기", "청소년서포터즈yes"],
+            "wellbeing": ["웰빙", "웰빙크루", "wellbeing"],
+            "웰빙": ["wellbeing", "웰빙크루", "웰빙"],
+            "etoos": ["이투스", "etoos"],
+            "이투스": ["etoos", "이투스"],
+            "safezip": ["안전zip", "안전집", "safezip"],
+            "안전zip": ["safezip", "안전zip", "안전집"],
+            "cheongdiguard": ["청디가드", "cheongdiguard"],
+            "청디가드": ["cheongdiguard", "청디가드"]
+          };
+
+          for (const [key, list] of Object.entries(aliases)) {
+            const matchU = list.some(alias => u.includes(alias) || alias.includes(u));
+            const matchI = list.some(alias => i.includes(alias) || alias.includes(i));
+            if (matchU && matchI) return true;
+          }
+
+          const coreU = u.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
+          const coreI = i.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
 
           return (
-            (coreUser && coreItem && (coreUser === coreItem || coreUser.includes(coreItem) || coreItem.includes(coreUser))) ||
-            (cleanUserTeam.length > 2 && cleanItemTeam.length > 2 && (cleanUserTeam.includes(cleanItemTeam) || cleanItemTeam.includes(cleanUserTeam)))
+            (coreU && coreI && (coreU === coreI || coreU.includes(coreI) || coreI.includes(coreU))) ||
+            (u.length > 2 && i.length > 2 && (u.includes(i) || i.includes(u)))
           );
+        };
+
+        const myExtracted = finalReportList.filter((item: any) => {
+          const itemTeam = item.teamName || item.authorName || "";
+          return isTeamMatched(cleanUserTeam, itemTeam);
         });
 
         if (JSON.stringify(prevMy) === JSON.stringify(myExtracted)) return prevMy;
@@ -2609,22 +2648,53 @@ function CrewContent() {
                     
                     const cleanUserTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
 
+                    const isTeamMatched = (userTeamStr: string, itemTeamStr: string) => {
+                      const u = (userTeamStr || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                      const i = (itemTeamStr || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                      if (!u || !i) return false;
+                      if (u === i) return true;
+
+                      const aliases: Record<string, string[]> = {
+                        "safeframe": ["세이프프레임", "세이프", "safeframe", "safe"],
+                        "세이프프레임": ["safeframe", "세이프프레임", "세이프"],
+                        "safecrew": ["세이프크루", "safecrew", "safe"],
+                        "세이프크루": ["safecrew", "세이프크루", "safe"],
+                        "light": ["라이트", "light"],
+                        "라이트": ["light", "라이트"],
+                        "pine": ["파인", "심리지원단파인", "pine"],
+                        "파인": ["pine", "심리지원단파인", "파인"],
+                        "tapandtalk": ["탭앤톡", "안전탭앤톡", "tapandtalk"],
+                        "탭앤톡": ["tapandtalk", "안전탭앤톡", "탭앤톡"],
+                        "yes": ["예스", "yes", "yes6", "예스6기", "청소년서포터즈yes"],
+                        "예스": ["yes", "예스", "yes6", "예스6기", "청소년서포터즈yes"],
+                        "wellbeing": ["웰빙", "웰빙크루", "wellbeing"],
+                        "웰빙": ["wellbeing", "웰빙크루", "웰빙"],
+                        "etoos": ["이투스", "etoos"],
+                        "이투스": ["etoos", "이투스"],
+                        "safezip": ["안전zip", "안전집", "safezip"],
+                        "안전zip": ["safezip", "안전zip", "안전집"],
+                        "cheongdiguard": ["청디가드", "cheongdiguard"],
+                        "청디가드": ["cheongdiguard", "청디가드"]
+                      };
+
+                      for (const [key, list] of Object.entries(aliases)) {
+                        const matchU = list.some(alias => u.includes(alias) || alias.includes(u));
+                        const matchI = list.some(alias => i.includes(alias) || alias.includes(i));
+                        if (matchU && matchI) return true;
+                      }
+
+                      const coreU = u.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
+                      const coreI = i.replace(/청소년|활동|진흥원|안전|홍보단|서포터즈|팀|kywa/g, "");
+
+                      return (
+                        (coreU && coreI && (coreU === coreI || coreU.includes(coreI) || coreI.includes(coreU))) ||
+                        (u.length > 2 && i.length > 2 && (u.includes(i) || i.includes(u)))
+                      );
+                    };
+
                     const rawReportsToShow = isAdmin
                       ? allTeamsFeed
-                      : allTeamsFeed.filter((item: any) => {
-                          const cleanItemTeam = (item.teamName || item.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-                          if (!cleanItemTeam || !cleanUserTeam) return false;
-
-                          // 팀명 핵심 토큰 매칭
-                          const userCore = cleanUserTeam.replace(/^[0-9]+/, "").replace(/팀$/, "");
-                          const itemCore = cleanItemTeam.replace(/^[0-9]+/, "").replace(/팀$/, "");
-
-                          return (
-                            cleanUserTeam.includes(cleanItemTeam) ||
-                            cleanItemTeam.includes(cleanUserTeam) ||
-                            (userCore && itemCore && (userCore.includes(itemCore) || itemCore.includes(userCore)))
-                          );
-                        });
+                      : allTeamsFeed.filter((item: any) => isTeamMatched(cleanUserTeam, item.teamName || item.authorName || ""));
 
                     const reportsToShow = [...rawReportsToShow].sort(sortReportsByDateDesc);
 

@@ -2,13 +2,10 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import { getPersistentFilePath } from "@/lib/diskStorage";
 
 function getDiskFilePath(): string {
-  try {
-    return path.join(process.cwd(), "permanent_passwords_db.json");
-  } catch (e) {
-    return path.join(os.tmpdir(), "permanent_passwords_db.json");
-  }
+  return getPersistentFilePath("permanent_passwords_db.json");
 }
 
 const globalPassStore = globalThis as unknown as {

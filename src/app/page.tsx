@@ -5,20 +5,36 @@ import {
   Play, BookOpen, Compass, Gamepad2, Award, Users, ArrowRight, 
   ShieldCheck, MapPin, Sparkles, Trophy, CheckCircle2, ChevronRight, 
   Zap, Target, Lock, Clock, Heart, AlertTriangle, Radio, Flame, 
-  Smartphone, CloudRain, Activity, Smile, Share2, Eye
+  Smartphone, CloudRain, Activity, Smile, Share2, Eye, X
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showChallengePopup, setShowChallengePopup] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedUser = sessionStorage.getItem("user") || localStorage.getItem("user");
       if (savedUser) setIsLoggedIn(true);
+
+      // 오늘 하루 보지 않기 체크
+      const hidePopupDate = localStorage.getItem("hide_playsafe_popup_date");
+      const today = new Date().toISOString().slice(0, 10);
+      if (hidePopupDate !== today) {
+        setShowChallengePopup(true);
+      }
     }
   }, []);
+
+  const handleClosePopup = (dontShowToday: boolean) => {
+    if (dontShowToday) {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem("hide_playsafe_popup_date", today);
+    }
+    setShowChallengePopup(false);
+  };
 
   const safetyZones = [
     {
@@ -655,6 +671,83 @@ export default function Home() {
         </section>
 
       </div>
+
+      {/* 🌟 2026 PLAY SAFE 숏폼 챌린지 홈페이지 공식 팝업 모달 */}
+      {showChallengePopup && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="relative max-w-lg w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-amber-200 animate-in zoom-in-95 duration-200">
+            
+            {/* 상단 헤더 */}
+            <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-3.5 flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <Trophy size={16} className="text-white fill-white" />
+                <span className="text-xs font-black tracking-wide">
+                  2026 청소년활동 안전캠페인 공식 공모
+                </span>
+              </div>
+              <button 
+                onClick={() => handleClosePopup(false)}
+                className="p-1 rounded-full hover:bg-white/20 transition-all text-white"
+                title="팝업 닫기"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* 포스터 이미지 영역 */}
+            <div className="relative w-full h-[340px] bg-slate-950">
+              <Image 
+                src="/images/playsafe_poster_2026.png" 
+                alt="2026 PLAY SAFE 숏폼 챌린지 포스터" 
+                fill 
+                className="object-contain"
+                priority
+              />
+            </div>
+
+            {/* 본문 안내 & 바로가기 버튼 */}
+            <div className="p-5 space-y-4 bg-white">
+              <div className="space-y-1 text-center">
+                <h4 className="text-base font-black text-[#0F172A]">
+                  「PLAY SAFE 숏폼 챌린지」 공모전 개최! 🎬
+                </h4>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                  공식 음원 <strong>'ㅋㅋㅋ(Keep, Know, KYWA)'</strong>에 맞춘 나만의 안전 숏폼에 도전하세요! (총 상금 200만원)
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Link
+                  href="/contest?tab=vote"
+                  onClick={() => handleClosePopup(false)}
+                  className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs rounded-xl text-center shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Trophy size={14} />
+                  <span>숏폼 챌린지 바로가기 & 음원 다운로드</span>
+                </Link>
+              </div>
+
+              {/* 하단 옵션: 오늘 하루 보지 않기 / 닫기 */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-bold">
+                <button
+                  onClick={() => handleClosePopup(true)}
+                  className="hover:text-slate-900 transition-colors"
+                >
+                  [ 오늘 하루 보지 않기 ]
+                </button>
+                <button
+                  onClick={() => handleClosePopup(false)}
+                  className="hover:text-slate-900 transition-colors"
+                >
+                  [ 닫기 ]
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

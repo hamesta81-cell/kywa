@@ -6,15 +6,17 @@ import {
   Vote, Calendar, Heart, ShieldCheck, AlertCircle, Eye, ChevronRight, 
   HelpCircle, ArrowRight, User, Star, Download, Bot, Lightbulb, 
   Flame, Smartphone, CloudRain, Activity, Smile, Video, BookOpen, 
-  Layers, Music, Play, Radio, Share2, Film, ExternalLink
+  Layers, Music, Play, Radio, Share2, Film, ExternalLink, X
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
 function ContestContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"challenge" | "info" | "submit" | "guidelines">("challenge");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [showPosterModal, setShowPosterModal] = useState(false);
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -224,22 +226,45 @@ function ContestContent() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowPosterModal(true)}
+                    className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-900 font-bold text-xs rounded-xl border border-slate-300 transition-all flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Eye size={14} className="text-amber-600" />
+                    <span>공식 포스터 크게보기</span>
+                  </button>
+
                   <a
                     href="#download-sound"
                     onClick={(e) => { e.preventDefault(); alert("📥 'ㅋㅋㅋ(Keep, Know, KYWA)' 공식 음원 다운로드가 시작되었습니다."); }}
                     className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-xs rounded-xl border border-amber-300 transition-all flex items-center gap-1.5"
                   >
                     <Download size={14} />
-                    <span>공식 음원 다운로드</span>
+                    <span>음원 다운로드</span>
                   </a>
 
                   <button
                     onClick={() => setActiveTab("submit")}
                     className="px-5 py-2 bg-[#0F172A] hover:bg-slate-800 text-white font-black text-xs rounded-xl transition-all shadow-sm"
                   >
-                    [챌린지 참가 접수]
+                    [참가 접수]
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* 우측 포스터 카드 미리보기 */}
+            <div className="hidden lg:block absolute right-8 top-8 bottom-8 w-64 rounded-2xl overflow-hidden shadow-lg border-2 border-amber-300 group cursor-pointer" onClick={() => setShowPosterModal(true)}>
+              <Image 
+                src="/images/playsafe_poster_2026.png" 
+                alt="2026 PLAY SAFE 숏폼 챌린지 포스터" 
+                fill 
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                <span className="px-3 py-1.5 rounded-full bg-white text-slate-950 text-xs font-black flex items-center gap-1 shadow-md">
+                  <Eye size={13} /> 포스터 확대보기
+                </span>
               </div>
             </div>
 
@@ -621,6 +646,47 @@ function ContestContent() {
             <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-1">
               <strong className="text-slate-900 block text-sm">• 저작권 및 초상권 보호</strong>
               <p>실존 인물의 목소리나 얼굴을 악용한 딥페이크는 엄격히 금지되며, 사용한 AI 도구의 상업적/공공적 이용 권리를 준수해야 합니다.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 포스터 확대보기 라이트박스 모달 */}
+      {showPosterModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setShowPosterModal(false)}>
+          <div className="relative max-w-2xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl p-4 space-y-3" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-2">
+              <span className="text-xs font-black text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                2026 PLAY SAFE 숏폼 챌린지 공식 포스터
+              </span>
+              <button 
+                onClick={() => setShowPosterModal(false)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="relative w-full h-[70vh] rounded-2xl overflow-hidden bg-slate-950">
+              <Image 
+                src="/images/playsafe_poster_2026.png" 
+                alt="2026 PLAY SAFE 숏폼 챌린지 포스터" 
+                fill 
+                className="object-contain"
+                priority
+              />
+            </div>
+
+            <div className="flex justify-between items-center pt-2 px-2">
+              <span className="text-[11px] font-semibold text-slate-500">문의: 02-2088-8456 | mkteam@testmotionofficial.com</span>
+              <a 
+                href="/images/playsafe_poster_2026.png" 
+                download="2026_PLAY_SAFE_포스터.png"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                <Download size={14} />
+                <span>포스터 원본 다운로드</span>
+              </a>
             </div>
           </div>
         </div>

@@ -102,7 +102,7 @@ export default function Header() {
             </Link>
 
             <Link 
-              href="/contest?tab=vote" 
+              href="/challenge" 
               className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all group"
             >
               <Trophy className="h-3.5 w-3.5 text-amber-600 group-hover:scale-110 transition-transform" />
@@ -113,7 +113,7 @@ export default function Header() {
             </Link>
 
             <Link 
-              href="/contest?tab=info" 
+              href="/contest" 
               className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#1558C9] hover:bg-blue-50 rounded-full transition-all"
             >
               <Sparkles className="h-3.5 w-3.5 text-[#1558C9]" />

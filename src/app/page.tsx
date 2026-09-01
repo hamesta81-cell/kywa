@@ -13,6 +13,7 @@ import Image from "next/image";
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showChallengePopup, setShowChallengePopup] = useState(false);
+  const [showFullScreenPoster, setShowFullScreenPoster] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -635,7 +636,7 @@ export default function Home() {
             </p>
 
             <Link
-              href="/contest"
+              href="/challenge"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl transition-all shadow-sm touch-target"
             >
               <span>숏폼 챌린지 참가 & 투표하기</span>
@@ -694,15 +695,24 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 포스터 이미지 영역 */}
-            <div className="relative w-full h-[340px] bg-slate-950">
+            {/* 포스터 이미지 영역 (클릭 시 전체화면 확대) */}
+            <div 
+              className="relative w-full h-[340px] bg-slate-950 cursor-pointer group"
+              onClick={() => setShowFullScreenPoster(true)}
+              title="클릭하여 포스터 전체화면으로 보기"
+            >
               <Image 
                 src="/images/playsafe_poster_2026.png" 
                 alt="2026 PLAY SAFE 숏폼 챌린지 포스터" 
                 fill 
-                className="object-contain"
+                className="object-contain group-hover:scale-[1.02] transition-transform duration-200"
                 priority
               />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                <span className="px-3.5 py-1.5 rounded-full bg-white/90 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-lg">
+                  <Eye size={14} /> 클릭하여 전체화면 보기
+                </span>
+              </div>
             </div>
 
             {/* 본문 안내 & 바로가기 버튼 */}
@@ -718,7 +728,7 @@ export default function Home() {
 
               <div className="flex gap-2">
                 <Link
-                  href="/contest?tab=vote"
+                  href="/challenge"
                   onClick={() => handleClosePopup(false)}
                   className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs rounded-xl text-center shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
@@ -744,6 +754,66 @@ export default function Home() {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 포스터 전체화면 풀스크린 라이트박스 뷰어 */}
+      {showFullScreenPoster && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 animate-in fade-in duration-200"
+          onClick={() => setShowFullScreenPoster(false)}
+        >
+          <div 
+            className="relative max-w-4xl w-full h-[92vh] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between border border-slate-800"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* 닫기 버튼 상단 바 */}
+            <div className="p-4 bg-slate-900/80 backdrop-blur-md flex items-center justify-between z-10 border-b border-slate-800">
+              <span className="text-xs font-black text-amber-400 flex items-center gap-1.5">
+                <Trophy size={14} /> 2026 PLAY SAFE 숏폼 챌린지 공식 포스터 (전체화면)
+              </span>
+              <button 
+                onClick={() => setShowFullScreenPoster(false)}
+                className="p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-white transition-all"
+                title="전체화면 닫기"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 고화질 포스터 영역 */}
+            <div className="relative flex-1 w-full bg-slate-950">
+              <Image 
+                src="/images/playsafe_poster_2026.png" 
+                alt="2026 PLAY SAFE 숏폼 챌린지 포스터 전체화면" 
+                fill 
+                className="object-contain p-2"
+                priority
+              />
+            </div>
+
+            {/* 하단 바 */}
+            <div className="p-4 bg-slate-900/80 backdrop-blur-md flex items-center justify-between border-t border-slate-800 text-xs">
+              <span className="text-slate-400 font-medium text-[11px]">문의: 02-2088-8456 | mkteam@testmotionofficial.com</span>
+              <div className="flex items-center gap-2">
+                <a 
+                  href="/images/playsafe_poster_2026.png" 
+                  download="2026_PLAY_SAFE_포스터.png"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl transition-all flex items-center gap-1.5 shadow-md"
+                >
+                  <Eye size={13} />
+                  <span>원본 다운로드</span>
+                </a>
+                <Link
+                  href="/contest?tab=vote"
+                  onClick={() => setShowFullScreenPoster(false)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl transition-all flex items-center gap-1.5 shadow-md"
+                >
+                  <span>챌린지 참여하기</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       )}

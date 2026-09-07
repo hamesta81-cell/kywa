@@ -12,6 +12,15 @@ export default function ChallengePage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"submit" | "guide">("submit");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    category: "dance_official",
+    author: "",
+    phone: "",
+    email: "",
+    videoUrl: "",
+    description: ""
+  });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const toggleAudio = () => {
@@ -25,6 +34,37 @@ export default function ChallengePage() {
       }).catch((err) => {
         console.error("Audio playback error:", err);
       });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/challenge/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert(`🎉 숏폼 챌린지 참가가 성공적으로 접수되었습니다!\n\n📋 접수 번호: ${result.data.id}\n👤 참가자(팀): ${result.data.author}\n\n데이터가 영구 디스크에 안전하게 보관되었습니다.`);
+        setFormData({
+          category: "dance_official",
+          author: "",
+          phone: "",
+          email: "",
+          videoUrl: "",
+          description: ""
+        });
+        setActiveSubTab("guide");
+      } else {
+        alert(`❌ 접수 실패: ${result.message || "오류가 발생했습니다."}`);
+      }
+    } catch (err) {
+      alert("❌ 접수 중 서버 통신 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -203,17 +243,18 @@ export default function ChallengePage() {
           </div>
 
           <form 
-            onSubmit={e => {
-              e.preventDefault();
-              alert("🎉 숏폼 챌린지 참가가 성공적으로 접수되었습니다!");
-              setActiveSubTab("guide");
-            }}
+            onSubmit={handleSubmit}
             className="space-y-5 text-xs font-bold text-[#0F172A]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block mb-1 text-slate-700">• 공모 부문:</label>
-                <select className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" required>
+                <select 
+                  value={formData.category}
+                  onChange={e => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+                  required
+                >
                   <option value="dance_official">💃 댄스 부문 - 공식 안무 따라하기</option>
                   <option value="dance_creative">💃 댄스 부문 - 가사 창작 안무 퍼포먼스</option>
                   <option value="creative_vlog">🎬 크리에이티브 부문 - 안전 브이로그</option>
@@ -224,37 +265,73 @@ export default function ChallengePage() {
 
               <div>
                 <label className="block mb-1 text-slate-700">• 참가자 성명 / 팀명:</label>
-                <input type="text" placeholder="예: 김안전 (또는 안전크루팀)" className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" required />
+                <input 
+                  type="text" 
+                  value={formData.author}
+                  onChange={e => setFormData({ ...formData, author: e.target.value })}
+                  placeholder="예: 김안전 (또는 안전크루팀)" 
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+                  required 
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block mb-1 text-slate-700">• 연락처 (휴대전화):</label>
-                <input type="tel" placeholder="010-1234-5678" className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" required />
+                <input 
+                  type="tel" 
+                  value={formData.phone}
+                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="010-1234-5678" 
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+                  required 
+                />
               </div>
               <div>
                 <label className="block mb-1 text-slate-700">• 이메일:</label>
-                <input type="email" placeholder="safety@example.com" className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" required />
+                <input 
+                  type="email" 
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="safety@example.com" 
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+                  required 
+                />
               </div>
             </div>
 
             <div>
               <label className="block mb-1 text-slate-700">• SNS 영상 URL (인스타그램 릴스 또는 유튜브 쇼츠 링크):</label>
-              <input type="url" placeholder="https://www.instagram.com/reel/... 또는 https://youtube.com/shorts/..." className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" required />
+              <input 
+                type="url" 
+                value={formData.videoUrl}
+                onChange={e => setFormData({ ...formData, videoUrl: e.target.value })}
+                placeholder="https://www.instagram.com/reel/... 또는 https://youtube.com/shorts/..." 
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+                required 
+              />
             </div>
 
             <div>
               <label className="block mb-1 text-slate-700">• 챌린지 작품명 및 안전 실천 메시지 요약 (300자 이내):</label>
-              <textarea rows={3} placeholder="작품의 기획 의도와 표현하고자 한 안전 수칙을 간결하게 작성하세요." className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" required />
+              <textarea 
+                rows={3} 
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                placeholder="작품의 기획 의도와 표현하고자 한 안전 수칙을 간결하게 작성하세요." 
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+                required 
+              />
             </div>
 
             <button 
               type="submit" 
-              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 touch-target"
+              disabled={isSubmitting}
+              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 text-slate-950 font-black text-sm rounded-2xl shadow-md flex items-center justify-center gap-2 touch-target cursor-pointer transition-all"
             >
               <Send size={18} />
-              <span>[ 🚀 숏폼 챌린지 참가 신청서 최종 제출하기 ]</span>
+              <span>{isSubmitting ? "접수 데이터를 저장하고 있습니다..." : "[ 🚀 숏폼 챌린지 참가 신청서 최종 제출하기 ]"}</span>
             </button>
           </form>
         </section>

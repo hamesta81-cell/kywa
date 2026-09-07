@@ -204,7 +204,8 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Referer": "https://kywasafe.kr"
+        "Origin": "https://kywasafe.kr",
+        "Referer": "https://kywasafe.kr/"
       },
       body: JSON.stringify({
         _subject: `[KYWA 숏폼 접수] ${data.author} (${data.id})`,

@@ -10,14 +10,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 function ContestContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"info" | "submit" | "guidelines">("info");
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
+    if (tabParam === "vote") {
+      router.replace("/challenge");
+      return;
+    }
     if (tabParam === "submit") {
       setActiveTab("submit");
     } else if (tabParam === "guidelines") {
@@ -25,7 +30,7 @@ function ContestContent() {
     } else {
       setActiveTab("info");
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   // AI 안전공모전 5대 주제
   const contestTopics = [

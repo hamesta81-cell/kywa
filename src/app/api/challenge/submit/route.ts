@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import { getPersistentFilePath } from "@/lib/diskStorage";
+import { sendChallengeNotificationEmail } from "@/lib/mailer";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -75,6 +76,13 @@ export async function POST(req: Request) {
 
     submissions.unshift(newEntry);
     writeSubmissions(submissions);
+
+    // 📧 이메일 발송 (신청자 본인 접수증 + 관리자 접수알림)
+    try {
+      await sendChallengeNotificationEmail(newEntry);
+    } catch (mailErr) {
+      console.error("Mail notification failed:", mailErr);
+    }
 
     return NextResponse.json({
       success: true,

@@ -389,6 +389,155 @@ export default function ChallengePage() {
         </div>
       </section>
 
+      {/* 🌟 [공모 부문 및 6대 촬영 주제] 원래 메인 위치 (참고 영상 포함 중복 배치) */}
+      <section className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="text-amber-600" size={20} />
+            <h2 className="text-xl font-black text-[#0F172A]">공모 부문 및 6대 촬영 주제</h2>
+          </div>
+          <span className="text-xs text-slate-500 font-bold">댄스 부문 & 크리에이티브 부문 복수 출품 가능</span>
+        </div>
+
+        {/* 댄스 부문 카드 */}
+        <div className="p-5 bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-200 rounded-2xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black px-3 py-1 bg-amber-500 text-slate-950 rounded-full">부문 01 · 💃 댄스 부문</span>
+            <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">공식 음원 'ㅋㅋㅋ' 필수</span>
+          </div>
+          <p className="text-xs text-[#334155] font-bold leading-relaxed">
+            공식 음원 ‘ㅋㅋㅋ(Keep, Know, KYWA)’에 맞춰 신나게 춤추는 숏폼 안무 챌린지
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+            <div className="p-3 bg-white border border-amber-200 rounded-xl space-y-1">
+              <strong className="text-amber-900 block">① 공식안무 분야</strong>
+              <p className="text-slate-600 text-[11px]">공식 음원에 맞춰 공식 안무를 따라 추는 형태 (복장, 촬영 장소 등을 활용하여 안전 수칙 표현 가능)</p>
+            </div>
+            <div className="p-3 bg-white border border-amber-200 rounded-xl space-y-1">
+              <strong className="text-amber-900 block">② 퍼포먼스 분야</strong>
+              <p className="text-slate-600 text-[11px]">공식 음원을 배경음악으로 가사 내용을 새롭게 표현하는 창작 안무 퍼포먼스 형태</p>
+            </div>
+          </div>
+
+          {/* 🎬 댄스 부문 공식 참고 영상 (YouTube Shorts 임베드) */}
+          <div className="mt-3 pt-3 border-t border-amber-200/80 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-red-600 text-white font-black text-[10px] tracking-wide flex items-center gap-1">
+                  <Film size={12} /> 참고 영상
+                </span>
+                <strong className="text-xs text-[#0F172A] font-black">
+                  2025 청소년안전문화확산 ㅋㅋㅋ캠페인 챌린지 안무
+                </strong>
+              </div>
+              <a
+                href="https://www.youtube.com/shorts/lyNzw_paW_s"
+                target="_blank"
+                rel="noreferrer"
+                className="text-[11px] font-bold text-red-600 hover:text-red-700 underline flex items-center gap-1 shrink-0"
+              >
+                <span>유튜브에서 직접 보기</span>
+                <ArrowUpRight size={12} />
+              </a>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4 bg-white/80 p-4 rounded-xl border border-amber-200">
+              {/* 세로형 9:16 유튜브 쇼츠 반응형 임베드 */}
+              <div className="w-full max-w-[260px] aspect-[9/16] rounded-xl overflow-hidden shadow-md border border-slate-300 bg-black shrink-0 relative">
+                <iframe
+                  src="https://www.youtube.com/embed/lyNzw_paW_s"
+                  title="2025 청소년안전문화확산 ㅋㅋㅋ캠페인 챌린지 안무"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+
+              {/* 참고 가이드 설명 */}
+              <div className="flex-1 space-y-2.5 text-xs">
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
+                  <span className="font-black text-amber-900 block">💡 챌린지 공식 안무 참고 가이드</span>
+                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                    위 영상에 소개된 <strong>'ㅋㅋㅋ(Keep, Know, KYWA)'</strong> 챌린지 공식 안무를 참고하여 
+                    직접 커버하거나, 팀만의 개성 있는 창작 동작을 더해 멋진 숏폼 영상을 완성해 보세요!
+                  </p>
+                </div>
+                <ul className="text-[11px] text-slate-500 space-y-1 leading-relaxed">
+                  <li>• <strong>공식 안무 분야:</strong> 위 영상의 공식 포인트 댄스를 그대로 따라 추는 분야입니다.</li>
+                  <li>• <strong>퍼포먼스 분야:</strong> 공식 음원을 배경으로 자유로운 창작 댄스 및 대형 안무를 구성합니다.</li>
+                  <li>• 상단 배너의 <strong>[음원 다운로드]</strong> 버튼을 통해 공식 음원을 받아 영상에 입혀주세요.</li>
+                </ul>
+
+                <div className="pt-1">
+                  <a
+                    href="https://www.youtube.com/shorts/lyNzw_paW_s"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow transition-colors"
+                  >
+                    <Film size={14} />
+                    <span>[2025 ㅋㅋㅋ캠페인 안무 유튜브 쇼츠 열기]</span>
+                    <ArrowUpRight size={13} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 크리에이티브 부문 카드 & 6대 주제 그리드 */}
+        <div className="p-5 bg-gradient-to-br from-blue-50 to-sky-50/50 border border-blue-200 rounded-2xl space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black px-3 py-1 bg-[#1558C9] text-white rounded-full">부문 02 · 🎬 크리에이티브 부문</span>
+            <span className="text-[11px] font-bold text-blue-900 bg-blue-100 px-2 py-0.5 rounded">자유 형식 (브이로그, 상황극, 패러디 등)</span>
+          </div>
+          <p className="text-xs text-[#334155] font-bold leading-relaxed">
+            일상 속 안전 실천 메시지를 자유롭게 표현하는 숏폼 챌린지 (단, 최종 영상에 공식 ‘ㅋㅋㅋ’ 음원 필수 삽입)
+          </p>
+
+          <div>
+            <span className="text-xs font-black text-blue-950 block mb-2.5">📌 크리에이티브 부문 6대 권장 촬영 주제:</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded">주제 01</span>
+                <strong className="block text-slate-900">개인형 이동장치·자전거</strong>
+                <p className="text-slate-500 text-[11px]">올바른 PM 이용수칙, 헬멧 미착용 상황극 등 안전사고 예방</p>
+              </div>
+
+              <div className="p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">주제 02</span>
+                <strong className="block text-slate-900">야외 활동 안전수칙</strong>
+                <p className="text-slate-500 text-[11px]">행사, 축제, 등산, 캠핑, 물놀이 등 야외 안전사고 예방 수칙</p>
+              </div>
+
+              <div className="p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                <span className="text-[10px] font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded">주제 03</span>
+                <strong className="block text-slate-900">화재대피 요령</strong>
+                <p className="text-slate-500 text-[11px]">대피 경로 확인, 소화기·완강기 사용법, 화재 대처 상황극</p>
+              </div>
+
+              <div className="p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                <span className="text-[10px] font-black text-purple-700 bg-purple-50 px-2 py-0.5 rounded">주제 04</span>
+                <strong className="block text-slate-900">인공지능(AI) 활용 안전</strong>
+                <p className="text-slate-500 text-[11px]">AI 활용 시 디지털 윤리, 딥페이크 및 개인정보 보호 안전수칙</p>
+              </div>
+
+              <div className="p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded">주제 05</span>
+                <strong className="block text-slate-900">심리·정서 안전콘텐츠</strong>
+                <p className="text-slate-500 text-[11px]">청소년 심리정서 대처요령, 따돌림·혐오표현 개선 애니메이션</p>
+              </div>
+
+              <div className="p-3 bg-white border border-blue-200 rounded-xl space-y-1">
+                <span className="text-[10px] font-black text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded">주제 06</span>
+                <strong className="block text-slate-900">청소년수련시설 안전</strong>
+                <p className="text-slate-500 text-[11px]">수련시설 안전 확인 한눈정보, 활동 전 안전점검 및 관리법</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 숏폼 서브 탭 네비게이션 */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
         <button

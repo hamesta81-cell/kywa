@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { 
   ShieldCheck, AlertTriangle, FileText, CheckCircle2, Search, Bell, Download, Plus, Filter, Users, 
   ChevronRight, BarChart2, Settings, Lock, Eye, Activity, TrendingUp, PieChart, ShieldAlert, Edit, 
-  Trash2, RefreshCw, XCircle, Check, Award, Upload, ArrowUpRight, Sparkles, MessageSquare, Database, Calendar
+  Trash2, RefreshCw, XCircle, Check, Award, Upload, ArrowUpRight, Sparkles, MessageSquare, Database, Calendar, Video
 } from "lucide-react";
 import Link from "next/link";
 import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
@@ -53,6 +53,12 @@ export default function AdminPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [cmsContent, setCmsContent] = useState<any[]>([]);
   const [contestSubmissions, setContestSubmissions] = useState<any[]>([]);
+  
+  // 🎬 숏폼 챌린지 실시간 접수 데이터 및 필터 상태
+  const [challengeSubmissions, setChallengeSubmissions] = useState<any[]>([]);
+  const [selectedChallengeCategory, setSelectedChallengeCategory] = useState("all");
+  const [selectedChallengeStatus, setSelectedChallengeStatus] = useState("all");
+  const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
 
   // 실시간 localStorage 실제 데이터 동동 불러오기 및 관리자 인증 체크
   const refreshAdminData = () => {
@@ -78,6 +84,18 @@ export default function AdminPage() {
           .then(data => {
             if (data.success && Array.isArray(data.reports)) {
               setAllFeeds(data.reports);
+            }
+          }).catch(() => {});
+
+        // 🎬 숏폼 챌린지 실시간 접수 데이터 불러오기
+        fetch(`/api/challenge/submit?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache" }
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && Array.isArray(data.data)) {
+              setChallengeSubmissions(data.data);
             }
           }).catch(() => {});
 
@@ -127,8 +145,36 @@ export default function AdminPage() {
     { day: "일", completed: Math.min(100, totalSubmissions * 5 + 5), pending: 0 }
   ];
 
+  // 🎬 숏폼 부문 레이블 매핑
+  const getChallengeCategoryLabel = (cat: string) => {
+    const map: Record<string, string> = {
+      dance_official: "댄스 - 공식 안무",
+      dance_creative: "댄스 - 창작 안무",
+      creative_vlog: "크리에이티브 - 안전 브이로그",
+      creative_sketch: "크리에이티브 - 상황극/패러디",
+      creative_info: "크리에이티브 - 정보형/애니"
+    };
+    return map[cat] || cat;
+  };
+
+  // 🎬 필터링된 숏폼 출품작 목록
+  const filteredChallengeSubmissions = challengeSubmissions.filter(item => {
+    if (selectedChallengeCategory !== "all" && item.category !== selectedChallengeCategory) return false;
+    if (selectedChallengeStatus !== "all" && (item.status || "접수완료") !== selectedChallengeStatus) return false;
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      const matchAuthor = (item.author || "").toLowerCase().includes(q);
+      const matchId = (item.id || "").toLowerCase().includes(q);
+      const matchPhone = (item.phone || "").includes(q);
+      const matchDesc = (item.description || "").toLowerCase().includes(q);
+      if (!matchAuthor && !matchId && !matchPhone && !matchDesc) return false;
+    }
+    return true;
+  });
+
   // 실제 데이터 기반 긴급 관제 큐
   const urgentTasks = [
+    { id: 0, type: "🎬 숏폼 챌린지 접수 심사", count: challengeSubmissions.length, label: `실시간 접수된 PLAY SAFE 숏폼 ${challengeSubmissions.length}건 심사 및 엑셀 다운로드`, color: "border-l-amber-500 bg-amber-950/30", targetNav: "shortform" },
     { id: 1, type: "실제 가입 회원 관제", count: totalUsers, label: `현재 플랫폼에 정식 가입된 회원 ${totalUsers}명 관리`, color: "border-l-rose-500 bg-rose-950/30", targetNav: "user" },
     { id: 2, type: "홍보단 활동 제출 검수", count: totalSubmissions, label: `전국 홍보단이 제출한 실제 주간보고서 ${totalSubmissions}건 검수`, color: "border-l-blue-500 bg-[#1558C9]/20", targetNav: "crew" },
     { id: 3, type: "홍보단 로그인 접속 모니터링", count: totalLoginCount, label: `16개 팀 총 누적 접속 ${totalLoginCount}회 기록 중`, color: "border-l-purple-500 bg-purple-950/30", targetNav: "crew" }
@@ -213,6 +259,46 @@ export default function AdminPage() {
 
   const handleExportCSV = (type: string) => {
     alert(`📊 [${type}] 실제 데이터 엑셀/CSV 보고서 파일이 정상 다운로드되었습니다.`);
+  };
+
+  // 🎬 숏폼 챌린지 관리자 핸들러
+  const handleUpdateChallengeStatus = async (id: string, nextStatus: string) => {
+    try {
+      const res = await fetch("/api/challenge/submit", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: nextStatus })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setChallengeSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: nextStatus } : s));
+        alert(`🟢 [접수 #${id}] 심사 상태가 '${nextStatus}'(으)로 업데이트되었습니다.`);
+      } else {
+        alert(`⚠️ 오류: ${result.message}`);
+      }
+    } catch (e) {
+      alert("상태 변경 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleDeleteChallengeSubmission = async (id: string) => {
+    if (!confirm(`🗑️ 정말 [${id}] 접수 건을 영구 삭제하시겠습니까?`)) return;
+    try {
+      const res = await fetch(`/api/challenge/submit?id=${id}`, { method: "DELETE" });
+      const result = await res.json();
+      if (result.success) {
+        setChallengeSubmissions(prev => prev.filter(s => s.id !== id));
+        alert(`🗑️ [${id}] 접수 건이 성공적으로 삭제되었습니다.`);
+      } else {
+        alert(`⚠️ 오류: ${result.message}`);
+      }
+    } catch (e) {
+      alert("삭제 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleDownloadChallengeCsv = () => {
+    window.open("/api/challenge/submit?format=csv", "_blank");
   };
 
 
@@ -319,6 +405,7 @@ export default function AdminPage() {
         <nav className="space-y-1">
           {[
             { key: "dashboard", label: "📊 통합 대시보드" },
+            { key: "shortform", label: "🎬 숏폼 챌린지 접수", badge: challengeSubmissions.length },
             { key: "campaign", label: "🎯 캠페인 관리" },
             { key: "archive", label: "📚 안전정보 CMS" },
             { key: "contest", label: "🏆 공모전 검수 파이프라인" },
@@ -338,7 +425,14 @@ export default function AdminPage() {
                   : "text-slate-300 hover:bg-slate-800"
               }`}
             >
-              <span>{item.label}</span>
+              <div className="flex items-center gap-1.5">
+                <span>{item.label}</span>
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="px-1.5 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
               <ChevronRight size={14} className={activeNav === item.key ? "text-white" : "text-slate-400"} />
             </button>
           ))}
@@ -363,12 +457,20 @@ export default function AdminPage() {
 
           <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
             <button
+              onClick={handleDownloadChallengeCsv}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-lg text-xs flex items-center gap-1 shadow transition-all border border-amber-400"
+              title="숏폼 챌린지 접수자 명단 엑셀 CSV 다운로드"
+            >
+              <Download size={13} />
+              <span>[🎬 숏폼 접수 엑셀]</span>
+            </button>
+            <button
               onClick={handleCopyGoogleSheetsFormula}
               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-lg text-xs flex items-center gap-1 shadow transition-all border border-emerald-400"
               title="구글 스프레드시트에 =IMPORTDATA(...) 수식 복사"
             >
               <Database size={13} />
-              <span>[📊 구글시트 실시간 연동 수식 복사]</span>
+              <span>[📊 구글시트 연동]</span>
             </button>
             <button
               onClick={handleDownloadCsvBackup}
@@ -376,7 +478,7 @@ export default function AdminPage() {
               title="제출된 전체 보고서 CSV/엑셀 백업 파일 다운로드"
             >
               <Download size={13} />
-              <span>[📥 엑셀 CSV 백업 다운로드]</span>
+              <span>[📥 홍보단 엑셀]</span>
             </button>
             <span className="text-white font-black bg-blue-900/80 px-3 py-1 rounded-lg border border-blue-500">
               👔 총괄 관리자 (ADMIN)
@@ -394,8 +496,20 @@ export default function AdminPage() {
           <div className="space-y-6 animate-in fade-in duration-200">
             
             {/* KPI 카드 (100% 실데이터 연동) */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 tabular-nums">
-              <div className="p-5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 tabular-nums">
+              <div 
+                onClick={() => setActiveNav("shortform")} 
+                className="p-4 bg-gradient-to-br from-amber-950/40 to-slate-800 rounded-2xl border border-amber-500/40 space-y-2 shadow-lg cursor-pointer hover:border-amber-400 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-amber-300 font-bold">🎬 숏폼 접수</span>
+                  <Video size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                </div>
+                <strong className="text-3xl font-black text-amber-400 block">{challengeSubmissions.length}건</strong>
+                <span className="text-[10px] text-amber-300 font-bold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40 inline-block">즉시 검수하기 →</span>
+              </div>
+
+              <div className="p-4 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 font-bold">실제 제출 보고서</span>
                   <TrendingUp size={16} className="text-emerald-400" />
@@ -404,7 +518,7 @@ export default function AdminPage() {
                 <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30 inline-block">실시간 집계 완료</span>
               </div>
 
-              <div className="p-5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
+              <div className="p-4 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 font-bold">안전제보 접수건</span>
                   <Activity size={16} className="text-cyan-400" />
@@ -413,7 +527,7 @@ export default function AdminPage() {
                 <span className="text-[10px] text-cyan-400 font-bold">실시간 관제 중</span>
               </div>
 
-              <div className="p-5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
+              <div className="p-4 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 font-bold">공모전 접수건</span>
                   <BarChart2 size={16} className="text-amber-400" />
@@ -422,7 +536,7 @@ export default function AdminPage() {
                 <span className="text-[10px] text-yellow-300 font-bold">대국민 투표 진행</span>
               </div>
 
-              <div className="p-5 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
+              <div className="p-4 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 font-bold">홍보단 접속 횟수</span>
                   <PieChart size={16} className="text-purple-400" />
@@ -478,6 +592,177 @@ export default function AdminPage() {
               </div>
             </section>
 
+          </div>
+        )}
+
+        {/* ==================================================================== */}
+        {/* TAB 1-2: 🎬 숏폼 챌린지 실시간 참가 접수 관제 콘솔                  */}
+        {/* ==================================================================== */}
+        {activeNav === "shortform" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* 상단 헤더 및 필터 바 */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-800 p-5 rounded-2xl border border-amber-500/40 shadow-xl">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded-full">
+                    PLAY SAFE 숏폼 챌린지
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono font-bold">공고 제2026-13-35호</span>
+                </div>
+                <h2 className="text-lg font-black text-white flex items-center gap-2 mt-1.5">
+                  🎬 숏폼 챌린지 참가 접수 실시간 관제 콘솔
+                  <span className="text-amber-400 text-sm font-bold">({filteredChallengeSubmissions.length} / 총 {challengeSubmissions.length}건)</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  전국 청소년 및 국민이 신청한 댄스·크리에이티브 출품작의 영상 링크, 기획의도, 연락처를 실시간 확인하고 심사 상태를 즉시 변경할 수 있습니다.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* 부문 필터 */}
+                <select
+                  value={selectedChallengeCategory}
+                  onChange={e => setSelectedChallengeCategory(e.target.value)}
+                  className="bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500"
+                >
+                  <option value="all">전체 공모 부문</option>
+                  <option value="dance_official">댄스 - 공식 안무</option>
+                  <option value="dance_creative">댄스 - 창작 안무</option>
+                  <option value="creative_vlog">크리에이티브 - 안전 브이로그</option>
+                  <option value="creative_sketch">크리에이티브 - 상황극/패러디</option>
+                  <option value="creative_info">크리에이티브 - 정보형/애니</option>
+                </select>
+
+                {/* 상태 필터 */}
+                <select
+                  value={selectedChallengeStatus}
+                  onChange={e => setSelectedChallengeStatus(e.target.value)}
+                  className="bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500"
+                >
+                  <option value="all">전체 심사 상태</option>
+                  <option value="접수완료">접수완료</option>
+                  <option value="심사중">심사중</option>
+                  <option value="본선진출">본선진출</option>
+                  <option value="수상확정">수상확정</option>
+                  <option value="보완요청">보완요청</option>
+                  <option value="반려">반려</option>
+                </select>
+
+                {/* 엑셀 CSV 다운로드 버튼 */}
+                <button
+                  onClick={handleDownloadChallengeCsv}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center gap-1.5 shadow-lg border border-emerald-400 transition-all"
+                >
+                  <Download size={14} />
+                  <span>[📊 접수명단 엑셀 다운로드]</span>
+                </button>
+
+                {/* 새로고침 버튼 */}
+                <button
+                  onClick={refreshAdminData}
+                  className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl transition-colors"
+                  title="실시간 접수 데이터 새로고침"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* 접수 목록 테이블 */}
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+              {filteredChallengeSubmissions.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-900 border-b border-slate-700 text-slate-300 font-black">
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap">접수번호</th>
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap">공모 부문</th>
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap">참가자(성명/팀명)</th>
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap">연락처 & 이메일</th>
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap text-center">영상 링크 (SNS)</th>
+                        <th className="p-3.5 border-r border-slate-800">기획 의도 및 메시지</th>
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap">접수 일시</th>
+                        <th className="p-3.5 border-r border-slate-800 whitespace-nowrap text-center">심사 상태</th>
+                        <th className="p-3.5 text-right whitespace-nowrap">관리</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/60 font-medium">
+                      {filteredChallengeSubmissions.map((sub: any) => (
+                        <tr key={sub.id} className="hover:bg-slate-700/40 transition-colors">
+                          <td className="p-3.5 font-mono font-black text-amber-400 border-r border-slate-800 whitespace-nowrap">
+                            {sub.id}
+                          </td>
+                          <td className="p-3.5 border-r border-slate-800 whitespace-nowrap">
+                            <span className="px-2.5 py-1 bg-amber-950/80 text-amber-300 font-black text-[11px] rounded-lg border border-amber-500/30 inline-block">
+                              {getChallengeCategoryLabel(sub.category)}
+                            </span>
+                          </td>
+                          <td className="p-3.5 font-black text-white border-r border-slate-800 whitespace-nowrap">
+                            {sub.author}
+                          </td>
+                          <td className="p-3.5 border-r border-slate-800 text-slate-300 whitespace-nowrap font-mono text-[11px]">
+                            <div className="font-bold text-slate-200">{sub.phone}</div>
+                            <div className="text-slate-400 text-[10px]">{sub.email}</div>
+                          </td>
+                          <td className="p-3.5 border-r border-slate-800 whitespace-nowrap text-center">
+                            <a
+                              href={sub.videoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-950 hover:bg-blue-900 text-cyan-300 border border-blue-500/40 rounded-lg font-bold text-[11px] transition-colors shadow-sm"
+                            >
+                              <Video size={13} />
+                              <span>영상 바로보기</span>
+                              <ArrowUpRight size={12} />
+                            </a>
+                          </td>
+                          <td className="p-3.5 border-r border-slate-800 max-w-[280px]">
+                            <div className="line-clamp-2 text-slate-300 leading-relaxed text-[11px]" title={sub.description}>
+                              {sub.description}
+                            </div>
+                          </td>
+                          <td className="p-3.5 border-r border-slate-800 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                            {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}
+                          </td>
+                          <td className="p-3.5 border-r border-slate-800 whitespace-nowrap text-center">
+                            <select
+                              value={sub.status || "접수완료"}
+                              onChange={e => handleUpdateChallengeStatus(sub.id, e.target.value)}
+                              className="bg-slate-900 text-xs font-black px-2.5 py-1.5 rounded-lg border border-slate-700 text-amber-300 focus:outline-none focus:border-amber-500 shadow"
+                            >
+                              <option value="접수완료">접수완료</option>
+                              <option value="심사중">심사중</option>
+                              <option value="본선진출">본선진출</option>
+                              <option value="수상확정">수상확정</option>
+                              <option value="보완요청">보완요청</option>
+                              <option value="반려">반려</option>
+                            </select>
+                          </td>
+                          <td className="p-3.5 text-right whitespace-nowrap">
+                            <button
+                              onClick={() => handleDeleteChallengeSubmission(sub.id)}
+                              className="px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-[11px] font-black transition-colors"
+                            >
+                              삭제
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-16 text-center text-slate-400 space-y-3">
+                  <Video size={42} className="mx-auto text-slate-600" />
+                  <div className="text-sm font-bold text-slate-200">
+                    {challengeSubmissions.length === 0 ? "아직 접수된 숏폼 챌린지 출품작이 없습니다." : "검색 또는 필터 조건에 일치하는 출품작이 없습니다."}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    홈페이지 상단 메뉴 「숏폼 챌린지」(주소: /contest?tab=vote)에서 신청자가 양식을 제출하면 이곳에 실시간으로 표시됩니다.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

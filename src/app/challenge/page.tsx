@@ -6,7 +6,7 @@ import {
   Send, Sparkles, ShieldCheck, Film, X, CheckCircle2,
   AlertCircle, Calendar, Award, FileText, Check, Users,
   Smartphone, Flame, CloudRain, Smile, Activity, HelpCircle,
-  Clock, Timer, TrendingUp, Zap
+  Clock, Timer, TrendingUp, Zap, ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -767,6 +767,71 @@ export default function ChallengePage() {
                 <div className="p-3 bg-white border border-amber-200 rounded-xl space-y-1">
                   <strong className="text-amber-900 block">② 퍼포먼스 분야</strong>
                   <p className="text-slate-600 text-[11px]">공식 음원을 배경음악으로 가사 내용을 새롭게 표현하는 창작 안무 퍼포먼스 형태</p>
+                </div>
+              </div>
+
+              {/* 🎬 댄스 부문 공식 참고 영상 (YouTube Shorts 임베드) */}
+              <div className="mt-3 pt-3 border-t border-amber-200/80 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-red-600 text-white font-black text-[10px] tracking-wide flex items-center gap-1">
+                      <Film size={12} /> 참고 영상
+                    </span>
+                    <strong className="text-xs text-[#0F172A] font-black">
+                      2025 청소년안전문화확산 ㅋㅋㅋ캠페인 챌린지 안무
+                    </strong>
+                  </div>
+                  <a
+                    href="https://www.youtube.com/shorts/lyNzw_paW_s"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] font-bold text-red-600 hover:text-red-700 underline flex items-center gap-1 shrink-0"
+                  >
+                    <span>유튜브에서 직접 보기</span>
+                    <ArrowUpRight size={12} />
+                  </a>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center gap-4 bg-white/80 p-4 rounded-xl border border-amber-200">
+                  {/* 세로형 9:16 유튜브 쇼츠 반응형 임베드 */}
+                  <div className="w-full max-w-[260px] aspect-[9/16] rounded-xl overflow-hidden shadow-md border border-slate-300 bg-black shrink-0 relative">
+                    <iframe
+                      src="https://www.youtube.com/embed/lyNzw_paW_s"
+                      title="2025 청소년안전문화확산 ㅋㅋㅋ캠페인 챌린지 안무"
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  </div>
+
+                  {/* 참고 가이드 설명 */}
+                  <div className="flex-1 space-y-2.5 text-xs">
+                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
+                      <span className="font-black text-amber-900 block">💡 챌린지 공식 안무 참고 가이드</span>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        위 영상에 소개된 <strong>'ㅋㅋㅋ(Keep, Know, KYWA)'</strong> 챌린지 공식 안무를 참고하여 
+                        직접 커버하거나, 팀만의 개성 있는 창작 동작을 더해 멋진 숏폼 영상을 완성해 보세요!
+                      </p>
+                    </div>
+                    <ul className="text-[11px] text-slate-500 space-y-1 leading-relaxed">
+                      <li>• <strong>공식 안무 분야:</strong> 위 영상의 공식 포인트 댄스를 그대로 따라 추는 분야입니다.</li>
+                      <li>• <strong>퍼포먼스 분야:</strong> 공식 음원을 배경으로 자유로운 창작 댄스 및 대형 안무를 구성합니다.</li>
+                      <li>• 상단 배너의 <strong>[음원 다운로드]</strong> 버튼을 통해 공식 음원을 받아 영상에 입혀주세요.</li>
+                    </ul>
+
+                    <div className="pt-1">
+                      <a
+                        href="https://www.youtube.com/shorts/lyNzw_paW_s"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-xl shadow transition-colors"
+                      >
+                        <Film size={14} />
+                        <span>[2025 ㅋㅋㅋ캠페인 안무 유튜브 쇼츠 열기]</span>
+                        <ArrowUpRight size={13} />
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

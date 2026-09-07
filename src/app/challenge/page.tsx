@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   Trophy, Music, Play, Pause, Download, Eye, 
   Send, Sparkles, ShieldCheck, Film, X, CheckCircle2,
   AlertCircle, Calendar, Award, FileText, Check, Users,
-  Smartphone, Flame, CloudRain, Smile, Activity, HelpCircle
+  Smartphone, Flame, CloudRain, Smile, Activity, HelpCircle,
+  Clock, Timer, TrendingUp, Zap
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,6 +16,17 @@ export default function ChallengePage() {
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"submit" | "guide">("submit");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 🎯 실시간 접수 건수 및 마감 카운트다운 상태
+  const [submissionCount, setSubmissionCount] = useState<number>(0);
+  const targetGoal = 100; // 1차 공모전 목표 접수 건수
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  }>({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
   // 신청서 상태
   const [participantType, setParticipantType] = useState<"individual" | "team">("individual");
@@ -39,6 +51,50 @@ export default function ChallengePage() {
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // 실시간 접수 건수 가져오기
+  const fetchSubmissionCount = async () => {
+    try {
+      const res = await fetch(`/api/challenge/submit?t=${Date.now()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (data.success && typeof data.count === "number") {
+        setSubmissionCount(data.count);
+      }
+    } catch (e) {
+      console.error("Failed to fetch challenge submission count:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubmissionCount();
+    const countInterval = setInterval(fetchSubmissionCount, 15000); // 15초마다 실시간 갱신
+
+    // 마감일시: 2026.10.05 18:00:00 (KST)
+    const targetDeadline = new Date("2026-10-05T18:00:00+09:00").getTime();
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = targetDeadline - now;
+
+      if (distance <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+      } else {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
+      }
+    };
+
+    updateCountdown();
+    const timerInterval = setInterval(updateCountdown, 1000); // 1초마다 실시간 카운트다운
+
+    return () => {
+      clearInterval(countInterval);
+      clearInterval(timerInterval);
+    };
+  }, []);
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
@@ -80,6 +136,7 @@ export default function ChallengePage() {
       const result = await res.json();
       if (result.success) {
         alert(`🎉 숏폼 챌린지 참가가 성공적으로 접수되었습니다!\n\n📋 접수 번호: ${result.data.id}\n👤 참가자(대표): ${result.data.author}\n\n입력하신 이메일(${formData.email})로 접수 확인증이 자동 발송되었습니다.`);
+        fetchSubmissionCount(); // 접수 건수 실시간 즉시 갱신
         setFormData({
           participantType: "individual",
           author: "",
@@ -224,6 +281,89 @@ export default function ChallengePage() {
             <span className="text-[10px] font-bold text-amber-900/80 mt-1 flex items-center gap-1">
               🔍 포스터 확대보기
             </span>
+          </div>
+        </div>
+
+        {/* ⏱️ 실시간 접수 마감 카운트다운 & 실시간 접수 건수 라이브 위젯 */}
+        <div className="p-5 sm:p-6 bg-slate-950 text-white rounded-2xl border border-amber-500/40 shadow-xl relative z-10 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] font-black tracking-wide">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                  LIVE 실시간 카운트다운
+                </span>
+                <span className="text-xs text-slate-400 font-bold">2026. 10. 05(월) 18:00 최종 마감</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                <Clock className="text-amber-400" size={18} />
+                <span>공모전 최종 마감까지 남은 시간</span>
+              </h3>
+            </div>
+
+            {/* 디지털 플립 시계 스타일 카운트다운 */}
+            <div className="flex items-center gap-2 font-mono tabular-nums">
+              <div className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-center min-w-[58px]">
+                <span className="text-xl sm:text-2xl font-black text-amber-400 block">{timeLeft.days}</span>
+                <span className="text-[10px] text-slate-400 font-sans block font-bold">일(DAYS)</span>
+              </div>
+              <span className="text-xl font-black text-slate-600">:</span>
+              <div className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-center min-w-[58px]">
+                <span className="text-xl sm:text-2xl font-black text-white block">{String(timeLeft.hours).padStart(2, "0")}</span>
+                <span className="text-[10px] text-slate-400 font-sans block font-bold">시간</span>
+              </div>
+              <span className="text-xl font-black text-slate-600">:</span>
+              <div className="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-center min-w-[58px]">
+                <span className="text-xl sm:text-2xl font-black text-white block">{String(timeLeft.minutes).padStart(2, "0")}</span>
+                <span className="text-[10px] text-slate-400 font-sans block font-bold">분</span>
+              </div>
+              <span className="text-xl font-black text-slate-600">:</span>
+              <div className="px-3 py-2 bg-slate-900 border border-rose-500/50 rounded-xl text-center min-w-[58px] animate-pulse">
+                <span className="text-xl sm:text-2xl font-black text-rose-400 block">{String(timeLeft.seconds).padStart(2, "0")}</span>
+                <span className="text-[10px] text-rose-400 font-sans block font-bold">초</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 실시간 접수 건수 & 목표 대비 잔여 건수 카운트다운 게이지 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] text-slate-400 font-bold block">현재 실시간 접수 건수</span>
+                <span className="text-2xl font-black text-emerald-400 tabular-nums">{submissionCount}건</span>
+              </div>
+              <div className="w-9 h-9 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center">
+                <CheckCircle2 size={18} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] text-slate-400 font-bold block">1차 공모 목표(100건) 잔여 카운트</span>
+                <span className="text-2xl font-black text-amber-400 tabular-nums">
+                  {Math.max(0, targetGoal - submissionCount)}건 남음!
+                </span>
+              </div>
+              <div className="w-9 h-9 rounded-lg bg-amber-950/80 border border-amber-500/40 text-amber-400 flex items-center justify-center">
+                <Timer size={18} />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-bold">실시간 접수 달성률</span>
+                <span className="text-xs font-black text-cyan-400">{Math.min(100, Math.round((submissionCount / targetGoal) * 100))}%</span>
+              </div>
+              <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.max(5, Math.round((submissionCount / targetGoal) * 100)))}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-slate-500 mt-1 font-medium text-right">
+                ※ 15초 주기 자동 실시간 집계
+              </span>
+            </div>
           </div>
         </div>
 

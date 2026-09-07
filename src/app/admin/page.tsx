@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { 
   ShieldCheck, AlertTriangle, FileText, CheckCircle2, Search, Bell, Download, Plus, Filter, Users, 
   ChevronRight, BarChart2, Settings, Lock, Eye, Activity, TrendingUp, PieChart, ShieldAlert, Edit, 
-  Trash2, RefreshCw, XCircle, Check, Award, Upload, ArrowUpRight, Sparkles, MessageSquare, Database, Calendar, Video
+  Trash2, RefreshCw, XCircle, Check, Award, Upload, ArrowUpRight, Sparkles, MessageSquare, Database, Calendar, Video, Clock, Timer
 } from "lucide-react";
 import Link from "next/link";
 import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
@@ -59,6 +59,35 @@ export default function AdminPage() {
   const [selectedChallengeCategory, setSelectedChallengeCategory] = useState("all");
   const [selectedChallengeStatus, setSelectedChallengeStatus] = useState("all");
   const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
+
+  // ⏱️ 실시간 접수 마감 카운트다운 타이머 상태
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  }>({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false });
+
+  useEffect(() => {
+    const targetDeadline = new Date("2026-10-05T18:00:00+09:00").getTime();
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = targetDeadline - now;
+      if (distance <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+      } else {
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
+      }
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // 실시간 localStorage 실제 데이터 동동 불러오기 및 관리자 인증 체크
   const refreshAdminData = () => {
@@ -665,6 +694,58 @@ export default function AdminPage() {
                 >
                   <RefreshCw size={14} />
                 </button>
+              </div>
+            </div>
+
+            {/* ⏱️ 관리자 실시간 마감 타이머 & 1차 목표 접수 잔여 카운트다운 위젯 */}
+            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-700 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center shrink-0">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-white">공모전 접수 최종 마감까지 남은 시간</span>
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                  </div>
+                  <span className="text-[11px] text-slate-400">마감 시각: 2026. 10. 05(월) 18:00 (KST)</span>
+                </div>
+              </div>
+
+              {/* 시계 카운트다운 */}
+              <div className="flex items-center gap-1.5 font-mono tabular-nums text-xs">
+                <div className="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-center min-w-[48px]">
+                  <strong className="text-base font-black text-amber-400 block">{timeLeft.days}</strong>
+                  <span className="text-[9px] text-slate-400">일</span>
+                </div>
+                <span className="font-black text-slate-600">:</span>
+                <div className="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-center min-w-[48px]">
+                  <strong className="text-base font-black text-white block">{String(timeLeft.hours).padStart(2, "0")}</strong>
+                  <span className="text-[9px] text-slate-400">시</span>
+                </div>
+                <span className="font-black text-slate-600">:</span>
+                <div className="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-center min-w-[48px]">
+                  <strong className="text-base font-black text-white block">{String(timeLeft.minutes).padStart(2, "0")}</strong>
+                  <span className="text-[9px] text-slate-400">분</span>
+                </div>
+                <span className="font-black text-slate-600">:</span>
+                <div className="px-2.5 py-1.5 bg-slate-800 border border-rose-500/50 rounded-lg text-center min-w-[48px] animate-pulse">
+                  <strong className="text-base font-black text-rose-400 block">{String(timeLeft.seconds).padStart(2, "0")}</strong>
+                  <span className="text-[9px] text-rose-400">초</span>
+                </div>
+              </div>
+
+              {/* 목표 대비 실시간 접수 현황 */}
+              <div className="flex items-center gap-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">1차 목표(100건) 대비 잔여</span>
+                  <span className="text-sm font-black text-amber-300">{Math.max(0, 100 - challengeSubmissions.length)}건 남음</span>
+                </div>
+                <span className="text-slate-600">|</span>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold block">현재 접수율</span>
+                  <span className="text-sm font-black text-emerald-400">{Math.min(100, Math.round((challengeSubmissions.length / 100) * 100))}%</span>
+                </div>
               </div>
             </div>
 

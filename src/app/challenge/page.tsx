@@ -135,37 +135,40 @@ export default function ChallengePage() {
       });
       const result = await res.json();
       if (result.success) {
-        // 🚀 브라우저에서 hamesta@naver.com으로 실시간 직송 (이중 전송 보장)
+        // 🚀 브라우저에서 관리자(hamesta@naver.com) 및 공고문 운영사무국(mkteam@testmotionofficial.com)으로 실시간 직송 (이중 전송 보장)
         try {
-          fetch("https://formsubmit.co/ajax/hamesta@naver.com", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            body: JSON.stringify({
-              _subject: `[KYWA 숏폼 접수] ${formData.author} (${result?.data?.id || "신규"})`,
-              _template: "table",
-              _captcha: "false",
-              _replyto: formData.email,
-              접수번호: result?.data?.id || "접수완료",
-              참가자_대표: formData.author,
-              참가구분: participantType === "team" ? `단체(팀) / 팀원: ${formData.teamMembers || "없음"}` : "개인",
-              생년월일: formData.birthDate,
-              연락처: formData.phone,
-              이메일: formData.email,
-              공모부문: formData.category,
-              크리에이티브주제: formData.creativeTopic || "-",
-              영상URL: formData.videoUrl,
-              기획의도_메시지: formData.description,
-              접수일시: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
-            })
-          }).catch(e => console.error("Client email dispatch error:", e));
+          const targetEmails = ["hamesta@naver.com", "mkteam@testmotionofficial.com"];
+          targetEmails.forEach((email) => {
+            fetch(`https://formsubmit.co/ajax/${email}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({
+                _subject: `[KYWA 숏폼 접수] ${formData.author} (${result?.data?.id || "신규"})`,
+                _template: "table",
+                _captcha: "false",
+                _replyto: formData.email,
+                접수번호: result?.data?.id || "접수완료",
+                참가자_대표: formData.author,
+                참가구분: participantType === "team" ? `단체(팀) / 팀원: ${formData.teamMembers || "없음"}` : "개인",
+                생년월일: formData.birthDate,
+                연락처: formData.phone,
+                이메일: formData.email,
+                공모부문: formData.category,
+                크리에이티브주제: formData.creativeTopic || "-",
+                영상URL: formData.videoUrl,
+                기획의도_메시지: formData.description,
+                접수일시: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })
+              })
+            }).catch(e => console.error(`Client email dispatch error (${email}):`, e));
+          });
         } catch (clientMailErr) {
           console.error("Client mail error:", clientMailErr);
         }
 
-        alert(`🎉 숏폼 챌린지 참가가 성공적으로 접수되었습니다!\n\n📋 접수 번호: ${result.data.id}\n👤 참가자(대표): ${result.data.author}\n\n입력하신 이메일(${formData.email}) 및 관리자 이메일(hamesta@naver.com)로 접수 내역이 안전하게 전송되었습니다.`);
+        alert(`🎉 숏폼 챌린지 참가가 성공적으로 접수되었습니다!\n\n📋 접수 번호: ${result.data.id}\n👤 참가자(대표): ${result.data.author}\n\n입력하신 이메일(${formData.email}) 및 관리자/공모전 운영사무국 이메일(hamesta@naver.com, mkteam@testmotionofficial.com)로 접수 내역이 안전하게 전송되었습니다.`);
         fetchSubmissionCount(); // 접수 건수 실시간 즉시 갱신
         setFormData({
           participantType: "individual",

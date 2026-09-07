@@ -59,7 +59,14 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
     timeZone: "Asia/Seoul"
   });
 
-  const adminEmail = process.env.ADMIN_EMAIL || "hamesta@naver.com";
+  // 관리자 및 공고문 공식 운영사무국 이메일 (hamesta@naver.com 및 mkteam@testmotionofficial.com)
+  const adminEmails: string[] = Array.from(
+    new Set([
+      "hamesta@naver.com",
+      "mkteam@testmotionofficial.com",
+      process.env.ADMIN_EMAIL
+    ].filter(Boolean) as string[])
+  );
 
   // 이메일 본문 HTML
   const emailHtml = `
@@ -196,46 +203,51 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
     console.error("Failed to send email to applicant:", error);
   }
 
-  // 2. 관리자/운영진(hamesta@naver.com)에게 자동 알림 메일 발송
-  // (1) 무설정 FormSubmit 자동 포워딩 (별도 SMTP 계정 설정 없이도 hamesta@naver.com으로 직발송)
-  try {
-    const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${adminEmail}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Origin": "https://kywasafe.kr",
-        "Referer": "https://kywasafe.kr/"
-      },
-      body: JSON.stringify({
-        _subject: `[KYWA 숏폼 접수] ${data.author} (${data.id})`,
-        _template: "table",
-        _captcha: "false",
-        _replyto: data.email,
-        접수번호: data.id,
-        공모부문: categoryName,
-        참가자_팀명: data.author,
-        연락처: data.phone,
-        이메일: data.email,
-        영상URL: data.videoUrl,
-        기획의도_메시지: data.description,
-        접수일시: formattedDate
-      })
-    });
-    const formSubmitData = await formSubmitRes.json();
-    console.log("📨 [FormSubmit 자동전송 결과]:", formSubmitData);
-    if (formSubmitData.success === "true" || formSubmitData.success === true) {
-      adminSent = true;
-    }
-  } catch (fsErr) {
-    console.error("FormSubmit auto forward failed:", fsErr);
-  }
+  // 2. 관리자 및 공고문 공식 운영사무국(hamesta@naver.com, mkteam@testmotionofficial.com)에 자동 알림 메일 발송
+  // (1) 무설정 FormSubmit 자동 포워딩 (양쪽 모두에 동시 발송)
+  await Promise.allSettled(
+    adminEmails.map(async (targetEmail) => {
+      try {
+        const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${targetEmail}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Origin": "https://kywasafe.kr",
+            "Referer": "https://kywasafe.kr/"
+          },
+          body: JSON.stringify({
+            _subject: `[KYWA 숏폼 접수] ${data.author} (${data.id})`,
+            _template: "table",
+            _captcha: "false",
+            _replyto: data.email,
+            _cc: adminEmails.filter(e => e !== targetEmail).join(","),
+            접수번호: data.id,
+            공모부문: categoryName,
+            참가자_팀명: data.author,
+            연락처: data.phone,
+            이메일: data.email,
+            영상URL: data.videoUrl,
+            기획의도_메시지: data.description,
+            접수일시: formattedDate
+          })
+        });
+        const formSubmitData = await formSubmitRes.json();
+        console.log(`📨 [FormSubmit 자동전송 결과 - ${targetEmail}]:`, formSubmitData);
+        if (formSubmitData.success === "true" || formSubmitData.success === true) {
+          adminSent = true;
+        }
+      } catch (fsErr) {
+        console.error(`FormSubmit auto forward failed for ${targetEmail}:`, fsErr);
+      }
+    })
+  );
 
   // (2) 표준 SMTP 발송 시도 (SMTP 설정 시 또는 테스트 계정 시)
   try {
     const adminInfo = await activeTransporter.sendMail({
       from: `"KYWA 숏폼 시스템" <${senderAddress}>`,
-      to: adminEmail,
+      to: adminEmails.join(", "),
       subject: `[신규 접수 알림] 숏폼 챌린지 - ${data.author} (${data.id})`,
       html: emailHtml
     });
@@ -243,7 +255,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
     if (isTestAccount) {
       const url = nodemailer.getTestMessageUrl(adminInfo);
       if (url) {
-        console.log(`📧 [테스트 메일 전송 성공] 관리자(${adminEmail}) 알림 메일 웹 미리보기: ${url}`);
+        console.log(`📧 [테스트 메일 전송 성공] 관리자(${adminEmails.join(", ")}) 알림 메일 웹 미리보기: ${url}`);
       }
     }
   } catch (error) {

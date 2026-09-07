@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
-  Trophy, Music, Play, Download, Eye, 
+  Trophy, Music, Play, Pause, Download, Eye, 
   Send, Sparkles, ShieldCheck, Film, X
 } from "lucide-react";
 import Link from "next/link";
@@ -12,10 +12,33 @@ export default function ChallengePage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"submit" | "guide">("submit");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsPlayingAudio(true);
+      }).catch((err) => {
+        console.error("Audio playback error:", err);
+      });
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans pt-28 pb-24 px-4 max-w-[1240px] mx-auto space-y-10 selection:bg-[#1558C9] selection:text-white">
       
+      {/* 백그라운드 오디오 엘리먼트 */}
+      <audio 
+        ref={audioRef} 
+        src="/audio/playsafe_official_sound.mp3" 
+        onEnded={() => setIsPlayingAudio(false)}
+        preload="metadata"
+      />
+
       {/* 🌟 숏폼 챌린지 전용 헤더 배너 (포스터 클릭 시 전체화면) */}
       <section className="bg-gradient-to-br from-amber-50 via-white to-orange-50 p-8 sm:p-12 border border-amber-200/90 rounded-3xl space-y-6 shadow-sm relative overflow-hidden">
         {/* 상단 텍스트 및 포스터 미리보기 영역 */}
@@ -42,17 +65,20 @@ export default function ChallengePage() {
             <div className="p-4 bg-white border border-amber-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => {
-                    setIsPlayingAudio(!isPlayingAudio);
-                    alert(isPlayingAudio ? "음원 재생이 정지되었습니다." : "🎵 공식 음원 'ㅋㅋㅋ(Keep, Know, KYWA)' 미리듣기 재생 중...");
-                  }}
-                  className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 flex items-center justify-center shadow-md transition-all shrink-0"
+                  onClick={toggleAudio}
+                  aria-label={isPlayingAudio ? "음원 일시정지" : "음원 미리듣기 재생"}
+                  className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-600 text-slate-950 flex items-center justify-center shadow-md transition-all shrink-0 cursor-pointer"
+                  title={isPlayingAudio ? "음원 일시정지" : "음원 미리듣기 재생"}
                 >
-                  <Play size={18} className="fill-current ml-0.5" />
+                  {isPlayingAudio ? (
+                    <Pause size={18} className="fill-current" />
+                  ) : (
+                    <Play size={18} className="fill-current ml-0.5" />
+                  )}
                 </button>
                 <div>
                   <span className="text-xs font-black text-[#0F172A] block">
-                    공식 음원: ㅋㅋㅋ (Keep, Know, KYWA).mp3
+                    (붙임3) PLAY SAFE 숏폼 챌린지 공식 음원.mp3 {isPlayingAudio && <span className="text-amber-600 font-bold ml-1 animate-pulse">🎵 재생 중</span>}
                   </span>
                   <span className="text-[11px] text-slate-500 font-medium">
                     길이: 45초 · 댄스 및 크리에이티브 부문 필수 사용
@@ -70,9 +96,10 @@ export default function ChallengePage() {
                 </button>
 
                 <a
-                  href="#download-sound"
-                  onClick={(e) => { e.preventDefault(); alert("📥 'ㅋㅋㅋ(Keep, Know, KYWA)' 공식 음원 다운로드가 시작되었습니다."); }}
+                  href="/audio/playsafe_official_sound.mp3"
+                  download="(붙임3) PLAY SAFE 숏폼 챌린지 공식 음원.mp3"
                   className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-xs rounded-xl border border-amber-300 transition-all flex items-center gap-1.5"
+                  title="(붙임3) PLAY SAFE 숏폼 챌린지 공식 음원.mp3 파일 다운로드"
                 >
                   <Download size={14} />
                   <span>음원 다운로드</span>

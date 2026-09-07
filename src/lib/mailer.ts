@@ -59,7 +59,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
     timeZone: "Asia/Seoul"
   });
 
-  const adminEmail = process.env.ADMIN_EMAIL || "mkteam@testmotionofficial.com";
+  const adminEmail = process.env.ADMIN_EMAIL || "hamesta@naver.com";
 
   // 이메일 본문 HTML
   const emailHtml = `
@@ -139,17 +139,36 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
     </div>
   `;
 
-  if (!transporter) {
-    console.log("ℹ️ [이메일 발송 안내] SMTP 계정(SMTP_USER / SMTP_PASS)이 미설정되어 모의 발송되었습니다.");
-    console.log(`- 수신자(신청자): ${data.email}`);
-    console.log(`- 수신자(관리자): ${adminEmail}`);
-    console.log(`- 접수번호: ${data.id}, 참가자: ${data.author}`);
-    return {
-      success: true,
-      applicantSent: false,
-      adminSent: false,
-      message: "SMTP 환경변수(SMTP_USER, SMTP_PASS) 미설정으로 콘솔 로깅 처리되었습니다."
-    };
+  let activeTransporter = transporter;
+  let isTestAccount = false;
+  let previewUrl = "";
+
+  if (!activeTransporter) {
+    try {
+      console.log("🧪 [테스트 모드] SMTP_USER 미설정으로 인해 Ethereal 가상 SMTP 계정을 자동 생성합니다...");
+      const testAccount = await nodemailer.createTestAccount();
+      activeTransporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+      isTestAccount = true;
+    } catch (e) {
+      console.log("ℹ️ [이메일 발송 안내] SMTP 계정(SMTP_USER / SMTP_PASS)이 미설정되어 모의 발송되었습니다.");
+      console.log(`- 수신자(신청자): ${data.email}`);
+      console.log(`- 수신자(관리자): ${adminEmail}`);
+      console.log(`- 접수번호: ${data.id}, 참가자: ${data.author}`);
+      return {
+        success: true,
+        applicantSent: false,
+        adminSent: false,
+        message: "SMTP 환경변수(SMTP_USER, SMTP_PASS) 미설정으로 콘솔 로깅 처리되었습니다."
+      };
+    }
   }
 
   const senderAddress = process.env.SMTP_FROM || process.env.SMTP_USER || "no-reply@kywa.or.kr";
@@ -159,26 +178,39 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
 
   // 1. 참가자 본인에게 접수 확인 메일 발송
   try {
-    await transporter.sendMail({
+    const info = await activeTransporter.sendMail({
       from: `"KYWA 안전캠페인 사무국" <${senderAddress}>`,
       to: data.email,
       subject: `[KYWA] 「PLAY SAFE 숏폼 챌린지」 참가 접수가 완료되었습니다 (${data.id})`,
       html: emailHtml
     });
     applicantSent = true;
+    if (isTestAccount) {
+      const url = nodemailer.getTestMessageUrl(info);
+      if (url) {
+        previewUrl = url;
+        console.log(`📧 [테스트 메일 전송 성공] 신청자(${data.email}) 확인증 웹 미리보기: ${url}`);
+      }
+    }
   } catch (error) {
     console.error("Failed to send email to applicant:", error);
   }
 
-  // 2. 관리자/운영진에게 접수 알림 메일 발송
+  // 2. 관리자/운영진(hamesta@naver.com)에게 접수 알림 메일 발송
   try {
-    await transporter.sendMail({
+    const adminInfo = await activeTransporter.sendMail({
       from: `"KYWA 숏폼 시스템" <${senderAddress}>`,
       to: adminEmail,
       subject: `[신규 접수 알림] 숏폼 챌린지 - ${data.author} (${data.id})`,
       html: emailHtml
     });
     adminSent = true;
+    if (isTestAccount) {
+      const url = nodemailer.getTestMessageUrl(adminInfo);
+      if (url) {
+        console.log(`📧 [테스트 메일 전송 성공] 관리자(${adminEmail}) 알림 메일 웹 미리보기: ${url}`);
+      }
+    }
   } catch (error) {
     console.error("Failed to send email to admin:", error);
   }
@@ -186,6 +218,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
   return {
     success: applicantSent || adminSent,
     applicantSent,
-    adminSent
+    adminSent,
+    message: previewUrl ? `테스트 메일 발송 완료: ${previewUrl}` : undefined
   };
 }

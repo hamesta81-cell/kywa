@@ -167,7 +167,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
     } catch (e) {
       console.log("ℹ️ [이메일 발송 안내] SMTP 계정(SMTP_USER / SMTP_PASS)이 미설정되어 모의 발송되었습니다.");
       console.log(`- 수신자(신청자): ${data.email}`);
-      console.log(`- 수신자(관리자): ${adminEmail}`);
+      console.log(`- 수신자(관리자): ${adminEmails.join(", ")}`);
       console.log(`- 접수번호: ${data.id}, 참가자: ${data.author}`);
       return {
         success: true,

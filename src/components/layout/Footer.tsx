@@ -10,14 +10,14 @@ export default function Footer() {
           <div className="flex items-center justify-center md:justify-start gap-2">
             <Shield className="h-4 w-4 text-[#1558C9]" />
             <span className="text-xs font-black text-slate-900 tracking-wider">
-              KYWA PLAY SAFE 2026
+              PLAY SAFE 2026
             </span>
           </div>
           <p className="text-xs font-medium text-slate-600">
-            2026 청소년활동 안전문화 확산 사업 공식 통합 플랫폼 · YOUTH SAFETY OS
+            2026 안전문화 확산 사업 공식 통합 플랫폼 · YOUTH SAFETY OS
           </p>
           <p className="text-[11px] text-slate-400 font-medium">
-            © KYWA 한국청소년활동진흥원. All rights reserved.
+            © TESTMOTION. All rights reserved.
           </p>
         </div>
 

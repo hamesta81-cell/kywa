@@ -1351,10 +1351,10 @@ export default function AdminPage() {
                     <thead>
                       <tr className="bg-slate-900 text-slate-400 font-black border-b border-slate-700">
                         <th className="p-3">가입일시</th>
-                        <th className="p-3">성명 / 닉네임</th>
+                        <th className="p-3">닉네임 (활동명)</th>
                         <th className="p-3">이메일 (아이디)</th>
-                        <th className="p-3">연락처</th>
-                        <th className="p-3">소속 학교·기관</th>
+                        <th className="p-3">연락처 (물품수령용)</th>
+                        <th className="p-3">소속 (선택)</th>
                         <th className="p-3">회원 구분</th>
                         <th className="p-3">상태</th>
                         <th className="p-3 text-right">계정 관리</th>
@@ -1366,11 +1366,11 @@ export default function AdminPage() {
                           <td className="p-3 text-slate-400 font-mono text-[11px]">{u.createdAt}</td>
                           <td className="p-3 font-black text-white flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
-                            {u.name}
+                            {u.nickname || u.name}
                           </td>
                           <td className="p-3 text-cyan-300 font-mono">{u.email}</td>
                           <td className="p-3 text-slate-300">{u.phone}</td>
-                          <td className="p-3 text-slate-300">{u.organization}</td>
+                          <td className="p-3 text-slate-300">{u.organization || "소속 없음"}</td>
                           <td className="p-3">
                             <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-950 text-blue-300 border border-blue-500/40">
                               {u.roleLabel || u.role}
@@ -1416,7 +1416,7 @@ export default function AdminPage() {
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-slate-900 border-b border-slate-700 text-slate-400 font-black">
-                      <th className="p-3.5">사용자 성명/닉네임</th>
+                      <th className="p-3.5">사용자 닉네임</th>
                       <th className="p-3.5">계정 이메일</th>
                       <th className="p-3.5">회원 구분</th>
                       <th className="p-3.5">레벨 / 경험치</th>
@@ -1427,7 +1427,7 @@ export default function AdminPage() {
                   <tbody className="divide-y divide-slate-700/60 font-medium">
                     {registeredList.map(u => (
                       <tr key={u.id} className="hover:bg-slate-700/40 transition-colors">
-                        <td className="p-3.5 font-black text-white">{u.name}</td>
+                        <td className="p-3.5 font-black text-white">{u.nickname || u.name}</td>
                         <td className="p-3.5 text-slate-400 font-mono">{u.email}</td>
                         <td className="p-3.5">
                           <span className="px-2.5 py-1 rounded text-[10px] font-black bg-blue-950 text-cyan-300 border border-blue-500/40">
@@ -1437,7 +1437,7 @@ export default function AdminPage() {
                         <td className="p-3.5 text-emerald-400 font-bold">Lv.12 (2,400 XP)</td>
                         <td className="p-3.5 text-purple-400 font-black">150 💎</td>
                         <td className="p-3.5 text-right space-x-2">
-                          <button onClick={() => alert(`🎉 [${u.name}] 님에게 보상 50 Gem이 정상 지급되었습니다!`)} className="px-3 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded font-bold">
+                          <button onClick={() => alert(`🎉 [${u.nickname || u.name}] 님에게 보상 50 Gem이 정상 지급되었습니다!`)} className="px-3 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded font-bold">
                             [+50 Gem 지급]
                           </button>
                         </td>

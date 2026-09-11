@@ -1727,13 +1727,80 @@ function CrewContent() {
 
 
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center pt-28 pb-20">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-[#1558C9] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs font-bold text-slate-500">안전홍보단 계정 인증 상태를 확인하고 있습니다...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen bg-[#F5F7FB] text-[#0F172A] font-sans pt-28 pb-24 px-4 max-w-[1280px] mx-auto space-y-6">
 
-      {/* 🕵️ [원칙 10 완공] 관리자 전용 실시간 10대 시스템 진단 패널 (ADMIN/CREW 계정 노출) */}
-      {(currentUser?.role === "ADMIN" || currentUser?.username === "admin" || activeTab === "office") && (
-        <AdminSystemDiagnosticBadge currentUser={currentUser} />
-      )}
+      {/* 🔒 [인증 가드] 홍보단 전용 보안 게이트 */}
+      {!isCrewUser ? (
+        <div className="min-h-[60vh] flex items-center justify-center py-12 animate-in fade-in zoom-in-95 duration-200">
+          <div className="max-w-xl w-full bg-white rounded-[24px] border border-slate-300 p-8 sm:p-10 text-center space-y-6 shadow-xl relative overflow-hidden">
+            {/* 상단 뱃지 & 아이콘 */}
+            <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center mx-auto text-amber-700 shadow-sm">
+              <Lock size={32} />
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-black text-[#1558C9] bg-blue-100 px-3.5 py-1.5 rounded-full border border-blue-300 uppercase inline-block">
+                KYWA SAFETY CREW ONLY
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
+                청소년 안전홍보단 전용 공간입니다
+              </h1>
+              <p className="text-xs sm:text-sm font-bold text-slate-600 leading-relaxed max-w-md mx-auto">
+                본 페이지(전국 16개 홍보단 프로젝트, 주간 활동보고서, 오피스 콘솔)는 
+                <strong className="text-[#1558C9]"> 16개 정식 안전홍보단 팀 계정</strong>으로 로그인한 사용자만 열람 및 이용하실 수 있습니다.
+              </p>
+            </div>
+
+            {/* 안내 카드 */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-2 text-left font-bold text-slate-700">
+              <div className="flex items-center gap-1.5 text-slate-900 font-black">
+                <ShieldCheck size={16} className="text-[#1558C9]" />
+                <span>안전홍보단 로그인 안내</span>
+              </div>
+              <ul className="list-disc pl-5 text-[11px] text-slate-600 space-y-1 leading-relaxed">
+                <li>16개 정식 안전홍보단 팀 계정은 사전 발급된 지정 아이디/비밀번호로 로그인하실 수 있습니다.</li>
+                <li>일반 회원 또는 비로그인 상태에서는 홍보단 세부 보고서 및 전용 셸 열람이 제한됩니다.</li>
+                <li>총괄 관리자 및 운영진 계정으로도 접속이 가능합니다.</li>
+              </ul>
+            </div>
+
+            {/* 로그인 버튼 & 홈 이동 */}
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/auth/login?redirect=/crew"
+                className="w-full py-4 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <Lock size={16} />
+                <span>[ 🔑 안전홍보단 전용 로그인하기 ]</span>
+              </Link>
+              
+              <Link
+                href="/"
+                className="block text-xs font-black text-slate-500 hover:text-slate-800 transition-colors py-1"
+              >
+                ← 메인 홈으로 돌아가기
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* 🕵️ [원칙 10 완공] 관리자 전용 실시간 10대 시스템 진단 패널 (ADMIN/CREW 계정 노출) */}
+          {(currentUser?.role === "ADMIN" || currentUser?.username === "admin" || activeTab === "office") && (
+            <AdminSystemDiagnosticBadge currentUser={currentUser} />
+          )}
 
       {/* 🚨 [원칙 14 완공] 8대 정밀 에러 진단 시각적 패닉 배너 (Visual Error Diagnostic Banner) */}
       {errorDiagnostic && (
@@ -4369,6 +4436,8 @@ function CrewContent() {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

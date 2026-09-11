@@ -14,6 +14,7 @@ import Image from "next/image";
 export default function ChallengePage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showPosterModal, setShowPosterModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"submit" | "guide">("submit");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,6 +35,7 @@ export default function ChallengePage() {
   const [formData, setFormData] = useState({
     participantType: "individual",
     author: "",
+    organization: "",
     teamMembers: "",
     birthDate: "",
     guardianName: "",
@@ -173,6 +175,7 @@ export default function ChallengePage() {
         setFormData({
           participantType: "individual",
           author: "",
+          organization: "",
           teamMembers: "",
           birthDate: "",
           guardianName: "",
@@ -697,6 +700,7 @@ export default function ChallengePage() {
                   className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
                   required 
                 />
+                <span className="text-[10px] text-blue-600 font-bold block mt-1">※ 디지털 쿠폰 등 부상 수령 및 공모전 안내 목적</span>
               </div>
               <div>
                 <label className="block mb-1 text-slate-700">• 이메일 주소 (접수증 발송용) *</label>
@@ -709,6 +713,22 @@ export default function ChallengePage() {
                   required 
                 />
               </div>
+            </div>
+
+            {/* 소속 학교 또는 청소년 기관 (선택) */}
+            <div>
+              <label className="block mb-1 text-slate-700 flex items-center justify-between">
+                <span>• 소속 (학교·청소년기관 등):</span>
+                <span className="text-slate-400 font-bold text-[11px]">[선택사항]</span>
+              </label>
+              <input 
+                type="text" 
+                value={formData.organization || ""}
+                onChange={e => setFormData({ ...formData, organization: e.target.value })}
+                placeholder="예: 서울청소년센터, 한국고등학교 등 (미입력 가능)" 
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-[#0F172A]" 
+              />
+              <span className="text-[10px] text-slate-400 font-medium block mt-1">※ 소속 정보는 선택사항이며 미입력 시에도 공모전 참가 및 심사에 아무런 제한이 없습니다.</span>
             </div>
 
             {/* 공모 부문 선택 */}
@@ -805,16 +825,40 @@ export default function ChallengePage() {
             </div>
 
             {/* 동의 사항 */}
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 text-[11px] text-slate-700">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-[11px] text-slate-700">
+              
+              {/* 🌟 개인정보 수집·이용 동의 요약 박스 */}
+              <div className="p-3.5 bg-white rounded-xl border border-slate-300 space-y-2 text-[11px] font-bold text-slate-700">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <span className="font-black text-[#1558C9] text-xs">🔐 개인정보 수집·이용 동의 요약 (안전캠페인 숏폼 챌린지)</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPrivacyModal(true)}
+                    className="text-[#1558C9] hover:underline font-black text-[11px] underline flex items-center gap-0.5 cursor-pointer"
+                  >
+                    [전문 보기]
+                  </button>
+                </div>
+                <ul className="space-y-1 list-disc pl-3.5 text-slate-600 leading-relaxed text-[11px]">
+                  <li><strong className="text-slate-800">1. 개인정보 수집·이용 목적:</strong> 공모전 참가 확인 및 접수 관리, 출품작 심사·선정·시상 운영, 공모전 안내 전달, <strong>디지털 쿠폰(모바일 상품권) 및 기념품 등 참여 보상 제공 및 배송·수령 확인</strong></li>
+                  <li><strong className="text-slate-800">2. 수집 항목:</strong> <span className="text-blue-700">[필수]</span> 성명(팀명), 생년월일, 휴대전화번호, 이메일 주소, (만 14세 미만 시) 법정대리인 성명·연락처 / <span className="text-slate-500">[선택]</span> 소속(학교·청소년기관 등)</li>
+                  <li><strong className="text-slate-800">3. 개인정보 보유 및 이용기간:</strong> <strong>개인정보 수집·이용 목적이 달성될 때까지(심사·시상·부상 지급 완료 시까지) 보유·이용하며, 목적 달성 후 지체 없이 파기</strong></li>
+                  <li><strong className="text-slate-800">4. 동의 거부 권리:</strong> 필수항목 동의 거부 시 참가 접수 및 심사·부상 수령이 제한될 수 있습니다. (선택항목 미동의 시에도 참가 및 심사 제한 없음)</li>
+                </ul>
+                <div className="text-[10px] text-blue-700 bg-blue-50/70 p-2 rounded border border-blue-200 font-bold">
+                  ※ 휴대폰번호는 회원 식별 및 활동 안내, 디지털 쿠폰·기념품 등 참여 보상 제공을 위한 목적으로 이용됩니다.
+                </div>
+              </div>
+
               <label className="flex items-start gap-2 cursor-pointer font-bold">
                 <input 
                   type="checkbox" 
                   checked={formData.agreePrivacy}
                   onChange={e => setFormData({ ...formData, agreePrivacy: e.target.checked })}
-                  className="mt-0.5 rounded text-[#1558C9]"
+                  className="mt-0.5 rounded text-[#1558C9] focus:ring-[#1558C9]"
                   required
                 />
-                <span>[필수] 개인정보 수집·이용 동의: 공모전 심사, 결과 발표, 부상 지급 및 확인증 발송을 위한 개인정보 수집에 동의합니다.</span>
+                <span>[필수] 위 개인정보 수집·이용 동의 사항에 동의합니다.</span>
               </label>
 
               <label className="flex items-start gap-2 cursor-pointer font-bold">
@@ -822,7 +866,7 @@ export default function ChallengePage() {
                   type="checkbox" 
                   checked={formData.agreeCopyright}
                   onChange={e => setFormData({ ...formData, agreeCopyright: e.target.checked })}
-                  className="mt-0.5 rounded text-[#1558C9]"
+                  className="mt-0.5 rounded text-[#1558C9] focus:ring-[#1558C9]"
                   required
                 />
                 <span>[필수] 저작권 및 유의사항 확인: 수상작의 저작권은 응모자에게 귀속되나 주최기관(한국청소년활동진흥원)의 비영리 목적(교육·홍보) 무상 활용권 부여 및 공모전 10대 유의사항에 모두 동의합니다.</span>
@@ -1216,6 +1260,91 @@ export default function ChallengePage() {
             </div>
           </div>
 
+          {/* 7. 개인정보 수집·이용 동의 안내 (공식 서식) */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="text-blue-600" size={20} />
+                <h3 className="text-lg font-black text-[#0F172A]">07. 개인정보 수집·이용 안내 (안전캠페인 숏폼 챌린지)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(true)}
+                className="text-xs font-black text-[#1558C9] bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <span>[전문 팝업 보기]</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+                <span className="font-black text-slate-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  1. 개인정보 수집·이용 목적
+                </span>
+                <p className="text-slate-600 leading-relaxed text-[11px]">
+                  KYWA PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.<br/>
+                  • 회원 식별 및 서비스 이용 관리<br/>
+                  • 캠페인·미션·공모전 등 참여 확인 및 운영<br/>
+                  • 활동 결과 확인 및 심사·선정·시상 등 운영<br/>
+                  • 활동 관련 안내 및 공지사항 전달<br/>
+                  • <strong>디지털 쿠폰 및 기념품 등 참여 보상 제공 및 배송·수령 확인</strong>
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+                <span className="font-black text-slate-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  2. 수집하는 개인정보 항목
+                </span>
+                <div className="overflow-x-auto text-[11px]">
+                  <table className="w-full border-collapse border border-slate-300">
+                    <thead>
+                      <tr className="bg-slate-200 text-slate-800 font-bold">
+                        <th className="border border-slate-300 p-1.5 w-16 text-center">구분</th>
+                        <th className="border border-slate-300 p-1.5 text-left">수집 항목</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-slate-300 p-1.5 text-center font-black text-blue-700 bg-blue-50/50">필수</td>
+                        <td className="border border-slate-300 p-1.5 font-bold">성명(팀명), 생년월일, 휴대전화번호, 이메일 주소</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-300 p-1.5 text-center text-slate-600">선택</td>
+                        <td className="border border-slate-300 p-1.5">소속(학교·청소년기관 등)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-blue-700 font-bold bg-blue-50/70 p-1.5 rounded border border-blue-200">
+                  ※ 휴대폰번호는 회원 식별 및 활동 안내, 디지털 쿠폰·기념품 등 참여 보상 제공을 위한 목적으로 이용됩니다.
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+                <span className="font-black text-slate-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  3. 개인정보 보유 및 이용기간
+                </span>
+                <p className="text-slate-600 leading-relaxed text-[11px]">
+                  수집된 개인정보는 <strong>개인정보 수집·이용 목적이 달성될 때까지</strong> 보유·이용하며, 목적이 달성된 후에는 지체 없이 파기합니다.<br/>
+                  (단, 관계 법령에 따라 별도의 보존이 필요한 경우에는 해당 법령에서 정한 기간 동안 보관할 수 있습니다.)
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-2xl space-y-2 border border-slate-200">
+                <span className="font-black text-slate-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  4. 동의 거부 권리 및 불이익
+                </span>
+                <p className="text-slate-600 leading-relaxed text-[11px]">
+                  이용자는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있습니다. 다만, 필수항목에 대한 동의를 거부하는 경우 공모전 참가 접수 및 심사·부상 수령이 제한될 수 있습니다. (선택항목 거부 시에는 아무런 제한이 없습니다.)
+                </p>
+              </div>
+            </div>
+          </div>
+
         </section>
       )}
 
@@ -1263,6 +1392,124 @@ export default function ChallengePage() {
                 <span>포스터 원본 다운로드</span>
               </a>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 개인정보 수집·이용 동의서 (전문) 모달 팝업 */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+          <div className="krds-public-card p-6 sm:p-8 max-w-2xl w-full bg-white space-y-5 shadow-2xl max-h-[85vh] overflow-y-auto border border-[#CBD5E1] text-[#0F172A] animate-in zoom-in-95 rounded-[20px]">
+            
+            <div className="flex items-center justify-between border-b border-[#CBD5E1] pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-white bg-amber-600 px-3 py-1 rounded-md">
+                  KYWA PLAY SAFE 2026
+                </span>
+                <h3 className="text-base font-black text-[#0F172A]">🔐 개인정보 수집·이용 동의서 (안전캠페인 숏폼 챌린지 전문)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="text-slate-500 font-black text-sm hover:text-slate-800 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs font-bold text-slate-700 leading-relaxed max-h-[50vh] overflow-y-auto p-4 bg-slate-50 rounded-[14px] border border-slate-200">
+              
+              <section className="space-y-1.5">
+                <h4 className="font-black text-[#1558C9] text-sm">• 1. 개인정보 수집·이용 목적</h4>
+                <p className="text-slate-600">
+                  KYWA PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.
+                </p>
+                <ul className="list-disc pl-4 text-slate-600 space-y-1">
+                  <li>회원 식별 및 서비스 이용 관리</li>
+                  <li>캠페인·미션·공모전 등 참여 확인 및 운영</li>
+                  <li>활동 결과 확인 및 심사·선정·시상 등 운영</li>
+                  <li>활동 관련 안내 및 공지사항 전달</li>
+                  <li><strong>디지털 쿠폰 및 기념품 등 참여 보상 제공 및 배송·수령 확인</strong></li>
+                </ul>
+              </section>
+
+              <section className="space-y-1.5">
+                <h4 className="font-black text-[#1558C9] text-sm">• 2. 수집하는 개인정보 항목</h4>
+                <div className="overflow-x-auto my-2">
+                  <table className="w-full border-collapse border border-slate-300 text-xs">
+                    <thead>
+                      <tr className="bg-slate-200 text-slate-800">
+                        <th className="border border-slate-300 p-2 w-20 text-center">구분</th>
+                        <th className="border border-slate-300 p-2 text-left">수집 항목</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-slate-300 p-2 text-center font-black text-blue-700 bg-blue-50/50">필수</td>
+                        <td className="border border-slate-300 p-2 font-bold">
+                          성명(팀명 및 대표자명), 생년월일, 휴대전화번호, 이메일 주소, (만 14세 미만 시) 법정대리인 성명 및 연락처
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-300 p-2 text-center text-slate-600">선택</td>
+                        <td className="border border-slate-300 p-2">소속(학교·청소년기관 등)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[11px] text-blue-700 font-bold bg-blue-50 p-2.5 rounded border border-blue-200">
+                  ※ 휴대폰번호는 회원 식별 및 활동 안내, 디지털 쿠폰·기념품 등 참여 보상 제공을 위한 목적으로 이용됩니다.
+                </p>
+              </section>
+
+              <section className="space-y-1.5">
+                <h4 className="font-black text-[#1558C9] text-sm">• 3. 개인정보 보유 및 이용기간</h4>
+                <p className="text-slate-600">
+                  수집된 개인정보는 <strong>개인정보 수집·이용 목적이 달성될 때까지</strong> 보유·이용하며, 목적이 달성된 후에는 지체 없이 파기합니다.
+                </p>
+                <p className="text-slate-600">
+                  다만, 사업 운영 및 결과보고 등에 필요한 자료 중 관계 법령에 따라 별도의 보존이 필요한 경우에는 해당 법령에서 정한 기간 동안 보관할 수 있습니다.
+                </p>
+                <p className="text-slate-600">
+                  회원이 탈퇴를 요청하거나 개인정보 수집·이용에 대한 동의를 철회하는 경우에는 보유가 필요한 법령상 근거가 있는 경우를 제외하고 지체 없이 파기합니다.
+                </p>
+              </section>
+
+              <section className="space-y-1.5">
+                <h4 className="font-black text-[#1558C9] text-sm">• 4. 동의 거부 권리 및 동의 거부에 따른 불이익</h4>
+                <p className="text-slate-600">
+                  이용자는 개인정보 수집·이용에 대한 동의를 거부할 권리가 있습니다.
+                </p>
+                <p className="text-slate-600">
+                  다만, 필수항목에 대한 동의를 거부하는 경우 숏폼 챌린지 참가 접수, 심사 및 부상 수령이 제한될 수 있습니다.
+                </p>
+                <p className="text-slate-600">
+                  선택항목에 대한 동의를 거부하더라도 기본적인 서비스 이용 및 공모전 참가에는 아무런 제한이 없습니다.
+                </p>
+              </section>
+
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, agreePrivacy: true }));
+                  setShowPrivacyModal(false);
+                }}
+                className="krds-public-button px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-[12px] shadow-md cursor-pointer"
+              >
+                [ 개인정보 수집·이용 동의하기 ]
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="px-4 py-3 bg-slate-200 text-slate-700 font-black text-xs rounded-[12px] cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+
           </div>
         </div>
       )}

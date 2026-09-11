@@ -270,7 +270,7 @@ export default function Home() {
                 <div className="text-xs text-slate-500 font-bold mt-0.5">누적 현장 보고서</div>
               </div>
               <div>
-                <div className="text-2xl font-black text-[#1558C9] tabular-nums">14개 팀</div>
+                <div className="text-2xl font-black text-[#1558C9] tabular-nums">16개 팀</div>
                 <div className="text-xs text-slate-500 font-bold mt-0.5">전국 안전홍보단</div>
               </div>
               <div>
@@ -488,7 +488,7 @@ export default function Home() {
               </h2>
 
               <p className="text-sm text-[#334155] font-medium leading-relaxed max-w-lg">
-                서울부터 제주까지, 14개 청소년 안전홍보단과 전국의 대원들이 함께 안전 위험 요소를 발굴하고 안전지도를 완성합니다.
+                서울부터 제주까지, 16개 청소년 안전홍보단과 전국의 대원들이 함께 안전 위험 요소를 발굴하고 안전지도를 완성합니다.
               </p>
 
               <div className="space-y-2 pt-2">

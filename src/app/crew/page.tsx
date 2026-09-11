@@ -1755,7 +1755,7 @@ function CrewContent() {
                 KYWA SAFETY CREW ONLY
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
-                청소년 안전홍보단 전용 공간입니다
+                전국 16개 안전홍보단 오피스
               </h1>
               <p className="text-xs sm:text-sm font-bold text-slate-600 leading-relaxed max-w-md mx-auto">
                 본 페이지(전국 16개 홍보단 프로젝트, 주간 활동보고서, 오피스 콘솔)는 

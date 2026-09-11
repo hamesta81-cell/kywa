@@ -654,7 +654,7 @@ export default function Home() {
             </div>
 
             <h3 className="text-xl font-black text-[#0F172A]">
-              전국 14개 안전홍보단 오피스
+              전국 16개 안전홍보단 오피스
             </h3>
 
             <p className="text-xs text-[#334155] font-semibold leading-relaxed">

@@ -125,7 +125,7 @@ export default function Header() {
               className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#0284C7] hover:bg-slate-100 rounded-full transition-all"
             >
               <Users className="h-3.5 w-3.5 text-[#0284C7]" />
-              <span>안전크루 현장</span>
+              <span>전국 16개 안전홍보단 오피스</span>
             </Link>
 
             <Link 

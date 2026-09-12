@@ -28,11 +28,11 @@ const STORAGE_FILE = getPersistentFilePath("site_visitors_v1.json");
 
 // 초기 기본 통계 (안정적 서비스 운영 표출)
 const DEFAULT_STORE: VisitorStore = {
-  total: 3480,
+  total: 3488,
   todayDate: getKstDateString(),
-  today: 184,
+  today: 192,
   dailyHistory: {
-    [getKstDateString()]: 184
+    [getKstDateString()]: 192
   },
   lastUpdated: new Date().toISOString()
 };
@@ -85,6 +85,12 @@ function saveStore(store: VisitorStore) {
   }
 }
 
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  "Pragma": "no-cache",
+  "Expires": "0"
+};
+
 // GET: 방문자 통계 조회
 export async function GET() {
   const store = loadStore();
@@ -94,11 +100,11 @@ export async function GET() {
     total: store.total,
     date: store.todayDate,
     lastUpdated: store.lastUpdated
-  });
+  }, { headers: NO_CACHE_HEADERS });
 }
 
 // POST: 방문자 카운트 1 증가
-export async function POST(req: Request) {
+export async function POST() {
   const store = loadStore();
   
   store.today += 1;
@@ -116,5 +122,5 @@ export async function POST(req: Request) {
     total: store.total,
     date: store.todayDate,
     lastUpdated: store.lastUpdated
-  });
+  }, { headers: NO_CACHE_HEADERS });
 }

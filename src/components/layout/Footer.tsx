@@ -9,27 +9,17 @@ export default function Footer() {
   useEffect(() => {
     let isMounted = true;
 
-    async function trackAndFetchVisitors() {
+    // 🚀 사이트 접속 시마다 실시간으로 일일 및 전체 방문자 카운트 즉시 증가
+    async function recordVisit() {
       try {
-        // 한국 시간 기준 오늘 날짜 문자열
-        const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date());
-        const lastVisitDate = typeof window !== "undefined" ? localStorage.getItem("playsafe_visited_date") : null;
-
-        let res: Response;
-        if (lastVisitDate === todayStr) {
-          // 오늘 이미 방문하여 카운트 완료된 경우: 최신 통계만 조회
-          res = await fetch("/api/visitors", { cache: "no-store" });
-        } else {
-          // 오늘 첫 방문인 경우: 카운트 1 증가 요청
-          res = await fetch("/api/visitors", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            cache: "no-store"
-          });
-          if (typeof window !== "undefined") {
-            localStorage.setItem("playsafe_visited_date", todayStr);
-          }
-        }
+        const res = await fetch(`/api/visitors?t=${Date.now()}`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache" 
+          },
+          cache: "no-store"
+        });
 
         if (res.ok) {
           const data = await res.json();
@@ -38,14 +28,35 @@ export default function Footer() {
           }
         }
       } catch (err) {
-        console.error("Failed to track/fetch visitor stats:", err);
+        console.error("Failed to record visitor count:", err);
       }
     }
 
-    trackAndFetchVisitors();
+    // 🔄 실시간 최신 통계 동기화 (조회 전용)
+    async function syncStats() {
+      try {
+        const res = await fetch(`/api/visitors?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success) {
+            setVisitorStats({ today: data.today, total: data.total });
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 마운트 즉시 1회 방문 카운팅 기록
+    recordVisit();
+
+    // 15초 주기로 최신 방문자 수 동기화
+    const interval = setInterval(syncStats, 15000);
 
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 

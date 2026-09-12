@@ -60,6 +60,9 @@ export default function AdminPage() {
   const [selectedChallengeStatus, setSelectedChallengeStatus] = useState("all");
   const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
 
+  // 👥 실시간 일일 및 전체 누적 방문자 통계 상태
+  const [visitorStats, setVisitorStats] = useState<{ today: number; total: number }>({ today: 0, total: 0 });
+
   // ⏱️ 실시간 접수 마감 카운트다운 타이머 상태
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
@@ -137,6 +140,15 @@ export default function AdminPage() {
 
         const savedPasses = localStorage.getItem("kywa_crew_custom_passwords");
         if (savedPasses) setCustomPasswords(JSON.parse(savedPasses));
+
+        // 👥 실시간 방문자 카운트 통계 불러오기
+        fetch(`/api/visitors?t=${Date.now()}`, { cache: "no-store" })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setVisitorStats({ today: data.today, total: data.total });
+            }
+          }).catch(() => {});
       }
     } catch (e) {
       console.error(e);
@@ -534,6 +546,42 @@ export default function AdminPage() {
         {activeNav === "dashboard" && (
           <div className="space-y-6 animate-in fade-in duration-200">
             
+            {/* 👥 플랫폼 실시간 방문자 트래픽 관제 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 tabular-nums">
+              <div className="p-5 bg-gradient-to-r from-blue-950/70 to-slate-900 rounded-2xl border border-blue-500/40 flex items-center justify-between shadow-lg">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs text-blue-300 font-bold">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span>실시간 오늘 방문자 (Today UV)</span>
+                  </div>
+                  <strong className="text-3xl sm:text-4xl font-black text-white block">
+                    {visitorStats.today.toLocaleString()}명
+                  </strong>
+                </div>
+                <span className="text-xs font-black text-emerald-400 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-500/30">
+                  당일 고유 접속자 집계 중
+                </span>
+              </div>
+
+              <div className="p-5 bg-gradient-to-r from-indigo-950/70 to-slate-900 rounded-2xl border border-indigo-500/40 flex items-center justify-between shadow-lg">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs text-indigo-300 font-bold">
+                    <Users size={15} className="text-indigo-400" />
+                    <span>전체 누적 방문자 (Total UV)</span>
+                  </div>
+                  <strong className="text-3xl sm:text-4xl font-black text-indigo-300 block">
+                    {visitorStats.total.toLocaleString()}명
+                  </strong>
+                </div>
+                <span className="text-xs font-black text-indigo-300 bg-indigo-900/60 px-3 py-1.5 rounded-xl border border-indigo-500/30">
+                  플랫폼 런칭 총 누적 트래픽
+                </span>
+              </div>
+            </div>
+
             {/* KPI 카드 (100% 실데이터 연동) */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 tabular-nums">
               <div 

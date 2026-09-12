@@ -69,7 +69,7 @@ export default function Header() {
       <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
         <header className="pointer-events-auto bg-white/95 backdrop-blur-2xl shadow-[0_4px_25px_rgba(15,23,42,0.08)] border border-slate-200 rounded-full px-6 py-2.5 w-full max-w-6xl flex items-center justify-between transition-all duration-300">
           
-          {/* 1. 로고 (KYWA PLAY SAFE 2026 - YOUTH SAFETY OS) */}
+          {/* 1. 로고 (PLAY SAFE 2026 - YOUTH SAFETY OS) */}
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-tr from-[#1558C9] to-[#0284C7] p-[1.5px] group-hover:shadow-[0_0_15px_rgba(21,88,201,0.3)] transition-all">
               <div className="w-full h-full bg-[#1558C9] rounded-full flex items-center justify-center">
@@ -79,7 +79,7 @@ export default function Header() {
             <div className="flex flex-col text-left">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-black tracking-wider text-slate-900 leading-none">
-                  KYWA PLAY SAFE
+                  PLAY SAFE
                 </span>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-blue-50 text-[#1558C9] border border-blue-200">
                   2026

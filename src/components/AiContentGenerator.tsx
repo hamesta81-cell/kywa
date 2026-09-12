@@ -172,7 +172,7 @@ export default function AiContentGenerator({ onFeedSubmit }: { onFeedSubmit?: (c
             { time: '0~3초', scene: `주제 맞춤 AI 이미지: ${activeTopic} visual`, narration: `실시간 뉴스! ${realNewsSnippet}`, caption: '🌊 실시간 물놀이 소식' },
             { time: '3~8초', scene: '수상레저안전법 법령과 구명조끼 버클 연출', narration: '첫째, 수상레저안전법상 구명조끼 착용 필수! 버클을 꽉 조여주세요.', caption: 'STEP 1. 구명조끼 100% 착용' },
             { time: '8~12초', scene: '손발 준비운동 및 물 적시기 연출', narration: '둘째, 심장에서 먼 발부터 차가운 물을 적신 후 준비운동!', caption: 'STEP 2. 입수 전 준비운동' },
-            { time: '12~15초', scene: '위험구역 진입금지 과태료 및 119 로고', narration: '위험 지역 진입 금지! KYWA와 함께하는 안전한 여름!', caption: 'STEP 3. 위험구역 진입금지!' }
+            { time: '12~15초', scene: '위험구역 진입금지 과태료 및 119 로고', narration: '위험 지역 진입 금지! 다 함께 안전한 여름!', caption: 'STEP 3. 위험구역 진입금지!' }
           ]
         };
       } else {
@@ -378,7 +378,7 @@ export default function AiContentGenerator({ onFeedSubmit }: { onFeedSubmit?: (c
 
       ctx.fillStyle = '#e2e8f0';
       ctx.font = 'bold 34px sans-serif';
-      ctx.fillText('🛡️ 2026 PLAY SAFE 한국청소년활동진흥원(KYWA) 청소년 안전 홍보단', 540, 1715);
+      ctx.fillText('🛡️ 2026 PLAY SAFE 한국청소년활동진흥원 청소년 안전 홍보단', 540, 1715);
     };
 
     renderOverlay();
@@ -387,7 +387,7 @@ export default function AiContentGenerator({ onFeedSubmit }: { onFeedSubmit?: (c
   const handleDownloadPNG = () => {
     if (!canvasRef.current || !generated) return;
     const link = document.createElement('a');
-    link.download = `KYWA_안전카드뉴스_${generated.topic.replace(/\s+/g, '_')}.png`;
+    link.download = `PLAYSAFE_안전카드뉴스_${generated.topic.replace(/\s+/g, '_')}.png`;
     link.href = canvasRef.current.toDataURL('image/png');
     link.click();
   };

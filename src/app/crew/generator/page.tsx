@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Shield } from 'lucide-react';
 
 export const metadata = {
-  title: 'AI 스마트 카드뉴스 & 숏폼 생성기 | KYWA 청소년 안전 홍보단',
+  title: 'AI 스마트 카드뉴스 & 숏폼 생성기 | 청소년 안전 홍보단',
   description: '구글 안티그래비티 기반 AI 파트너를 활용해 9:16 모바일 카드뉴스 이미지와 15초 숏폼 시나리오를 자동 생성하세요.'
 };
 

@@ -352,7 +352,7 @@ export default function AdminPage() {
             </div>
             <h2 className="text-xl font-black text-white">👔 총괄 관리자 보안 인증</h2>
             <p className="text-slate-400 text-xs">
-              한국청소년활동진흥원(KYWA) 라이브 운영 콘솔 접근을 위해 관리자 아이디 및 비밀번호를 입력해 주세요.
+              한국청소년활동진흥원 라이브 운영 콘솔 접근을 위해 관리자 아이디 및 비밀번호를 입력해 주세요.
             </p>
           </div>
 
@@ -438,7 +438,7 @@ export default function AdminPage() {
             <ShieldCheck size={18} />
             <span>SAFETY CONTROL</span>
           </div>
-          <span className="text-[10px] text-[#10B981] font-black block mt-0.5">KYWA 공식 라이브 운영 콘솔</span>
+          <span className="text-[10px] text-[#10B981] font-black block mt-0.5">PLAY SAFE 라이브 운영 콘솔</span>
         </div>
 
         <nav className="space-y-1">

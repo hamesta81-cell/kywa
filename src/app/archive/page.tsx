@@ -405,7 +405,7 @@ export default function ArchivePage() {
                 </div>
 
                 <div className="p-2.5 bg-slate-800 rounded-[10px] border border-slate-700">
-                  <span className="text-slate-400 block text-[10px]">KYWA 검수일</span>
+                  <span className="text-slate-400 block text-[10px]">공식 검수일</span>
                   <strong className="text-emerald-400 font-bold block mt-0.5">{selectedCardModal.reviewDate}</strong>
                 </div>
 

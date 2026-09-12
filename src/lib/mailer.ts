@@ -80,7 +80,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
           「PLAY SAFE 숏폼 챌린지」 접수 확인증
         </h1>
         <p style="margin: 8px 0 0 0; font-size: 13px; color: #94a3b8;">
-          한국청소년활동진흥원(KYWA) 안전캠페인에 참여해 주셔서 대단히 감사합니다.
+          한국청소년활동진흥원 청소년 안전캠페인에 참여해 주셔서 대단히 감사합니다.
         </p>
       </div>
 
@@ -140,7 +140,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
 
       <!-- 푸터 -->
       <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
-        한국청소년활동진흥원 (KYWA) · 2026 청소년활동 안전캠페인 운영사무국<br/>
+        한국청소년활동진흥원 · 2026 청소년활동 안전캠페인 운영사무국<br/>
         본 메일은 숏폼 챌린지 신청자 접수 완료에 따라 자동 발송되었습니다.
       </div>
     </div>
@@ -186,9 +186,9 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
   // 1. 참가자 본인에게 접수 확인 메일 발송
   try {
     const info = await activeTransporter.sendMail({
-      from: `"KYWA 안전캠페인 사무국" <${senderAddress}>`,
+      from: `"청소년 안전캠페인 사무국" <${senderAddress}>`,
       to: data.email,
-      subject: `[KYWA] 「PLAY SAFE 숏폼 챌린지」 참가 접수가 완료되었습니다 (${data.id})`,
+      subject: `[PLAY SAFE] 「PLAY SAFE 숏폼 챌린지」 참가 접수가 완료되었습니다 (${data.id})`,
       html: emailHtml
     });
     applicantSent = true;
@@ -217,7 +217,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
             "Referer": "https://kywasafe.kr/"
           },
           body: JSON.stringify({
-            _subject: `[KYWA 숏폼 접수] ${data.author} (${data.id})`,
+            _subject: `[숏폼 접수] ${data.author} (${data.id})`,
             _template: "table",
             _captcha: "false",
             _replyto: data.email,
@@ -246,7 +246,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
   // (2) 표준 SMTP 발송 시도 (SMTP 설정 시 또는 테스트 계정 시)
   try {
     const adminInfo = await activeTransporter.sendMail({
-      from: `"KYWA 숏폼 시스템" <${senderAddress}>`,
+      from: `"PLAY SAFE 숏폼 시스템" <${senderAddress}>`,
       to: adminEmails.join(", "),
       subject: `[신규 접수 알림] 숏폼 챌린지 - ${data.author} (${data.id})`,
       html: emailHtml

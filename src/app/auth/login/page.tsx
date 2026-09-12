@@ -221,7 +221,7 @@ export default function LoginPage() {
         {/* 헤더 안내 */}
         <div className="text-center space-y-2">
           <span className="text-xs font-black text-[#1558C9] bg-blue-100 px-3.5 py-1.5 rounded-full border border-blue-300">
-            KYWA PLAY SAFE AUTHENTICATION 2026
+            PLAY SAFE AUTHENTICATION 2026
           </span>
           <h1 className="text-2xl font-black text-[#0F172A]">청소년 안전 플랫폼 통합 로그인</h1>
           <p className="text-xs font-black text-slate-600">

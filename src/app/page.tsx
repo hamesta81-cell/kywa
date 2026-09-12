@@ -722,7 +722,7 @@ export default function Home() {
                   「PLAY SAFE 숏폼 챌린지」 공모전 개최! 🎬
                 </h4>
                 <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                  공식 음원 <strong>'ㅋㅋㅋ(Keep, Know, KYWA)'</strong>에 맞춘 나만의 안전 숏폼에 도전하세요! (총 상금 200만원)
+                  공식 음원 <strong>'ㅋㅋㅋ(Keep, Know)'</strong>에 맞춘 나만의 안전 숏폼에 도전하세요! (총 상금 200만원)
                 </p>
               </div>
 

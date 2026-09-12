@@ -9,7 +9,7 @@ import NextAuthProvider from "@/components/providers/NextAuthProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "KYWA 안전문화 확산 통합 플랫폼",
+  title: "PLAY SAFE 2026 청소년 안전문화 확산 통합 플랫폼",
   description: "청소년활동 안전홍보단, 공모전, 캠페인이 하나로 통합된 대국민 플랫폼",
 };
 

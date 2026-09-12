@@ -93,7 +93,7 @@ function ContestContent() {
         </div>
 
         <span className="text-xs font-black text-[#1558C9] hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200">
-          <Sparkles size={14} /> KYWA AI SAFETY CONTEST 2026
+          <Sparkles size={14} /> PLAY SAFE AI CONTEST 2026
         </span>
       </div>
 

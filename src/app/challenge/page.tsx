@@ -148,7 +148,7 @@ export default function ChallengePage() {
                 "Accept": "application/json"
               },
               body: JSON.stringify({
-                _subject: `[KYWA 숏폼 접수] ${formData.author} (${result?.data?.id || "신규"})`,
+                _subject: `[숏폼 접수] ${formData.author} (${result?.data?.id || "신규"})`,
                 _template: "table",
                 _captcha: "false",
                 _replyto: formData.email,
@@ -224,7 +224,7 @@ export default function ChallengePage() {
               </span>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-black uppercase">
                 <Music size={13} className="text-amber-700" />
-                <span>공식 음원: ㅋㅋㅋ (Keep, Know, KYWA) 챌린지</span>
+                <span>공식 음원: ㅋㅋㅋ (Keep, Know) 챌린지</span>
               </div>
             </div>
             
@@ -237,7 +237,7 @@ export default function ChallengePage() {
 
             <p className="text-sm sm:text-base font-semibold text-[#334155] leading-relaxed">
               한국청소년활동진흥원은 청소년과 국민이 일상 속 안전문화 확산에 참여할 수 있도록 
-              공식 음원 <strong>‘ㅋㅋㅋ(Keep, Know, KYWA)’</strong>을 활용한 숏폼 챌린지 공모전을 운영합니다.
+              공식 음원 <strong>‘ㅋㅋㅋ(Keep, Know)’</strong>을 활용한 숏폼 챌린지 공모전을 운영합니다.
               신나게 춤추고, 나만의 안전 수칙을 담은 숏폼 영상을 업로드하여 총 상금 200만원의 주인공에 도전하세요!
             </p>
 
@@ -394,7 +394,7 @@ export default function ChallengePage() {
             <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">공식 음원 'ㅋㅋㅋ' 필수</span>
           </div>
           <p className="text-xs text-[#334155] font-bold leading-relaxed">
-            공식 음원 ‘ㅋㅋㅋ(Keep, Know, KYWA)’에 맞춰 신나게 춤추는 숏폼 안무 챌린지
+            공식 음원 ‘ㅋㅋㅋ(Keep, Know)’에 맞춰 신나게 춤추는 숏폼 안무 챌린지
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
             <div className="p-3 bg-white border border-amber-200 rounded-xl space-y-1">
@@ -446,7 +446,7 @@ export default function ChallengePage() {
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
                   <span className="font-black text-amber-900 block">💡 챌린지 공식 안무 참고 가이드</span>
                   <p className="text-slate-600 text-[11px] leading-relaxed">
-                    위 영상에 소개된 <strong>'ㅋㅋㅋ(Keep, Know, KYWA)'</strong> 챌린지 공식 안무를 참고하여 
+                    위 영상에 소개된 <strong>'ㅋㅋㅋ(Keep, Know)'</strong> 챌린지 공식 안무를 참고하여 
                     직접 커버하거나, 팀만의 개성 있는 창작 동작을 더해 멋진 숏폼 영상을 완성해 보세요!
                   </p>
                 </div>
@@ -564,7 +564,7 @@ export default function ChallengePage() {
               PLAY SAFE 숏폼 챌린지 온라인 참가 신청서
             </h2>
             <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              본인 인스타그램 릴스 또는 유튜브 쇼츠에 공식 음원 ‘ㅋㅋㅋ(Keep, Know, KYWA)’을 활용해 영상을 업로드한 후, 
+              본인 인스타그램 릴스 또는 유튜브 쇼츠에 공식 음원 ‘ㅋㅋㅋ(Keep, Know)’을 활용해 영상을 업로드한 후, 
               아래 신청서를 작성하여 최종 접수해 주세요.
             </p>
           </div>
@@ -796,7 +796,7 @@ export default function ChallengePage() {
                   className="rounded text-amber-600 focus:ring-amber-500"
                   required
                 />
-                <span>[필수] 영상 설명란에 필수 해시태그 3개(<strong>#KYWA #한국청소년활동진흥원 #PLAYSAFE</strong>)를 모두 기재했습니다.</span>
+                <span>[필수] 영상 설명란에 필수 해시태그(<strong>#한국청소년활동진흥원 #PLAYSAFE #청소년안전</strong>)를 모두 기재했습니다.</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-amber-950">
@@ -935,7 +935,7 @@ export default function ChallengePage() {
                 <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded">공식 음원 'ㅋㅋㅋ' 필수</span>
               </div>
               <p className="text-xs text-[#334155] font-bold leading-relaxed">
-                공식 음원 ‘ㅋㅋㅋ(Keep, Know, KYWA)’에 맞춰 신나게 춤추는 숏폼 안무 챌린지
+                공식 음원 ‘ㅋㅋㅋ(Keep, Know)’에 맞춰 신나게 춤추는 숏폼 안무 챌린지
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
                 <div className="p-3 bg-white border border-amber-200 rounded-xl space-y-1">
@@ -987,7 +987,7 @@ export default function ChallengePage() {
                     <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-1">
                       <span className="font-black text-amber-900 block">💡 챌린지 공식 안무 참고 가이드</span>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
-                        위 영상에 소개된 <strong>'ㅋㅋㅋ(Keep, Know, KYWA)'</strong> 챌린지 공식 안무를 참고하여 
+                        위 영상에 소개된 <strong>'ㅋㅋㅋ(Keep, Know)'</strong> 챌린지 공식 안무를 참고하여 
                         직접 커버하거나, 팀만의 개성 있는 창작 동작을 더해 멋진 숏폼 영상을 완성해 보세요!
                       </p>
                     </div>
@@ -1083,8 +1083,8 @@ export default function ChallengePage() {
                 <ul className="text-slate-600 space-y-1 text-[11px] leading-relaxed">
                   <li>• 촬영 시 음원을 틀어놓거나 편집 과정에서 공식 음원을 입혀 제작 (15~60초 세로형)</li>
                   <li>• 본인 <strong>인스타그램 릴스</strong> 또는 <strong>유튜브 쇼츠</strong>에 영상 업로드</li>
-                  <li>• 영상 설명란에 필수 해시태그 3개 필수 기재:<br/>
-                    <span className="text-blue-700 font-bold">#KYWA #한국청소년활동진흥원 #PLAYSAFE</span>
+                  <li>• 영상 설명란에 필수 해시태그 필수 기재:<br/>
+                    <span className="text-blue-700 font-bold">#한국청소년활동진흥원 #PLAYSAFE #청소년안전</span>
                   </li>
                   <li>• <strong>2026. 12. 31.까지</strong> 계정 및 게시글 전체 공개 상태 유지 필수</li>
                 </ul>
@@ -1283,7 +1283,7 @@ export default function ChallengePage() {
                   1. 개인정보 수집·이용 목적
                 </span>
                 <p className="text-slate-600 leading-relaxed text-[11px]">
-                  KYWA PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.<br/>
+                  PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.<br/>
                   • 회원 식별 및 서비스 이용 관리<br/>
                   • 캠페인·미션·공모전 등 참여 확인 및 운영<br/>
                   • 활동 결과 확인 및 심사·선정·시상 등 운영<br/>
@@ -1404,7 +1404,7 @@ export default function ChallengePage() {
             <div className="flex items-center justify-between border-b border-[#CBD5E1] pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-white bg-amber-600 px-3 py-1 rounded-md">
-                  KYWA PLAY SAFE 2026
+                  PLAY SAFE 2026
                 </span>
                 <h3 className="text-base font-black text-[#0F172A]">🔐 개인정보 수집·이용 동의서 (안전캠페인 숏폼 챌린지 전문)</h3>
               </div>
@@ -1422,7 +1422,7 @@ export default function ChallengePage() {
               <section className="space-y-1.5">
                 <h4 className="font-black text-[#1558C9] text-sm">• 1. 개인정보 수집·이용 목적</h4>
                 <p className="text-slate-600">
-                  KYWA PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.
+                  PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.
                 </p>
                 <ul className="list-disc pl-4 text-slate-600 space-y-1">
                   <li>회원 식별 및 서비스 이용 관리</li>

@@ -42,7 +42,7 @@ export default function CyberBullyingCampaignPage() {
   const handleShareResult = () => {
     if (navigator.share) {
       navigator.share({
-        title: "KYWA 안전 미션 완료 결과",
+        title: "청소년 안전 미션 완료 결과",
         text: "사이버 폭력 예방 미션 완수! +70 XP 및 수집 카드를 획득했습니다.",
         url: window.location.href,
       }).catch(() => {});

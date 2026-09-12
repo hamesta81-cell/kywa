@@ -1752,7 +1752,7 @@ function CrewContent() {
 
             <div className="space-y-2">
               <span className="text-[11px] font-black text-[#1558C9] bg-blue-100 px-3.5 py-1.5 rounded-full border border-blue-300 uppercase inline-block">
-                KYWA SAFETY CREW ONLY
+                SAFETY CREW ONLY
               </span>
               <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
                 전국 16개 안전홍보단 오피스
@@ -4114,7 +4114,7 @@ function CrewContent() {
                   href={selectedOriginalImage}
                   target="_blank"
                   rel="noreferrer"
-                  download="kywa_crew_activity_photo.jpg"
+                  download="crew_activity_photo.jpg"
                   className="px-3.5 py-1.5 bg-[#1558C9] hover:bg-blue-600 text-white rounded-full text-xs font-black shadow flex items-center gap-1 transition-all"
                 >
                   <Download size={13} />

@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       <!-- Footer Info Box -->
       <rect x="140" y="1560" width="800" height="180" rx="30" fill="#0f172a" stroke="${primaryColor}" stroke-width="4"/>
       <text x="540" y="1640" font-family="sans-serif" font-size="40" font-weight="900" fill="${primaryColor}" text-anchor="middle">
-        한국청소년활동진흥원 (KYWA) 안전 홍보단
+        한국청소년활동진흥원 청소년 안전 홍보단
       </text>
       <text x="540" y="1700" font-family="sans-serif" font-size="30" font-weight="700" fill="#cbd5e1" text-anchor="middle">
         실시간 주제 분석 기반 AI 9:16 맞춤 그래픽

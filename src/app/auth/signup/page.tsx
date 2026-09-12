@@ -329,7 +329,7 @@ export default function SignUpPage() {
             <div className="flex items-center justify-between border-b border-[#CBD5E1] pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-white bg-[#1558C9] px-3 py-1 rounded-md">
-                  KYWA 2026
+                  PLAY SAFE 2026
                 </span>
                 <h3 className="text-base font-black text-[#0F172A]">🔐 개인정보 수집·이용 동의서 (전문)</h3>
               </div>
@@ -347,7 +347,7 @@ export default function SignUpPage() {
               <section className="space-y-1.5">
                 <h4 className="font-black text-[#1558C9] text-sm">• 1. 개인정보 수집·이용 목적</h4>
                 <p className="text-slate-600">
-                  KYWA PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.
+                  PLAY SAFE 2026 청소년 안전문화 확산 사업의 원활한 운영을 위하여 다음의 목적으로 개인정보를 수집·이용합니다.
                 </p>
                 <ul className="list-disc pl-4 text-slate-600 space-y-1">
                   <li>회원 식별 및 서비스 이용 관리</li>

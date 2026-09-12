@@ -12,7 +12,7 @@ export default function ContestSubmitPage() {
   const [participantType, setParticipantType] = useState<"individual" | "team">("team");
   const [representativeName, setRepresentativeName] = useState("이민지");
   const [teamName, setTeamName] = useState("스마트안전팀");
-  const [email, setEmail] = useState("minji@kywa.or.kr");
+  const [email, setEmail] = useState("minji@safety.or.kr");
   const [phone, setPhone] = useState("010-1234-5678");
   const [organization, setOrganization] = useState("서울청소년고등학교");
   const [qualificationCheck, setQualificationCheck] = useState(true);
@@ -56,7 +56,7 @@ export default function ContestSubmitPage() {
   };
 
   const handleFinalSubmit = () => {
-    alert("🎉 2026 청소년 안전 콘텐츠 공모전 최종 접수가 정상적으로 완료되었습니다!\n접수 번호: KYWA-2026-CONTEST-0841");
+    alert("🎉 2026 청소년 안전 콘텐츠 공모전 최종 접수가 정상적으로 완료되었습니다!\n접수 번호: PLAYSAFE-2026-CONTEST-0841");
     window.location.href = "/contest";
   };
 
@@ -504,7 +504,7 @@ export default function ContestSubmitPage() {
 
                 <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">
                   <span className="font-black text-[#102A43] block">• 철회 및 삭제 요청 방법:</span>
-                  <p>KYWA 운영진 1:1 고객센터 요청 시 24시간 이내 즉시 철회 가능</p>
+                  <p>공식 운영진 1:1 고객센터 요청 시 24시간 이내 즉시 철회 가능</p>
                 </div>
 
                 <div className="p-4 bg-[#102A43] text-white rounded-[14px] space-y-1">

@@ -32,13 +32,32 @@ function writeSubmissions(submissions: any[]) {
   }
 }
 
-// 숏폼 챌린지 접수 내역 조회 및 CSV 다운로드 API
+const ADMIN_SECRET_KEY = process.env.ADMIN_API_KEY || "kywa_admin_auth_token_2026";
+
+// 관리자 권한 확인 헬퍼
+function verifyAdmin(req: Request): boolean {
+  const url = new URL(req.url);
+  const headerKey = req.headers.get("x-admin-key") || req.headers.get("authorization")?.replace("Bearer ", "");
+  const queryKey = url.searchParams.get("admin_key");
+  return headerKey === ADMIN_SECRET_KEY || queryKey === ADMIN_SECRET_KEY;
+}
+
+// 숏폼 챌린지 접수 내역 조회 및 CSV 다운로드 API (보안 가드 적용)
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const format = searchParams.get("format");
   const submissions = readSubmissions();
+  const isAdmin = verifyAdmin(req);
 
+  // 1. CSV 다운로드 요청 시: 반드시 관리자 권한 필요
   if (format === "csv") {
+    if (!isAdmin) {
+      return NextResponse.json(
+        { success: false, message: "관리자 인증이 필요합니다. (401 Unauthorized)" },
+        { status: 401 }
+      );
+    }
+
     // 엑셀에서 한글 깨짐 방지를 위한 UTF-8 BOM (\uFEFF)
     let csv = "\uFEFF접수번호,공모부문,참가자/팀명,연락처,이메일,영상URL,기획의도및메시지,접수일시,심사상태\n";
     submissions.forEach(s => {
@@ -64,15 +83,28 @@ export async function GET(req: Request) {
     });
   }
 
+  // 2. 관리자 인증 완료 시: 전체 상세 데이터 반환
+  if (isAdmin) {
+    return NextResponse.json({
+      success: true,
+      count: submissions.length,
+      data: submissions
+    });
+  }
+
+  // 3. 일반 공개 요청 시: 🔒 개인정보(이름, 연락처, 이메일 등) 원천 차단하고 '접수 건수(count)'만 안전하게 반환
   return NextResponse.json({
     success: true,
-    count: submissions.length,
-    data: submissions
+    count: submissions.length
   });
 }
 
-// 숏폼 챌린지 상태 변경 API (관리자용)
+// 숏폼 챌린지 상태 변경 API (관리자 전용)
 export async function PATCH(req: Request) {
+  if (!verifyAdmin(req)) {
+    return NextResponse.json({ success: false, message: "관리자 권한이 필요합니다." }, { status: 401 });
+  }
+
   try {
     const { id, status } = await req.json();
     if (!id || !status) {
@@ -94,8 +126,12 @@ export async function PATCH(req: Request) {
   }
 }
 
-// 숏폼 챌린지 접수 삭제 API (관리자용)
+// 숏폼 챌린지 접수 삭제 API (관리자 전용)
 export async function DELETE(req: Request) {
+  if (!verifyAdmin(req)) {
+    return NextResponse.json({ success: false, message: "관리자 권한이 필요합니다." }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");

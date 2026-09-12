@@ -116,10 +116,14 @@ export default function AdminPage() {
             }
           }).catch(() => {});
 
-        // 🎬 숏폼 챌린지 실시간 접수 데이터 불러오기
+        // 🎬 숏폼 챌린지 실시간 접수 데이터 불러오기 (관리자 전용 보안 인증)
         fetch(`/api/challenge/submit?t=${Date.now()}`, {
           cache: "no-store",
-          headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache" }
+          headers: { 
+            "Cache-Control": "no-cache, no-store, must-revalidate", 
+            "Pragma": "no-cache",
+            "x-admin-key": "kywa_admin_auth_token_2026"
+          }
         })
           .then(res => res.json())
           .then(data => {
@@ -295,7 +299,10 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/challenge/submit", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-admin-key": "kywa_admin_auth_token_2026"
+        },
         body: JSON.stringify({ id, status: nextStatus })
       });
       const result = await res.json();
@@ -313,7 +320,10 @@ export default function AdminPage() {
   const handleDeleteChallengeSubmission = async (id: string) => {
     if (!confirm(`🗑️ 정말 [${id}] 접수 건을 영구 삭제하시겠습니까?`)) return;
     try {
-      const res = await fetch(`/api/challenge/submit?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/challenge/submit?id=${id}`, { 
+        method: "DELETE",
+        headers: { "x-admin-key": "kywa_admin_auth_token_2026" }
+      });
       const result = await res.json();
       if (result.success) {
         setChallengeSubmissions(prev => prev.filter(s => s.id !== id));
@@ -327,7 +337,7 @@ export default function AdminPage() {
   };
 
   const handleDownloadChallengeCsv = () => {
-    window.open("/api/challenge/submit?format=csv", "_blank");
+    window.open("/api/challenge/submit?format=csv&admin_key=kywa_admin_auth_token_2026", "_blank");
   };
 
 

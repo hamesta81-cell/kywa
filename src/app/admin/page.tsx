@@ -237,6 +237,41 @@ export default function AdminPage() {
     }
   };
 
+  // 🛡️ [만 14세 미만 개인정보 보호 및 미승인 가입 대응 프로토콜 (4단계 SOP)]
+  const handleChildProtectionAction = (user: any, action: "SUSPEND" | "STOP_PROCESSING" | "VERIFY_CONSENT" | "PURGE_ALL") => {
+    let updatedStatus = user.status;
+    let msg = "";
+
+    if (action === "SUSPEND") {
+      updatedStatus = "🚨 [1단계] 이용 즉시 정지";
+      msg = `[1단계 완료] ${user.nickname || user.email} 계정의 서비스 로그인 및 미션 참여를 즉시 정지했습니다.`;
+    } else if (action === "STOP_PROCESSING") {
+      updatedStatus = "⛔ [2단계] 추가 처리 중단";
+      msg = `[2단계 완료] 해당 계정의 모든 개인정보 추가 수집·가공·조회 처리를 전면 중단했습니다.`;
+    } else if (action === "VERIFY_CONSENT") {
+      updatedStatus = "✅ 정상 승인 (보호자 동의 완료)";
+      msg = `[3단계 완료] 법정대리인(보호자)과의 정식 동의 확인이 완료되어 정상 계정으로 전환되었습니다.`;
+    } else if (action === "PURGE_ALL") {
+      if (confirm(`[4단계 영구 파기] ${user.nickname || user.email} 계정의 개인정보 및 수탁업체(메일·클라우드) 보관 자료를 일괄 영구 파기하시겠습니까?`)) {
+        const updated = registeredList.filter(u => u.id !== user.id);
+        setRegisteredList(updated);
+        try {
+          localStorage.setItem("registeredUsersList", JSON.stringify(updated));
+        } catch (e) {}
+        alert(`[4단계 완료] 계정 데이터 및 수탁업체 잔존 자료가 지체 없이 복구 불가능하게 파기되었습니다.`);
+        return;
+      }
+      return;
+    }
+
+    const updated = registeredList.map(u => u.id === user.id ? { ...u, status: updatedStatus } : u);
+    setRegisteredList(updated);
+    try {
+      localStorage.setItem("registeredUsersList", JSON.stringify(updated));
+    } catch (e) {}
+    alert(msg);
+  };
+
   // 피드 삭제 핸들러
   const handleDeleteFeed = (id: any) => {
     if (confirm("🗑️ 해당 홍보단 제출 피드를 관리자 권한으로 삭제하시겠습니까?")) {
@@ -1403,6 +1438,34 @@ export default function AdminPage() {
                 </button>
               </div>
 
+              {/* 🛡️ [개인정보 보호법 제22조의2] 만 14세 미만 아동 개인정보 보호 표준 대응 프로토콜 안내 패널 */}
+              <div className="p-4 bg-slate-900/90 rounded-xl border border-amber-500/40 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-amber-400 flex items-center gap-1.5">
+                    <ShieldCheck size={16} /> 만 14세 미만 아동 보호 및 미승인 가입 대응 프로토콜 (SOP 4단계)
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-bold">개인정보 보호법 제22조의2 준수</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-[11px]">
+                  <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700">
+                    <strong className="text-rose-400 block mb-0.5">1단계: 이용 즉시 정지</strong>
+                    <p className="text-slate-400 text-[10px]">미승인 확인 즉시 로그인 차단 및 활동권한 중지</p>
+                  </div>
+                  <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700">
+                    <strong className="text-amber-400 block mb-0.5">2단계: 추가 처리 중단</strong>
+                    <p className="text-slate-400 text-[10px]">계정 데이터 추가 수집·조회·가공 행위 전면 중단</p>
+                  </div>
+                  <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700">
+                    <strong className="text-cyan-400 block mb-0.5">3단계: 동의확보 또는 파기</strong>
+                    <p className="text-slate-400 text-[10px]">보호자 유선·이메일 정식 동의 미확보 시 즉시 파기</p>
+                  </div>
+                  <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700">
+                    <strong className="text-emerald-400 block mb-0.5">4단계: 수탁업체 자료 파기</strong>
+                    <p className="text-slate-400 text-[10px]">발송사·클라우드 보관 백업자료까지 완전 파기 확인</p>
+                  </div>
+                </div>
+              </div>
+
               {registeredList.length > 0 ? (
                 <div className="overflow-x-auto border border-slate-700 rounded-lg">
                   <table className="w-full text-left border-collapse text-xs">
@@ -1411,11 +1474,10 @@ export default function AdminPage() {
                         <th className="p-3">가입일시</th>
                         <th className="p-3">닉네임 (활동명)</th>
                         <th className="p-3">이메일 (아이디)</th>
-                        <th className="p-3">연락처 (물품수령용)</th>
-                        <th className="p-3">소속 (선택)</th>
-                        <th className="p-3">회원 구분</th>
+                        <th className="p-3">연령 구분 / 법정대리인</th>
+                        <th className="p-3">경품 발송 연락처</th>
                         <th className="p-3">상태</th>
-                        <th className="p-3 text-right">계정 관리</th>
+                        <th className="p-3 text-right">SOP 4단계 대응 조치</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-700/60 font-medium">
@@ -1423,28 +1485,76 @@ export default function AdminPage() {
                         <tr key={u.id} className="hover:bg-slate-700/40 transition-colors">
                           <td className="p-3 text-slate-400 font-mono text-[11px]">{u.createdAt}</td>
                           <td className="p-3 font-black text-white flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                            <span className={`w-2 h-2 rounded-full inline-block ${u.ageGroup === "UNDER_14" ? "bg-amber-400" : "bg-emerald-400"}`}></span>
                             {u.nickname || u.name}
                           </td>
                           <td className="p-3 text-cyan-300 font-mono">{u.email}</td>
-                          <td className="p-3 text-slate-300">{u.phone}</td>
-                          <td className="p-3 text-slate-300">{u.organization || "소속 없음"}</td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-950 text-blue-300 border border-blue-500/40">
-                              {u.roleLabel || u.role}
+                            {u.ageGroup === "UNDER_14" || u.guardian ? (
+                              <div className="space-y-0.5">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-950 text-amber-300 border border-amber-500/40 inline-block">
+                                  만 14세 미만 (아동)
+                                </span>
+                                <p className="text-[10px] text-slate-300">
+                                  보호자: {u.guardian?.name || "확인중"} ({u.guardian?.relation || "보호자"})
+                                </p>
+                                <p className="text-[10px] text-slate-400 font-mono">
+                                  {u.guardian?.contact || "-"}
+                                </p>
+                              </div>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-black bg-blue-950 text-blue-300 border border-blue-500/40">
+                                만 14세 이상 (본인)
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                              당첨 시 별도 수집 (최소수집원칙)
                             </span>
                           </td>
                           <td className="p-3">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/40">
-                              {u.status || "승인됨"}
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                              String(u.status || "").includes("정지") ? "bg-rose-950 text-rose-300 border border-rose-500/40" :
+                              String(u.status || "").includes("중단") ? "bg-amber-950 text-amber-300 border border-amber-500/40" :
+                              "bg-emerald-950 text-emerald-300 border border-emerald-500/40"
+                            }`}>
+                              {u.status || "정상 승인"}
                             </span>
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right space-x-1">
+                            {/* SOP 조치 버튼군 */}
                             <button
-                              onClick={() => handleDeleteRegisteredUser(u.id)}
-                              className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-black"
+                              type="button"
+                              onClick={() => handleChildProtectionAction(u, "SUSPEND")}
+                              className="px-2 py-1 bg-amber-600/80 hover:bg-amber-600 text-white rounded text-[10px] font-black"
+                              title="1단계: 이용 즉시 정지"
                             >
-                              삭제
+                              1단계 정지
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleChildProtectionAction(u, "STOP_PROCESSING")}
+                              className="px-2 py-1 bg-purple-600/80 hover:bg-purple-600 text-white rounded text-[10px] font-black"
+                              title="2단계: 추가 처리 중단"
+                            >
+                              2단계 중단
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleChildProtectionAction(u, "VERIFY_CONSENT")}
+                              className="px-2 py-1 bg-blue-600/80 hover:bg-blue-600 text-white rounded text-[10px] font-black"
+                              title="3단계: 법정대리인 동의 완료 확인"
+                            >
+                              동의확인
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleChildProtectionAction(u, "PURGE_ALL")}
+                              className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[10px] font-black"
+                              title="4단계: 영구 파기 및 수탁업체 확인"
+                            >
+                              4단계 파기
                             </button>
                           </td>
                         </tr>

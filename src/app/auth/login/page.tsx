@@ -258,45 +258,30 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* 모드 1: 일반 회원 로그인 */}
+        {/* 모드 1: 일반 회원 로그인 (회원가입 불필요 / 닉네임 즉시 참여) */}
         {loginMode === "general" && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-[16px] space-y-2">
-              <span className="text-xs font-black text-[#1558C9] block">
-                ✨ 대국민 일반 회원 로그인
+            <div className="p-4 bg-emerald-50/80 border border-emerald-300 rounded-[16px] space-y-2">
+              <span className="text-xs font-black text-emerald-800 flex items-center gap-1.5">
+                <Sparkles size={14} className="text-emerald-600" /> 회원가입 없는 대국민 간편 참여
               </span>
               <p className="text-[11px] text-slate-600 font-bold leading-relaxed">
-                아이디(이메일) 또는 닉네임을 입력하시면 1초 만에 간편 로그인하여 미션 수행, 안전 지도 참여 및 공모전에 참여하실 수 있습니다.
+                본 플랫폼은 <strong>개인정보 보호 및 아동 안전</strong>을 위해 <strong>별도의 회원가입 절차를 두지 않습니다.</strong><br />
+                사용하실 <strong>닉네임(이름)</strong>만 입력하시면 별도 가입·비밀번호 없이 즉시 미션 수행, 안전 지도 참여 및 공모전에 참여하실 수 있습니다.
               </p>
             </div>
 
             <form onSubmit={handleLogin} autoComplete="off" className="space-y-4 text-xs font-black text-[#0F172A]">
               <div className="space-y-1">
-                <label className="block text-[#0F172A]">• 아이디 또는 닉네임/이메일:</label>
+                <label className="block text-[#0F172A]">• 활동 닉네임 또는 이름:</label>
                 <div className="relative flex items-center">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
+                  <UserCheck size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
                   <input
                     type="text"
-                    placeholder="아이디 또는 이메일을 입력하세요"
+                    placeholder="활동에 사용할 닉네임을 입력하세요 (예: 안전지킴이)"
                     value={generalName}
                     onChange={e => setGeneralName(e.target.value)}
                     autoComplete="off"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-[#CBD5E1] rounded-[12px] text-xs font-black text-[#0F172A] focus:outline-none focus:border-[#1558C9]"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[#0F172A]">• 비밀번호:</label>
-                <div className="relative flex items-center">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10" />
-                  <input
-                    type="password"
-                    placeholder="비밀번호 입력"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    autoComplete="new-password"
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-[#CBD5E1] rounded-[12px] text-xs font-black text-[#0F172A] focus:outline-none focus:border-[#1558C9]"
                     required
                   />
@@ -308,7 +293,7 @@ export default function LoginPage() {
                 className="krds-public-button w-full py-4 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-sm rounded-[14px] shadow-lg flex items-center justify-center gap-2 touch-target"
               >
                 <LogIn size={18} />
-                <span>[ 👤 일반 회원으로 로그인하기 ]</span>
+                <span>[ 🚀 회원가입 없이 즉시 참여하기 ]</span>
               </button>
             </form>
           </div>
@@ -379,13 +364,10 @@ export default function LoginPage() {
           >
             🔄 접속 로딩 오류 시 세션 초기화
           </button>
-          <Link
-            href="/auth/signup"
-            className="px-3.5 py-1.5 bg-blue-50 text-[#1558C9] border border-blue-200 hover:bg-blue-100 rounded-full font-black text-xs transition-colors flex items-center gap-1"
-          >
-            <span>✨ 회원가입 하러 가기</span>
-            <ArrowRight size={13} />
-          </Link>
+          <div className="px-3.5 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full font-black text-xs flex items-center gap-1.5">
+            <ShieldCheck size={13} className="text-emerald-600" />
+            <span>회원가입 없이 자유롭게 이용 가능</span>
+          </div>
         </div>
 
       </div>

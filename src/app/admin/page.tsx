@@ -1614,7 +1614,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="p-6 bg-slate-900/60 rounded-lg text-center text-slate-400 text-xs font-bold border border-dashed border-slate-700">
-                  💡 아직 신규 회원가입자가 없습니다. 회원가입 페이지(`/auth/signup`)에서 첫 가입을 진행해 보세요!
+                  💡 등록된 회원이 없습니다. 본 플랫폼은 이용자 개인정보 보호 및 참여 편의성을 위해 별도의 회원가입 없이 비회원 간편 참여 방식으로 운영됩니다.
                 </div>
               )}
             </div>

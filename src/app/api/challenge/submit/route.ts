@@ -59,14 +59,21 @@ export async function GET(req: Request) {
     }
 
     // 엑셀에서 한글 깨짐 방지를 위한 UTF-8 BOM (\uFEFF)
-    let csv = "\uFEFF접수번호,공모부문,참가자/팀명,연락처,이메일,영상URL,기획의도및메시지,접수일시,심사상태\n";
+    let csv = "\uFEFF접수번호,공모부문,참가구분,참가자/팀명,생년월일,만14세미만여부,법정대리인성명,법정대리인연락처,연락처,이메일,소속,팀원명단,영상URL,기획의도및메시지,접수일시,심사상태\n";
     submissions.forEach(s => {
       const row = [
         `"${s.id || ""}"`,
         `"${s.category || ""}"`,
+        `"${s.participantType || "개인"}"`,
         `"${(s.author || "").replace(/"/g, '""')}"`,
+        `"${s.birthDate || ""}"`,
+        `"${s.isUnder14 ? "만14세미만(보호자동의)" : "만14세이상"}"`,
+        `"${(s.guardianName || "").replace(/"/g, '""')}"`,
+        `"${s.guardianPhone || ""}"`,
         `"${s.phone || ""}"`,
         `"${s.email || ""}"`,
+        `"${(s.organization || "").replace(/"/g, '""')}"`,
+        `"${(s.teamMembers || "").replace(/"/g, '""')}"`,
         `"${(s.videoUrl || "").replace(/"/g, '""')}"`,
         `"${(s.description || "").replace(/"/g, '""').replace(/\n/g, ' ')}"`,
         `"${s.submittedAt || ""}"`,
@@ -153,12 +160,34 @@ export async function DELETE(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { category, author, phone, email, videoUrl, description } = body;
+    const { 
+      category, 
+      author, 
+      phone, 
+      email, 
+      videoUrl, 
+      description,
+      birthDate,
+      isUnder14,
+      guardianName,
+      guardianPhone,
+      agreeGuardian,
+      participantType,
+      organization,
+      teamMembers
+    } = body;
 
     // 유효성 검증
     if (!category || !author || !phone || !email || !videoUrl || !description) {
       return NextResponse.json(
         { success: false, message: "모든 필수 항목을 입력해 주세요." },
+        { status: 400 }
+      );
+    }
+
+    if (isUnder14 && (!guardianName || !guardianPhone)) {
+      return NextResponse.json(
+        { success: false, message: "만 14세 미만 참가자는 법정대리인(보호자) 성명 및 연락처를 입력해 주세요." },
         { status: 400 }
       );
     }
@@ -172,9 +201,17 @@ export async function POST(req: Request) {
     const newEntry = {
       id: submissionId,
       category,
+      participantType: participantType || "individual",
       author,
+      birthDate: birthDate || "",
+      isUnder14: !!isUnder14,
+      guardianName: isUnder14 ? (guardianName || "") : "",
+      guardianPhone: isUnder14 ? (guardianPhone || "") : "",
+      agreeGuardian: isUnder14 ? !!agreeGuardian : false,
       phone,
       email,
+      organization: organization || "",
+      teamMembers: teamMembers || "",
       videoUrl,
       description,
       submittedAt: new Date().toISOString(),

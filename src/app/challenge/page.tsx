@@ -49,7 +49,8 @@ export default function ChallengePage() {
     keepPublicConfirmed: true,
     description: "",
     agreePrivacy: true,
-    agreeCopyright: true
+    agreeCopyright: true,
+    agreeGuardian: false
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -120,9 +121,15 @@ export default function ChallengePage() {
       return;
     }
 
-    if (isUnder14 && (!formData.guardianName || !formData.guardianPhone)) {
-      alert("만 14세 미만 참가자는 법정대리인(보호자) 정보 입력을 완료해 주세요.");
-      return;
+    if (isUnder14) {
+      if (!formData.guardianName || !formData.guardianPhone) {
+        alert("만 14세 미만 참가자는 법정대리인(보호자) 성명 및 연락처를 정확히 입력해 주세요.");
+        return;
+      }
+      if (!formData.agreeGuardian) {
+        alert("만 14세 미만 참가자의 법정대리인(보호자) 동의 확인란에 체크해 주세요.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -132,6 +139,7 @@ export default function ChallengePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          isUnder14,
           participantType
         })
       });
@@ -148,7 +156,7 @@ export default function ChallengePage() {
                 "Accept": "application/json"
               },
               body: JSON.stringify({
-                _subject: `[숏폼 접수] ${formData.author} (${result?.data?.id || "신규"})`,
+                _subject: `[숏폼 접수] ${formData.author} (${result?.data?.id || "신규"})${isUnder14 ? " [만14세미만-보호자동의]" : ""}`,
                 _template: "table",
                 _captcha: "false",
                 _replyto: formData.email,
@@ -156,6 +164,9 @@ export default function ChallengePage() {
                 참가자_대표: formData.author,
                 참가구분: participantType === "team" ? `단체(팀) / 팀원: ${formData.teamMembers || "없음"}` : "개인",
                 생년월일: formData.birthDate,
+                만14세미만여부: isUnder14 ? "만 14세 미만 (법정대리인 동의 완료)" : "만 14세 이상",
+                법정대리인_성명: isUnder14 ? formData.guardianName : "해당없음",
+                법정대리인_연락처: isUnder14 ? formData.guardianPhone : "해당없음",
                 연락처: formData.phone,
                 이메일: formData.email,
                 공모부문: formData.category,
@@ -189,8 +200,10 @@ export default function ChallengePage() {
           keepPublicConfirmed: true,
           description: "",
           agreePrivacy: true,
-          agreeCopyright: true
+          agreeCopyright: true,
+          agreeGuardian: false
         });
+        setIsUnder14(false);
         setActiveSubTab("guide");
       } else {
         alert(`❌ 접수 실패: ${result.message || "오류가 발생했습니다."}`);
@@ -641,11 +654,10 @@ export default function ChallengePage() {
                   onChange={e => {
                     const val = e.target.value;
                     setFormData({ ...formData, birthDate: val });
-                    // 2012년 이후 출생자(만 14세 미만 체크)
+                    // 생년월일 8자리 입력 시 2012년 이후 출생자(만 14세 미만) 자동 감지
                     if (val.length === 8) {
                       const year = parseInt(val.substring(0, 4), 10);
-                      if (year > 2012) setIsUnder14(true);
-                      else setIsUnder14(false);
+                      if (year >= 2012) setIsUnder14(true);
                     }
                   }}
                   placeholder="예: 20080515" 
@@ -656,35 +668,100 @@ export default function ChallengePage() {
               </div>
             </div>
 
+            {/* 🌟 만 14세 미만 여부 확인 (명시적 선택란) */}
+            <div className="p-4 bg-slate-50 border border-slate-300 rounded-2xl space-y-2">
+              <label className="block text-slate-800 font-black text-xs">
+                • 참가자 연령 구분 (만 14세 미만 여부 확인) *
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                  !isUnder14 
+                    ? "bg-white border-[#1558C9] shadow-sm ring-1 ring-[#1558C9]" 
+                    : "bg-white border-slate-200 hover:border-slate-300 text-slate-600"
+                }`}>
+                  <input
+                    type="radio"
+                    name="ageGateRadio"
+                    checked={!isUnder14}
+                    onChange={() => setIsUnder14(false)}
+                    className="accent-[#1558C9]"
+                  />
+                  <div>
+                    <span className="font-black text-xs text-slate-900 block">만 14세 이상 참가자</span>
+                    <span className="text-[10px] text-slate-500 font-medium">중·고등학생 및 성인 (법정대리인 동의 불필요)</span>
+                  </div>
+                </label>
+
+                <label className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                  isUnder14 
+                    ? "bg-amber-50/90 border-amber-500 shadow-sm ring-1 ring-amber-500" 
+                    : "bg-white border-slate-200 hover:border-slate-300 text-slate-600"
+                }`}>
+                  <input
+                    type="radio"
+                    name="ageGateRadio"
+                    checked={isUnder14}
+                    onChange={() => setIsUnder14(true)}
+                    className="accent-amber-600"
+                  />
+                  <div>
+                    <span className="font-black text-xs text-amber-900 block flex items-center gap-1">
+                      만 14세 미만 참가자 <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold">보호자 동의 필수</span>
+                    </span>
+                    <span className="text-[10px] text-amber-700 font-medium">초등학생 등 아동 (법정대리인 성명·연락처 기재 필수)</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* 만 14세 미만 법정대리인 정보 필드 */}
             {isUnder14 && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl space-y-3">
-                <span className="text-[11px] font-black text-blue-900 block">
-                  🛡️ 만 14세 미만 참가자 법정대리인(보호자) 동의 정보 (필수)
-                </span>
+              <div className="p-4 bg-amber-50/90 border-2 border-amber-400 rounded-2xl space-y-3 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                  <span className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    🛡️ [개인정보 보호법 제22조의2] 만 14세 미만 법정대리인(보호자) 정보 입력 (필수)
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-200 px-2 py-0.5 rounded">필수 입력</span>
+                </div>
+                <p className="text-[11px] text-amber-900 font-bold leading-relaxed">
+                  만 14세 미만 아동의 공모전 참가 및 개인정보 수집·이용을 위하여 법정대리인(부모 또는 후견인)의 성명 및 연락처를 수집하며, 보호자의 동의 확인 절차가 함께 진행됩니다.
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block mb-1 text-slate-700">• 법정대리인(보호자) 성명:</label>
+                    <label className="block mb-1 text-slate-800 font-black text-xs">• 법정대리인(보호자) 성명 *</label>
                     <input 
                       type="text" 
                       placeholder="예: 홍보호 (부/모)" 
                       value={formData.guardianName}
                       onChange={e => setFormData({ ...formData, guardianName: e.target.value })}
-                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs"
-                      required
+                      className="w-full p-3 bg-white border border-amber-300 rounded-xl text-xs font-bold text-[#0F172A] focus:outline-none focus:border-amber-600" 
+                      required={isUnder14}
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-slate-700">• 법정대리인 연락처:</label>
+                    <label className="block mb-1 text-slate-800 font-black text-xs">• 법정대리인(보호자) 연락처(휴대전화) *</label>
                     <input 
                       type="tel" 
                       placeholder="010-0000-0000" 
                       value={formData.guardianPhone}
                       onChange={e => setFormData({ ...formData, guardianPhone: e.target.value })}
-                      className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs"
-                      required
+                      className="w-full p-3 bg-white border border-amber-300 rounded-xl text-xs font-bold text-[#0F172A] focus:outline-none focus:border-amber-600" 
+                      required={isUnder14}
                     />
                   </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="flex items-start gap-2 cursor-pointer font-bold text-xs text-amber-950 bg-white/90 p-2.5 rounded-xl border border-amber-200">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.agreeGuardian || false}
+                      onChange={e => setFormData({ ...formData, agreeGuardian: e.target.checked })}
+                      className="mt-0.5 rounded text-amber-600 focus:ring-amber-500"
+                      required={isUnder14}
+                    />
+                    <span>[필수] 본인은 만 14세 미만 참가자의 법정대리인(보호자)으로서, 참가자의 숏폼 챌린지 접수 및 개인정보 수집·이용에 정당하게 동의합니다.</span>
+                  </label>
                 </div>
               </div>
             )}
@@ -841,7 +918,7 @@ export default function ChallengePage() {
                 </div>
                 <ul className="space-y-1 list-disc pl-3.5 text-slate-600 leading-relaxed text-[11px]">
                   <li><strong className="text-slate-800">1. 개인정보 수집·이용 목적:</strong> 공모전 참가 확인 및 접수 관리, 출품작 심사·선정·시상 운영, 공모전 안내 전달, <strong>디지털 쿠폰(모바일 상품권) 및 기념품 등 참여 보상 제공 및 배송·수령 확인</strong></li>
-                  <li><strong className="text-slate-800">2. 수집 항목:</strong> <span className="text-blue-700">[필수]</span> 성명(팀명), 생년월일, 휴대전화번호, 이메일 주소, (만 14세 미만 시) 법정대리인 성명·연락처 / <span className="text-slate-500">[선택]</span> 소속(학교·청소년기관 등)</li>
+                  <li><strong className="text-slate-800">2. 수집 항목:</strong> <span className="text-blue-700">[필수]</span> 성명(팀명 및 대표자명), 생년월일, 만 14세 미만 여부, 휴대전화번호, 이메일 주소, (만 14세 미만 시) 법정대리인 성명·연락처 / <span className="text-slate-500">[선택]</span> 소속(학교·청소년기관 등)</li>
                   <li><strong className="text-slate-800">3. 개인정보 보유 및 이용기간:</strong> <strong>개인정보 수집·이용 목적이 달성될 때까지(심사·시상·부상 지급 완료 시까지) 보유·이용하며, 목적 달성 후 지체 없이 파기</strong></li>
                   <li><strong className="text-slate-800">4. 동의 거부 권리:</strong> 필수항목 동의 거부 시 참가 접수 및 심사·부상 수령이 제한될 수 있습니다. (선택항목 미동의 시에도 참가 및 심사 제한 없음)</li>
                 </ul>
@@ -1308,7 +1385,7 @@ export default function ChallengePage() {
                     <tbody>
                       <tr>
                         <td className="border border-slate-300 p-1.5 text-center font-black text-blue-700 bg-blue-50/50">필수</td>
-                        <td className="border border-slate-300 p-1.5 font-bold">성명(팀명), 생년월일, 휴대전화번호, 이메일 주소</td>
+                        <td className="border border-slate-300 p-1.5 font-bold">성명(팀명 및 대표자명), 생년월일, 만 14세 미만 여부, 휴대전화번호, 이메일 주소, (만 14세 미만 시) 법정대리인 성명 및 연락처</td>
                       </tr>
                       <tr>
                         <td className="border border-slate-300 p-1.5 text-center text-slate-600">선택</td>

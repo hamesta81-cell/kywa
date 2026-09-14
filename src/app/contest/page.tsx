@@ -145,32 +145,81 @@ function ContestContent() {
                 <span className="text-[11px] font-black text-[#1558C9] block flex items-center gap-1">
                   <Calendar size={13} /> 1. 공고 및 접수
                 </span>
-                <p className="text-sm font-black text-[#0F172A]">2026.09.03 ~ 10.09</p>
-                <span className="text-[10px] text-blue-900 font-bold bg-blue-100 px-2 py-0.5 rounded border border-blue-200 inline-block">10.09(금) 18:00 마감</span>
+                <p className="text-sm font-black text-[#0F172A]">2026. 9. 11.(금) ~ 10. 12.(월)</p>
+                <span className="text-[10px] text-blue-900 font-bold bg-blue-100 px-2 py-0.5 rounded border border-blue-200 inline-block">10. 12.(월) 18:00 마감</span>
               </div>
 
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
                 <span className="text-[11px] font-black text-slate-700 block flex items-center gap-1">
                   <ShieldCheck size={13} /> 2. 서류 & 전문가 심사
                 </span>
-                <p className="text-sm font-black text-[#0F172A]">2026.10.13 ~ 10.27</p>
-                <span className="text-[10px] text-slate-700 font-bold bg-slate-200/70 px-2 py-0.5 rounded inline-block">1차 요건 · 2차 정성평가</span>
+                <p className="text-sm font-black text-[#0F172A]">2026. 10. 13. ~ 10. 27.</p>
+                <span className="text-[10px] text-slate-700 font-bold bg-slate-200/70 px-2 py-0.5 rounded inline-block">서류(10.13~21) · 전문가(10.27)</span>
               </div>
 
               <div className="p-4 bg-purple-50/60 rounded-2xl border border-purple-200/80 space-y-1.5">
                 <span className="text-[11px] font-black text-[#7C3AED] block flex items-center gap-1">
                   <Sparkles size={13} /> 3. 최종 결과 발표
                 </span>
-                <p className="text-sm font-black text-[#0F172A]">2026.11.02 (월)</p>
-                <span className="text-[10px] text-purple-900 font-bold bg-purple-100 px-2 py-0.5 rounded border border-purple-200 inline-block">홈페이지 및 개별 통보</span>
+                <p className="text-sm font-black text-[#0F172A]">2026. 11월 1주, 예정</p>
+                <span className="text-[10px] text-purple-900 font-bold bg-purple-100 px-2 py-0.5 rounded border border-purple-200 inline-block">진흥원 홈페이지 게시</span>
               </div>
 
               <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-1.5">
                 <span className="text-[11px] font-black text-amber-800 block flex items-center gap-1">
-                  <Trophy size={13} /> 4. 시상식 & 성과공유회
+                  <Trophy size={13} /> 4. 시상 및 성과공유회
                 </span>
-                <p className="text-sm font-black text-[#0F172A]">2026.11.12 (목)</p>
-                <span className="text-[10px] text-amber-900 font-bold bg-amber-100 px-2 py-0.5 rounded border border-amber-200 inline-block">서울 시상식장 상장 수여</span>
+                <p className="text-sm font-black text-[#0F172A]">2026. 11. 18.(수), 서울</p>
+                <span className="text-[10px] text-amber-900 font-bold bg-amber-100 px-2 py-0.5 rounded border border-amber-200 inline-block">시상 및 성과공유회 상장 수여</span>
+              </div>
+            </div>
+
+            {/* 🌟 공식 공모전 추진 일정표 (공식 공고문 원본 서식) */}
+            <div className="p-5 sm:p-6 bg-slate-50/90 border border-slate-200 rounded-2xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-[#1558C9] flex items-center gap-1.5">
+                  <Calendar size={15} /> 📅 2026년 AI활용 청소년활동 안전공모전 공식 추진 일정
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  공식 일정 확정
+                </span>
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-300 bg-white shadow-sm">
+                <table className="w-full border-collapse text-xs text-left">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-900 border-b-2 border-slate-300 font-black">
+                      <th className="p-3 w-28 text-center border-r border-slate-300">구 분</th>
+                      <th className="p-3 w-72 text-center border-r border-slate-300">일 시</th>
+                      <th className="p-3 text-center">내 용</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 font-bold text-slate-800 text-xs">
+                    <tr>
+                      <td className="p-3 text-center font-black text-blue-900 bg-blue-50/30 border-r border-slate-300 tracking-wider">접 수</td>
+                      <td className="p-3 text-center border-r border-slate-300 font-black text-[#0F172A]">2026. 9. 11.(금) ~ 10. 12.(월) 18:00</td>
+                      <td className="p-3 pl-4">운영 안내 및 접수</td>
+                    </tr>
+                    <tr>
+                      <td rowSpan={2} className="p-3 text-center font-black text-slate-800 bg-slate-50 border-r border-slate-300 tracking-wider">심 사</td>
+                      <td className="p-3 text-center border-r border-slate-300">2026. 10. 13.(화) ~ 10. 21.(수)</td>
+                      <td className="p-3 pl-4">형식 요건 및 서류심사</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 text-center border-r border-slate-300">2026. 10. 27.(화)</td>
+                      <td className="p-3 pl-4">전문가심사</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 text-center font-black text-purple-900 bg-purple-50/30 border-r border-slate-300 tracking-wider">결과발표</td>
+                      <td className="p-3 text-center border-r border-slate-300 font-black text-purple-950">2026. 11월 1주, 예정</td>
+                      <td className="p-3 pl-4">한국청소년활동진흥원 홈페이지 게시</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 text-center font-black text-amber-900 bg-amber-50/30 border-r border-slate-300 tracking-wider">시 상</td>
+                      <td className="p-3 text-center border-r border-slate-300 font-black text-amber-950">2026. 11. 18.(수), 서울</td>
+                      <td className="p-3 pl-4">청소년활동 안전·인증 시상 및 성과공유회 상장 수여</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </section>

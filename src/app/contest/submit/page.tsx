@@ -494,12 +494,12 @@ export default function ContestSubmitPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">
                   <span className="font-black text-[#102A43] block">• 제출 후 수정 가능 기간:</span>
-                  <p>2026.07.15 접수 마감일 23:59까지 마이페이지에서 수정 가능</p>
+                  <p>2026. 10. 12.(월) 18:00 접수 마감 시까지 수정 및 보완 가능</p>
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">
-                  <span className="font-black text-[#102A43] block">• 심사 공개 범위:</span>
-                  <p>국민 심사 기간(7/16~) 동안 투표 수 블라인드로 갤러리에 노출</p>
+                  <span className="font-black text-[#102A43] block">• 심사 일정:</span>
+                  <p>서류심사(10/13~21) 및 전문가심사(10/27)를 거쳐 11월 1주 결과 발표</p>
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-[14px] border border-[#E2E8F0] space-y-1">

@@ -177,7 +177,7 @@ export default function SignUpPage() {
         {/* 🛑 가입 차단 화면 (만 14세 미만 확인 시 표시)                          */}
         {/* ==================================================================== */}
         {step === "BLOCKED" && (
-          <div className="space-y-6 py-4 animate-in fade-in zoom-in-95 duration-200 text-center">
+          <div className="space-y-6 py-6 animate-in fade-in zoom-in-95 duration-200 text-center">
             <div className="w-16 h-16 rounded-full bg-rose-100 border-2 border-rose-300 flex items-center justify-center mx-auto text-rose-600 shadow-inner">
               <ShieldAlert size={36} />
             </div>
@@ -186,35 +186,23 @@ export default function SignUpPage() {
               <h2 className="text-xl sm:text-2xl font-black text-rose-600">
                 회원가입 불가 안내
               </h2>
-              <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs sm:text-sm font-bold text-rose-900 leading-relaxed max-w-md mx-auto">
-                <p className="font-black text-rose-700 text-base mb-1.5">
+              <div className="p-5 bg-rose-50 border-2 border-rose-300 rounded-2xl text-xs sm:text-sm font-bold text-rose-900 leading-relaxed max-w-md mx-auto space-y-2">
+                <p className="font-black text-rose-700 text-base">
                   본 서비스는 만 14세 이상만 이용할 수 있어 회원가입을 진행할 수 없습니다.
                 </p>
-                <p className="text-slate-600 text-xs mt-2 font-medium">
-                  개인정보 보호법 제22조의2 및 플랫폼 운영 정책에 따라 가입일 현재 만 14세 미만 아동의 회원가입은 제한됩니다.
+                <p className="text-slate-600 text-xs font-medium">
+                  개인정보 보호법 제22조의2 및 플랫폼 운영 정책에 따라 가입일 현재 만 14세 미만 아동의 회원가입은 전면 제한됩니다.
                 </p>
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("AGE_GATE");
-                  setBirthYear("");
-                  setBirthMonth("");
-                  setBirthDay("");
-                  setAgeCheckError("");
-                }}
-                className="w-full sm:w-auto px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs rounded-xl transition-all"
-              >
-                생년월일 다시 입력하기
-              </button>
+            <div className="pt-2 flex justify-center">
               <Link
                 href="/"
-                className="w-full sm:w-auto px-6 py-3 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow transition-all"
+                className="w-full sm:w-auto px-8 py-3.5 bg-[#1558C9] hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
               >
-                메인 홈으로 이동
+                <ArrowLeft size={16} />
+                <span>메인 홈으로 이동</span>
               </Link>
             </div>
           </div>

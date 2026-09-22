@@ -873,7 +873,7 @@ export default function ChallengePage() {
                   className="rounded text-amber-600 focus:ring-amber-500"
                   required
                 />
-                <span>[필수] 영상 설명란에 필수 해시태그(<strong>#한국청소년활동진흥원 #PLAYSAFE #청소년안전</strong>)를 모두 기재했습니다.</span>
+                <span>[필수] 영상 설명란에 필수 해시태그(<strong>#KYWA #한국청소년활동진흥원 #PLAYSAFE</strong>)를 모두 기재했습니다.</span>
               </label>
 
               <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-amber-950">
@@ -1161,7 +1161,7 @@ export default function ChallengePage() {
                   <li>• 촬영 시 음원을 틀어놓거나 편집 과정에서 공식 음원을 입혀 제작 (15~60초 세로형)</li>
                   <li>• 본인 <strong>인스타그램 릴스</strong> 또는 <strong>유튜브 쇼츠</strong>에 영상 업로드</li>
                   <li>• 영상 설명란에 필수 해시태그 필수 기재:<br/>
-                    <span className="text-blue-700 font-bold">#한국청소년활동진흥원 #PLAYSAFE #청소년안전</span>
+                    <span className="text-blue-700 font-bold">#KYWA #한국청소년활동진흥원 #PLAYSAFE</span>
                   </li>
                   <li>• <strong>2026. 12. 31.까지</strong> 계정 및 게시글 전체 공개 상태 유지 필수</li>
                 </ul>

@@ -19,3 +19,5 @@ services:
         value: 3000
       - key: DATA_DIR
         value: /var/data
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=384"

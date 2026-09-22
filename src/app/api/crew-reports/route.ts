@@ -26,6 +26,7 @@ const globalCloudStore = globalThis as unknown as {
   weeklyStats: any;         // 실시간 통계 집계
   auditLogs: any[];         // 관제 로그
   deletedIds: Set<string>;  // 물리 삭제 ID
+  lastLoadedTime?: number;  // 메모리 캐시 타임스탬프
 };
 
 if (!globalCloudStore.weeklyReports) globalCloudStore.weeklyReports = [];
@@ -33,6 +34,7 @@ if (!globalCloudStore.crewFeed) globalCloudStore.crewFeed = [];
 if (!globalCloudStore.weeklyStats) globalCloudStore.weeklyStats = {};
 if (!globalCloudStore.auditLogs) globalCloudStore.auditLogs = [];
 if (!globalCloudStore.deletedIds) globalCloudStore.deletedIds = new Set<string>();
+if (!globalCloudStore.lastLoadedTime) globalCloudStore.lastLoadedTime = 0;
 
 // 🔒 동시 요청 병목 및 쓰기 충돌 원천 차단을 위한 Async Lock (Mutex)
 class AsyncLock {
@@ -87,6 +89,64 @@ function sortReportsByDateDesc(a: any, b: any): number {
   return createdB - createdA;
 }
 
+// 🌟 [메모리 폭증 방지] 보고서 내 Base64 인라인 이미지를 디스크 정적 파일로 분리하고 URL로 치환
+function optimizeReportImages(reports: any[]): any[] {
+  if (!Array.isArray(reports)) return reports;
+  try {
+    const uploadsDir = path.join(process.cwd(), "public", "uploads", "seeds");
+    if (!fs.existsSync(uploadsDir)) {
+      try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (err) {}
+    }
+
+    let modified = false;
+    for (const r of reports) {
+      if (!r) continue;
+      // 1. 대표 사진 최적화
+      if (typeof r.photoUrl === "string" && r.photoUrl.startsWith("data:image/")) {
+        try {
+          const match = r.photoUrl.match(/^data:image\/(\w+);base64,([\s\S]+)$/);
+          if (match) {
+            const ext = match[1] === "jpeg" ? "jpg" : match[1];
+            const buf = Buffer.from(match[2], "base64");
+            const fname = `migrated_${r.id || Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+            fs.writeFileSync(path.join(uploadsDir, fname), buf);
+            r.photoUrl = `/uploads/seeds/${fname}`;
+            modified = true;
+          }
+        } catch (e) {}
+      }
+
+      // 2. 첨부 사진 목록 최적화
+      if (Array.isArray(r.attachedPhotos)) {
+        r.attachedPhotos = r.attachedPhotos.map((att: any, idx: number) => {
+          if (typeof att === "string" && att.startsWith("data:image/")) {
+            try {
+              const match = att.match(/^data:image\/(\w+);base64,([\s\S]+)$/);
+              if (match) {
+                const ext = match[1] === "jpeg" ? "jpg" : match[1];
+                const buf = Buffer.from(match[2], "base64");
+                const fname = `migrated_att_${r.id || Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+                fs.writeFileSync(path.join(uploadsDir, fname), buf);
+                modified = true;
+                return `/uploads/seeds/${fname}`;
+              }
+            } catch (e) {}
+          }
+          return att;
+        });
+      }
+    }
+
+    if (modified) {
+      // Base64가 제거된 경량화 상태로 디스크 파일 업데이트
+      try { writeToDiskStore(reports); } catch (wErr) {}
+    }
+  } catch (optErr) {
+    console.warn("Report image optimization warning:", optErr);
+  }
+  return reports;
+}
+
 function readFromDiskStore(): any[] {
   const filePath = getDiskFilePath();
   const backupPath = filePath + ".bak";
@@ -97,7 +157,7 @@ function readFromDiskStore(): any[] {
       const raw = fs.readFileSync(filePath, "utf-8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return optimizeReportImages(parsed);
       }
     }
   } catch (e) {}
@@ -108,12 +168,12 @@ function readFromDiskStore(): any[] {
       const raw = fs.readFileSync(backupPath, "utf-8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return optimizeReportImages(parsed);
       }
     }
   } catch (e) {}
 
-  // 🌟 [영구 불멸 3중 안전장치] 디스크 데이터가 없거나 유실된 경우 빌드 번들에 포함된 마스터 시드 25건 자동 즉시 복원
+  // 🌟 [영구 불멸 3중 안전장치] 디스크 데이터가 없거나 유실된 경우 빌드 번들에 포함된 마스터 시드 41건 자동 복원
   try {
     const seedPath = path.join(process.cwd(), "src", "data", "crewReportsMasterSeed.json");
     if (fs.existsSync(seedPath)) {
@@ -136,12 +196,13 @@ function writeToDiskStore(reports: any[]) {
     if (!fs.existsSync(dir)) {
       try { fs.mkdirSync(dir, { recursive: true }); } catch (mkdirErr) {}
     }
-    const content = JSON.stringify(reports, null, 2);
+    // ⚡ [메모리 최적화] 불필요한 공백 들여쓰기를 제거한 압축 JSON으로 저장
+    const content = JSON.stringify(reports);
     fs.writeFileSync(filePath, content, "utf-8");
   } catch (e) {
     try {
       const fallbackPath = path.join(os.tmpdir(), "permanent_crew_db.json");
-      fs.writeFileSync(fallbackPath, JSON.stringify(reports, null, 2), "utf-8");
+      fs.writeFileSync(fallbackPath, JSON.stringify(reports), "utf-8");
     } catch (err) {}
   }
 }
@@ -248,6 +309,20 @@ function computeWeeklyStats(reports: any[]) {
 }
 
 async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]; stats: any }> {
+  const now = Date.now();
+  // ⚡ [메모리 및 CPU 급증 방지] 이미 메모리에 로드되어 있는 경우 디스크 재읽기 없이 캐시 즉시 반환 (TTL 60초)
+  if (
+    globalCloudStore.weeklyReports &&
+    globalCloudStore.weeklyReports.length > 0 &&
+    now - (globalCloudStore.lastLoadedTime || 0) < 60000
+  ) {
+    return {
+      weeklyReports: globalCloudStore.weeklyReports,
+      crewFeed: globalCloudStore.crewFeed,
+      stats: globalCloudStore.weeklyStats
+    };
+  }
+
   const map = new Map<string, any>();
 
   // 1. 메모리 데이터 복원
@@ -300,9 +375,7 @@ async function fetchCloudData(): Promise<{ weeklyReports: any[]; crewFeed: any[]
   globalCloudStore.weeklyReports = allReports;
   globalCloudStore.crewFeed = allReports.filter((r: any) => r.status !== "draft" && r.visibility !== "private");
   globalCloudStore.weeklyStats = computeWeeklyStats(allReports);
-
-  // 영구 디스크 파일에 저장
-  writeToDiskStore(allReports);
+  globalCloudStore.lastLoadedTime = now;
 
   return {
     weeklyReports: globalCloudStore.weeklyReports,
@@ -316,6 +389,7 @@ async function persistCloudData(reports: any[]) {
   globalCloudStore.weeklyReports = filtered;
   globalCloudStore.crewFeed = filtered.filter((r: any) => r.status !== "draft" && r.visibility !== "private");
   globalCloudStore.weeklyStats = computeWeeklyStats(filtered);
+  globalCloudStore.lastLoadedTime = Date.now();
 
   // 📂 100% 영구 불멸 디스크 파일 저장 (process.cwd() 기반)
   writeToDiskStore(filtered);

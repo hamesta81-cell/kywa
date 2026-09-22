@@ -21,10 +21,10 @@ export async function POST(req: NextRequest) {
     const mimeType = file.type || "image/jpeg";
     const base64Data = buffer.toString("base64");
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
-
     let finalUrl = dataUrl;
 
-    // 📂 디스크 파일 저장 시도 (서버 내 로컬 캐시용)
+    // 📂 디스크 파일 저장 시도 (서버 내 로컬 캐시 및 정적 서빙용)
+    let isSavedToDisk = false;
     try {
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(uploadsDir)) {
@@ -33,8 +33,11 @@ export async function POST(req: NextRequest) {
       const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
       const filePath = path.join(uploadsDir, sanitizedFileName);
       fs.writeFileSync(filePath, buffer);
+      finalUrl = `/uploads/${sanitizedFileName}`;
+      isSavedToDisk = true;
     } catch (writeErr) {
-      console.warn("디스크 파일 쓰기 실패:", writeErr);
+      console.warn("디스크 파일 쓰기 실패, base64 폴백:", writeErr);
+      finalUrl = dataUrl;
     }
 
     return NextResponse.json({
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       fileName: file.name,
       downloadURL: finalUrl,
       imageUrl: finalUrl,
-      dataUrl: dataUrl,
+      dataUrl: isSavedToDisk ? undefined : dataUrl,
       uploadedAt: new Date().toISOString(),
       message: `🖼️ [${file.name}] 사진 업로드가 최적화 완료되었습니다.`
     });

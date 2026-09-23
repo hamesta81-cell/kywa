@@ -116,7 +116,7 @@ export default function Home() {
       levelColor: "text-emerald-700 border-emerald-300 bg-emerald-50",
       time: "3분",
       xp: "+50 XP",
-      link: "/campaign/cyber-bullying"
+      link: "/campaign/phishing-check"
     },
     {
       id: "mission-02",

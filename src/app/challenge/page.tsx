@@ -72,8 +72,8 @@ export default function ChallengePage() {
     fetchSubmissionCount();
     const countInterval = setInterval(fetchSubmissionCount, 15000); // 15초마다 실시간 갱신
 
-    // 마감일시: 2026.10.05 18:00:00 (KST)
-    const targetDeadline = new Date("2026-10-05T18:00:00+09:00").getTime();
+    // 마감일시: 2026.10.05 24:00:00 (KST)
+    const targetDeadline = new Date("2026-10-05T23:59:59+09:00").getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -335,7 +335,7 @@ export default function ChallengePage() {
                   <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
                   LIVE 실시간 카운트다운
                 </span>
-                <span className="text-xs text-slate-400 font-bold">2026. 10. 05(월) 18:00 최종 마감</span>
+                <span className="text-xs text-slate-400 font-bold">2026. 10. 05(월) 24:00 최종 마감</span>
               </div>
               <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                 <Clock className="text-amber-400" size={18} />
@@ -373,7 +373,7 @@ export default function ChallengePage() {
           <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-1">
             <span className="text-[11px] font-black text-amber-800 block">📅 접수 기간</span>
             <p className="text-sm font-black text-[#0F172A]">2026.09.01(화) ~ 10.05(월)</p>
-            <span className="text-[10px] text-amber-900 font-bold bg-amber-100 px-2 py-0.5 rounded inline-block">10.05(월) 18:00 마감</span>
+            <span className="text-[10px] text-amber-900 font-bold bg-amber-100 px-2 py-0.5 rounded inline-block">10.05(월) 24:00 마감</span>
           </div>
 
           <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-1">
@@ -983,7 +983,10 @@ export default function ChallengePage() {
 
               <div className="p-4 bg-slate-50 rounded-2xl space-y-1.5 border border-slate-200">
                 <span className="text-slate-500 font-bold block">운영 기간</span>
-                <p className="font-black text-sm text-[#0F172A]">2026년 9월 ~ 2026년 11월 (접수: 2026.09.01 ~ 10.05)</p>
+                <p className="font-black text-sm text-[#0F172A]">2026년 9월 ~ 2026년 11월</p>
+                <p className="text-xs font-bold text-amber-900 bg-amber-100 px-2 py-1 rounded inline-block">
+                  접수 기간: 2026. 9. 1.(화) ~ 10. 5.(월) 24:00 마감
+                </p>
               </div>
 
               <div className="p-4 bg-slate-50 rounded-2xl space-y-1.5 border border-slate-200 md:col-span-2">
@@ -1173,6 +1176,7 @@ export default function ChallengePage() {
                 </span>
                 <p className="font-bold text-slate-800 text-sm">신청서 페이지에서 URL 및 정보 등록</p>
                 <ul className="text-slate-600 space-y-1 text-[11px] leading-relaxed">
+                  <li>• <strong>최종 접수 마감: 2026. 10. 05.(월) 24:00까지</strong></li>
                   <li>• 상단 <strong>[온라인 참가 접수]</strong> 탭에서 온라인 참가 신청서 작성</li>
                   <li>• 참가자 기본정보, 업로드된 SNS 영상 URL, 기획 의도 작성</li>
                   <li>• 개인정보 수집·이용 동의 및 저작권 활용 동의 완료 후 제출</li>

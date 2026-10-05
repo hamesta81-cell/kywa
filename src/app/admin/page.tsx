@@ -109,7 +109,7 @@ export default function AdminPage() {
   }>({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
   useEffect(() => {
-    const targetDeadline = new Date("2026-10-05T18:00:00+09:00").getTime();
+    const targetDeadline = new Date("2026-10-05T23:59:59+09:00").getTime();
     const updateCountdown = () => {
       const now = new Date().getTime();
       const distance = targetDeadline - now;
@@ -850,7 +850,7 @@ export default function AdminPage() {
                     <span className="text-xs font-black text-white">공모전 접수 최종 마감까지 남은 시간</span>
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
                   </div>
-                  <span className="text-[11px] text-slate-400">마감 시각: 2026. 10. 05(월) 18:00 (KST)</span>
+                  <span className="text-[11px] text-slate-400">마감 시각: 2026. 10. 05(월) 24:00 (KST)</span>
                 </div>
               </div>
 

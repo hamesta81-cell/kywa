@@ -132,7 +132,7 @@ export async function sendChallengeNotificationEmail(data: ChallengeSubmissionDa
         <!-- 안내 사항 -->
         <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 16px; font-size: 12px; color: #92400e; line-height: 1.6;">
           <strong>📌 안내 사항</strong><br/>
-          • 접수 마감: 2026.10.05(월) 18:00<br/>
+          • 접수 마감: 2026.10.05(월) 24:00<br/>
           • 공모 결과 발표: 2026년 11월 1주 예정 (개별 연락 및 공지)<br/>
           • 문의처: 02-2088-8456 | mkteam@testmotionofficial.com
         </div>

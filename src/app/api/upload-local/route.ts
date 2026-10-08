@@ -23,16 +23,29 @@ export async function POST(req: NextRequest) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
     let finalUrl = dataUrl;
 
-    // 📂 디스크 파일 저장 시도 (서버 내 로컬 캐시 및 정적 서빙용)
+    // 📂 디스크 파일 저장 시도 (Render 영구 디스크 및 로컬 캐시 동시 저장)
     let isSavedToDisk = false;
     try {
+      const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      
+      // 1. Render 영구 디스크 (/var/data/uploads)
+      try {
+        const { getPersistentDataDir } = await import("@/lib/diskStorage");
+        const persistentUploads = path.join(getPersistentDataDir(), "uploads");
+        if (!fs.existsSync(persistentUploads)) {
+          fs.mkdirSync(persistentUploads, { recursive: true });
+        }
+        fs.writeFileSync(path.join(persistentUploads, sanitizedFileName), buffer);
+      } catch (pErr) {}
+
+      // 2. 프로젝트 public/uploads 디렉터리
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
-      const sanitizedFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
       const filePath = path.join(uploadsDir, sanitizedFileName);
       fs.writeFileSync(filePath, buffer);
+
       finalUrl = `/uploads/${sanitizedFileName}`;
       isSavedToDisk = true;
     } catch (writeErr) {

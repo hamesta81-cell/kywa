@@ -89,10 +89,10 @@ function sortReportsByDateDesc(a: any, b: any): number {
   return createdB - createdA;
 }
 
-// 🌟 [사진 100% 정상화 및 자동 복구 엔진]
-// 1. 41개 마스터 시드 보고서는 Git에 영구 추적 중인 130개 실제 사진 경로로 100% 강제 복원
-// 2. 누락되거나 migrated_ 등으로 깨진 사진은 같은 팀의 유효한 실제 현장 사진으로 자동 연결
-// 3. Render 재배포 시에도 영구 디스크에 자동 동기화
+// 🌟 [사진 100% 정상화 및 고유 사진 정합성 엔진]
+// 1. 41개 공식 마스터 시드 보고서: Git 내 고유 실물 사진으로 100% 정합성 복원 (중복 서브 사진 제거)
+// 2. 보고서 간 사진 강제 복사(폴백) 금지: 각 주간보고서는 고유 현장 사진만 표출 (사진 없는 주차는 깔끔하게 텍스트만 표시)
+// 3. 이전 잘못된 폴백으로 타 주차 사진이 주입된 사용자 보고서는 깨끗하게 복구
 function healAndVerifyReportImages(reports: any[]): any[] {
   if (!Array.isArray(reports)) return reports;
 
@@ -107,7 +107,7 @@ function healAndVerifyReportImages(reports: any[]): any[] {
   const seedById = new Map<string, any>(masterSeeds.map(s => [s.id, s]));
 
   // 파일 실존 여부 검증
-  const imageExists = (imgUrl: string): boolean => {
+  const imageExists = (imgUrl: string | null | undefined): boolean => {
     if (!imgUrl || typeof imgUrl !== "string") return false;
     if (imgUrl.includes("unsplash.com")) return false;
     if (imgUrl.includes("migrated_")) return false; // 이전 임시 컨테이너에서 삭제된 깨진 파일 제외
@@ -126,78 +126,52 @@ function healAndVerifyReportImages(reports: any[]): any[] {
     return false;
   };
 
-  // 팀별 유효한 실제 현장 사진 탐색
-  const findTeamFallbackPhotos = (teamName: string): string[] => {
-    const cleanT = (teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-    for (const s of masterSeeds) {
-      const cleanS = (s.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-      if (cleanS && cleanT && (cleanS.includes(cleanT) || cleanT.includes(cleanS))) {
-        const valid = (s.photoUrl ? [s.photoUrl] : []).concat(s.attachedPhotos || []).filter((p: any) => p && imageExists(p));
-        if (valid.length > 0) return Array.from(new Set(valid));
-      }
-    }
-    // 전 팀 공통 폴백
-    for (const s of masterSeeds) {
-      const valid = (s.photoUrl ? [s.photoUrl] : []).concat(s.attachedPhotos || []).filter((p: any) => p && imageExists(p));
-      if (valid.length > 0) return Array.from(new Set(valid));
-    }
-    return [];
-  };
-
   let modified = false;
 
   const healed = reports.map(r => {
     if (!r) return r;
     const canonical = seedById.get(r.id);
 
-    // 1. 41개 공식 마스터 시드 보고서: Git 내 130개 실제 사진으로 100% 즉각 복원
+    // 1. 41개 공식 마스터 시드 보고서: Git 내 마스터 시드의 고유 사진으로 100% 정합성 유지
     if (canonical) {
-      const hasBroken = !r.photoUrl || r.photoUrl.includes("migrated_") || !imageExists(r.photoUrl) ||
-        (Array.isArray(r.attachedPhotos) && r.attachedPhotos.some((p: any) => !imageExists(p) || p.includes("migrated_")));
+      const canonicalMain = canonical.photoUrl && imageExists(canonical.photoUrl) ? canonical.photoUrl : null;
+      const canonicalAttached = Array.isArray(canonical.attachedPhotos)
+        ? canonical.attachedPhotos.filter((p: string) => imageExists(p) && p !== canonicalMain)
+        : [];
 
-      if (hasBroken || !r.attachedPhotos || r.attachedPhotos.length === 0) {
+      if (r.photoUrl !== canonicalMain || JSON.stringify(r.attachedPhotos || []) !== JSON.stringify(canonicalAttached)) {
         modified = true;
-        return {
-          ...r,
-          photoUrl: canonical.photoUrl,
-          attachedPhotos: canonical.attachedPhotos && canonical.attachedPhotos.length > 0
-            ? canonical.attachedPhotos
-            : (canonical.photoUrl ? [canonical.photoUrl] : [])
-        };
       }
-      return r;
+
+      return {
+        ...r,
+        photoUrl: canonicalMain,
+        attachedPhotos: canonicalAttached
+      };
     }
 
-    // 2. 사용자가 새로 등록한 보고서의 경우:
-    let validMain = imageExists(r.photoUrl) ? r.photoUrl : "";
-    let validAttached = Array.isArray(r.attachedPhotos) ? r.attachedPhotos.filter(imageExists) : [];
+    // 2. 사용자가 새로 등록한 주간보고서의 경우:
+    // 이전 잘못된 폴백으로 주입된 /uploads/seeds/ 경로는 제거 (다른 주차의 동일 사진 복사 방지)
+    let rawMain = r.photoUrl;
+    if (rawMain && typeof rawMain === "string" && rawMain.includes("/uploads/seeds/")) {
+      rawMain = null;
+    }
+    let rawAttached = Array.isArray(r.attachedPhotos)
+      ? r.attachedPhotos.filter((p: any) => p && typeof p === "string" && !p.includes("/uploads/seeds/"))
+      : [];
 
-    // 사진이 깨져있거나 누락된 경우 해당 팀의 유효 현장 사진으로 연결하여 회색 빈 상자 방지
-    if (!validMain && validAttached.length === 0) {
-      const fallbacks = findTeamFallbackPhotos(r.teamName || r.authorName);
-      if (fallbacks.length > 0) {
-        modified = true;
-        return {
-          ...r,
-          photoUrl: fallbacks[0],
-          attachedPhotos: fallbacks
-        };
-      }
-    } else if (!validMain && validAttached.length > 0) {
-      modified = true;
+    let validMain = imageExists(rawMain) ? rawMain : null;
+    let validAttached = rawAttached.filter((p: string) => imageExists(p) && p !== validMain);
+
+    // main이 없고 attached만 있을 경우 첫 번째 사진을 대표 사진으로 설정
+    if (!validMain && validAttached.length > 0) {
       validMain = validAttached[0];
-      return {
-        ...r,
-        photoUrl: validMain,
-        attachedPhotos: validAttached
-      };
-    } else if (validMain && validAttached.length === 0) {
+      validAttached = validAttached.slice(1);
+    }
+
+    // 사진이 없는 보고서에 타 보고서 사진을 복사하지 않음 (고유 현장 사진만 유지)
+    if (r.photoUrl !== validMain || JSON.stringify(r.attachedPhotos || []) !== JSON.stringify(validAttached)) {
       modified = true;
-      return {
-        ...r,
-        photoUrl: validMain,
-        attachedPhotos: [validMain]
-      };
     }
 
     return {
@@ -339,10 +313,23 @@ function sanitizeReport(rep: any, existingRep?: any): any {
 
     youtubeUrl: String(rep.youtubeUrl || ""),
     snsUrl: String(rep.snsUrl || ""),
-    photoUrl: sanitizeImage(rep.photoUrl),
-    attachedPhotos: Array.isArray(rep.attachedPhotos)
-      ? rep.attachedPhotos.map(sanitizeImage).filter(Boolean)
-      : [],
+    photoUrl: (() => {
+      const main = sanitizeImage(rep.photoUrl);
+      if (main) return main;
+      const firstAtt = Array.isArray(rep.attachedPhotos) ? rep.attachedPhotos.map(sanitizeImage).find(Boolean) : null;
+      return firstAtt || null;
+    })(),
+    attachedPhotos: (() => {
+      const main = sanitizeImage(rep.photoUrl);
+      const allAtt = Array.isArray(rep.attachedPhotos)
+        ? rep.attachedPhotos.map(sanitizeImage).filter((p: string | null): p is string => Boolean(p))
+        : [];
+      const distinct = Array.from(new Set(allAtt));
+      if (main) {
+        return distinct.filter(p => p !== main);
+      }
+      return distinct.slice(1);
+    })(),
 
     status: status,
     visibility: rep.visibility || (status === "draft" ? "private" : "crew"),

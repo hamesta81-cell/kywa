@@ -1658,7 +1658,7 @@ function CrewContent() {
     { key: "oct_w4", label: "10월 4주차 (최종 마감)" }
   ];
 
-  // 📸 [다중 사진 그리드 렌더러] 첨부된 모든 사진을 1장도 빠짐없이 고화질 그리드로 표출
+  // 📸 [다중 사진 그리드 렌더러] 첨부된 모든 사진을 1장도 빠짐없이 고화질 그리드로 표출 (중복 사진 완벽 제거)
   const renderAttachedPhotosGallery = (reportItem: any) => {
     if (!reportItem) return null;
     const rawList: string[] = [];
@@ -1671,11 +1671,28 @@ function CrewContent() {
       });
     }
 
-    const photoList = Array.from(new Set(rawList.map(url => {
+    const cleanedList = rawList.map(url => {
       let clean = url.trim();
       if (clean.startsWith("uploads/")) clean = "/" + clean;
       return clean;
-    }))).filter(img => img && !img.includes("unsplash.com") && (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:image/') || img.startsWith('/')));
+    }).filter(img => img && !img.includes("unsplash.com") && (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:image/') || img.startsWith('/')));
+
+    // 🔒 [원천 중복 방지] URL 중복 및 시드 메인/서브0 동일 이미지 시그니처 중복 완벽 제거
+    const seenSignatures = new Set<string>();
+    const photoList: string[] = [];
+
+    cleanedList.forEach(url => {
+      const filename = url.split('/').pop() || url;
+      // 시드 파일 형식 매칭: report_xxx_main_0_69887.jpg 와 report_xxx_sub_0_1_69887.jpg 동일 파일 감지
+      const seedMatch = filename.match(/^((?:report|pine)_[a-z0-9_]+)_(?:main|sub_\d+)_\d+_(\d+\.jpg)$/i);
+      const sig = seedMatch ? `${seedMatch[1]}_${seedMatch[2]}` : url;
+
+      if (!seenSignatures.has(sig) && !seenSignatures.has(url)) {
+        seenSignatures.add(sig);
+        seenSignatures.add(url);
+        photoList.push(url);
+      }
+    });
 
     if (photoList.length === 0) return null;
 
@@ -1684,7 +1701,7 @@ function CrewContent() {
         <div className="flex items-center justify-between text-[11px] font-black text-slate-700">
           <span className="flex items-center gap-1">
             <ImageIcon size={14} className="text-[#1558C9]" />
-            <span>📸 첨부 현장 활동 사진 ({photoList.length}장 전체)</span>
+            <span>📸 첨부 현장 활동 사진 ({photoList.length}장)</span>
           </span>
           <span className="text-[10px] text-[#1558C9] font-bold">* 각 사진 클릭 시 원본 고화질 확대 & 즉시 다운로드</span>
         </div>

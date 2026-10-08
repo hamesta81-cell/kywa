@@ -89,10 +89,10 @@ function sortReportsByDateDesc(a: any, b: any): number {
   return createdB - createdA;
 }
 
-// 🌟 [사진 100% 정상화 및 고유 사진 정합성 엔진]
-// 1. 41개 공식 마스터 시드 보고서: Git 내 고유 실물 사진으로 100% 정합성 복원 (중복 서브 사진 제거)
-// 2. 보고서 간 사진 강제 복사(폴백) 금지: 각 주간보고서는 고유 현장 사진만 표출 (사진 없는 주차는 깔끔하게 텍스트만 표시)
-// 3. 이전 잘못된 폴백으로 타 주차 사진이 주입된 사용자 보고서는 깨끗하게 복구
+// 🌟 [사진 100% 진본 정합성 엔진]
+// 1. 41개 공식 마스터 보고서: 실제 원본 현장 사진만 100% 정합성 유지 (중복 서브 사진 제거)
+// 2. 임의 사진/거짓 사진 일절 금지: 사진 없이 제출된 보고서에는 임의의 사진이나 타 주차 사진을 절대 삽입하지 않음
+// 3. 실제 사용자가 업로드한 고유 사진만 그대로 유지하고, 없는 경우 텍스트 중심으로 단정하게 표출
 function healAndVerifyReportImages(reports: any[]): any[] {
   if (!Array.isArray(reports)) return reports;
 
@@ -110,7 +110,7 @@ function healAndVerifyReportImages(reports: any[]): any[] {
   const imageExists = (imgUrl: string | null | undefined): boolean => {
     if (!imgUrl || typeof imgUrl !== "string") return false;
     if (imgUrl.includes("unsplash.com")) return false;
-    if (imgUrl.includes("migrated_")) return false; // 이전 임시 컨테이너에서 삭제된 깨진 파일 제외
+    if (imgUrl.includes("migrated_")) return false;
     const cleanUrl = imgUrl.startsWith("/") ? imgUrl.slice(1) : imgUrl;
 
     // 1. Git에 포함된 정적 public 폴더 확인
@@ -132,7 +132,7 @@ function healAndVerifyReportImages(reports: any[]): any[] {
     if (!r) return r;
     const canonical = seedById.get(r.id);
 
-    // 1. 41개 공식 마스터 시드 보고서: Git 내 마스터 시드의 고유 사진으로 100% 정합성 유지
+    // 1. 41개 공식 마스터 시드 보고서: 실제 원본 사진만 매핑 (중복 서브 사진 제외)
     if (canonical) {
       const canonicalMain = canonical.photoUrl && imageExists(canonical.photoUrl) ? canonical.photoUrl : null;
       const canonicalAttached = Array.isArray(canonical.attachedPhotos)
@@ -150,9 +150,10 @@ function healAndVerifyReportImages(reports: any[]): any[] {
       };
     }
 
-    // 2. 사용자가 새로 등록한 주간보고서의 경우:
-    // 이전 잘못된 폴백으로 주입된 /uploads/seeds/ 경로는 제거 (다른 주차의 동일 사진 복사 방지)
+    // 2. 사용자가 새로 등록한 주간보고서:
+    // 실제 사용자가 직접 업로드한 유효 사진만 유지 (임의 사진/타 주차 시드 사진 일절 주입 금지)
     let rawMain = r.photoUrl;
+    // 과거 잘못된 폴백으로 들어간 타 보고서 시드 사진 제거
     if (rawMain && typeof rawMain === "string" && rawMain.includes("/uploads/seeds/")) {
       rawMain = null;
     }
@@ -163,13 +164,11 @@ function healAndVerifyReportImages(reports: any[]): any[] {
     let validMain = imageExists(rawMain) ? rawMain : null;
     let validAttached = rawAttached.filter((p: string) => imageExists(p) && p !== validMain);
 
-    // main이 없고 attached만 있을 경우 첫 번째 사진을 대표 사진으로 설정
     if (!validMain && validAttached.length > 0) {
       validMain = validAttached[0];
       validAttached = validAttached.slice(1);
     }
 
-    // 사진이 없는 보고서에 타 보고서 사진을 복사하지 않음 (고유 현장 사진만 유지)
     if (r.photoUrl !== validMain || JSON.stringify(r.attachedPhotos || []) !== JSON.stringify(validAttached)) {
       modified = true;
     }

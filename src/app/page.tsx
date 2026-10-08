@@ -5,37 +5,20 @@ import {
   Play, BookOpen, Compass, Gamepad2, Award, Users, ArrowRight, 
   ShieldCheck, MapPin, Sparkles, Trophy, CheckCircle2, ChevronRight, 
   Zap, Target, Lock, Clock, Heart, AlertTriangle, Radio, Flame, 
-  Smartphone, CloudRain, Activity, Smile, Share2, Eye, X
+  Smartphone, CloudRain, Activity, Smile, Share2, Eye
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showChallengePopup, setShowChallengePopup] = useState(false);
-  const [showFullScreenPoster, setShowFullScreenPoster] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedUser = sessionStorage.getItem("user") || localStorage.getItem("user");
       if (savedUser) setIsLoggedIn(true);
-
-      // 오늘 하루 보지 않기 체크
-      const hidePopupDate = localStorage.getItem("hide_playsafe_popup_date");
-      const today = new Date().toISOString().slice(0, 10);
-      if (hidePopupDate !== today) {
-        setShowChallengePopup(true);
-      }
     }
   }, []);
-
-  const handleClosePopup = (dontShowToday: boolean) => {
-    if (dontShowToday) {
-      const today = new Date().toISOString().slice(0, 10);
-      localStorage.setItem("hide_playsafe_popup_date", today);
-    }
-    setShowChallengePopup(false);
-  };
 
   const safetyZones = [
     {
@@ -672,152 +655,6 @@ export default function Home() {
         </section>
 
       </div>
-
-      {/* 🌟 2026 PLAY SAFE 숏폼 챌린지 홈페이지 공식 팝업 모달 */}
-      {showChallengePopup && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="relative max-w-lg w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-amber-200 animate-in zoom-in-95 duration-200">
-            
-            {/* 상단 헤더 */}
-            <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-3.5 flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <Trophy size={16} className="text-white fill-white" />
-                <span className="text-xs font-black tracking-wide">
-                  2026 청소년활동 안전캠페인 공식 공모
-                </span>
-              </div>
-              <button 
-                onClick={() => handleClosePopup(false)}
-                className="p-1 rounded-full hover:bg-white/20 transition-all text-white"
-                title="팝업 닫기"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* 포스터 이미지 영역 (클릭 시 전체화면 확대) */}
-            <div 
-              className="relative w-full h-[340px] bg-slate-950 cursor-pointer group"
-              onClick={() => setShowFullScreenPoster(true)}
-              title="클릭하여 포스터 전체화면으로 보기"
-            >
-              <Image 
-                src="/images/playsafe_poster_2026.png" 
-                alt="2026 PLAY SAFE 숏폼 챌린지 포스터" 
-                fill 
-                className="object-contain group-hover:scale-[1.02] transition-transform duration-200"
-                priority
-              />
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                <span className="px-3.5 py-1.5 rounded-full bg-white/90 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-lg">
-                  <Eye size={14} /> 클릭하여 전체화면 보기
-                </span>
-              </div>
-            </div>
-
-            {/* 본문 안내 & 바로가기 버튼 */}
-            <div className="p-5 space-y-4 bg-white">
-              <div className="space-y-1 text-center">
-                <h4 className="text-base font-black text-[#0F172A]">
-                  「PLAY SAFE 숏폼 챌린지」 공모전 개최! 🎬
-                </h4>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                  공식 음원 <strong>'ㅋㅋㅋ(Keep, Know)'</strong>에 맞춘 나만의 안전 숏폼에 도전하세요! (총 상금 200만원)
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <Link
-                  href="/challenge"
-                  onClick={() => handleClosePopup(false)}
-                  className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs rounded-xl text-center shadow-md transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Trophy size={14} />
-                  <span>숏폼 챌린지 바로가기 & 음원 다운로드</span>
-                </Link>
-              </div>
-
-              {/* 하단 옵션: 오늘 하루 보지 않기 / 닫기 */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-bold">
-                <button
-                  onClick={() => handleClosePopup(true)}
-                  className="hover:text-slate-900 transition-colors"
-                >
-                  [ 오늘 하루 보지 않기 ]
-                </button>
-                <button
-                  onClick={() => handleClosePopup(false)}
-                  className="hover:text-slate-900 transition-colors"
-                >
-                  [ 닫기 ]
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* 🌟 포스터 전체화면 풀스크린 라이트박스 뷰어 */}
-      {showFullScreenPoster && (
-        <div 
-          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 animate-in fade-in duration-200"
-          onClick={() => setShowFullScreenPoster(false)}
-        >
-          <div 
-            className="relative max-w-4xl w-full h-[92vh] bg-slate-950 rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between border border-slate-800"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* 닫기 버튼 상단 바 */}
-            <div className="p-4 bg-slate-900/80 backdrop-blur-md flex items-center justify-between z-10 border-b border-slate-800">
-              <span className="text-xs font-black text-amber-400 flex items-center gap-1.5">
-                <Trophy size={14} /> 2026 PLAY SAFE 숏폼 챌린지 공식 포스터 (전체화면)
-              </span>
-              <button 
-                onClick={() => setShowFullScreenPoster(false)}
-                className="p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-white transition-all"
-                title="전체화면 닫기"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* 고화질 포스터 영역 */}
-            <div className="relative flex-1 w-full bg-slate-950">
-              <Image 
-                src="/images/playsafe_poster_2026.png" 
-                alt="2026 PLAY SAFE 숏폼 챌린지 포스터 전체화면" 
-                fill 
-                className="object-contain p-2"
-                priority
-              />
-            </div>
-
-            {/* 하단 바 */}
-            <div className="p-4 bg-slate-900/80 backdrop-blur-md flex items-center justify-between border-t border-slate-800 text-xs">
-              <span className="text-slate-400 font-medium text-[11px]">문의: 02-2088-8456 | mkteam@testmotionofficial.com</span>
-              <div className="flex items-center gap-2">
-                <a 
-                  href="/images/playsafe_poster_2026.png" 
-                  download="2026_PLAY_SAFE_포스터.png"
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl transition-all flex items-center gap-1.5 shadow-md"
-                >
-                  <Eye size={13} />
-                  <span>원본 다운로드</span>
-                </a>
-                <Link
-                  href="/contest?tab=vote"
-                  onClick={() => setShowFullScreenPoster(false)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl transition-all flex items-center gap-1.5 shadow-md"
-                >
-                  <span>챌린지 참여하기</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

@@ -212,8 +212,10 @@ function CrewContent() {
   const fixInvalidImageUrl = (url: any) => {
     if (!url || typeof url !== "string") return "";
     if (url.includes("unsplash.com")) return ""; // 🌟 캡처 속 외부 더미 이미지 100% 영구 삭제!
-    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:image/") || url.startsWith("/")) {
-      return url;
+    let clean = url.trim();
+    if (clean.startsWith("uploads/")) clean = "/" + clean;
+    if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:image/") || clean.startsWith("/")) {
+      return clean;
     }
     return "";
   };
@@ -1659,9 +1661,21 @@ function CrewContent() {
   // 📸 [다중 사진 그리드 렌더러] 첨부된 모든 사진을 1장도 빠짐없이 고화질 그리드로 표출
   const renderAttachedPhotosGallery = (reportItem: any) => {
     if (!reportItem) return null;
-    const photoList: string[] = Array.isArray(reportItem.attachedPhotos) && reportItem.attachedPhotos.length > 0
-      ? reportItem.attachedPhotos.filter((img: any) => img && typeof img === "string" && (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:image/') || img.startsWith('/')))
-      : (reportItem.photoUrl && (reportItem.photoUrl.startsWith('http://') || reportItem.photoUrl.startsWith('https://') || reportItem.photoUrl.startsWith('data:image/') || reportItem.photoUrl.startsWith('/')) ? [reportItem.photoUrl] : []);
+    const rawList: string[] = [];
+    if (reportItem.photoUrl && typeof reportItem.photoUrl === "string") {
+      rawList.push(reportItem.photoUrl);
+    }
+    if (Array.isArray(reportItem.attachedPhotos)) {
+      reportItem.attachedPhotos.forEach((img: any) => {
+        if (img && typeof img === "string") rawList.push(img);
+      });
+    }
+
+    const photoList = Array.from(new Set(rawList.map(url => {
+      let clean = url.trim();
+      if (clean.startsWith("uploads/")) clean = "/" + clean;
+      return clean;
+    }))).filter(img => img && !img.includes("unsplash.com") && (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('data:image/') || img.startsWith('/')));
 
     if (photoList.length === 0) return null;
 
@@ -2241,15 +2255,8 @@ function CrewContent() {
                       </div>
                     )}
 
-                    {/* 현장 사진 */}
-                    {feed.photoUrl && (
-                      <div className="relative rounded-[14px] overflow-hidden border border-slate-300 aspect-video bg-slate-200 shadow-sm">
-                        <img src={feed.photoUrl} alt={feed.title || "활동 사진"} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-2 right-2 text-[10px] font-black bg-black/80 text-white px-2 py-0.5 rounded-md">
-                          {feed.teamName} 현장 활동 컷
-                        </span>
-                      </div>
-                    )}
+                    {/* 현장 사진 갤러리 */}
+                    {renderAttachedPhotosGallery(feed)}
 
                     {/* 유튜브 & SNS 바로가기 */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -3509,42 +3516,7 @@ function CrewContent() {
                       )}
 
                       {/* 첨부 사진 갤러리 */}
-                      {act.attachedPhotos && act.attachedPhotos.length > 0 && (
-                        <div className="space-y-1.5">
-                          <span className="text-xs font-black text-[#0F172A] flex items-center gap-1">
-                            <ImageIcon size={14} className="text-[#1558C9]" /> 📷 [{myTeamName}] 첨부 활동 현장 사진 ({act.attachedPhotos.length}장):
-                          </span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                            {act.attachedPhotos.map((photoUrl: string, pIdx: number) => {
-                              const isValidUrl = photoUrl && (photoUrl.startsWith('http://') || photoUrl.startsWith('https://') || photoUrl.startsWith('data:image/') || photoUrl.startsWith('/'));
-                              const displayImg = isValidUrl ? photoUrl : "";
-
-                              return (
-                                <div 
-                                  key={pIdx} 
-                                  onClick={() => setSelectedOriginalImage(displayImg)}
-                                  className="relative group cursor-pointer overflow-hidden rounded-[12px] border border-slate-300 aspect-video bg-slate-200"
-                                >
-                                  <img 
-                                    src={displayImg} 
-                                    alt={`현장 사진 ${pIdx + 1}`} 
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-all" 
-                                    onError={(e: any) => {
-                                      e.target.onerror = null;
-                                    }}
-                                  />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-black">
-                                    <span>🔍 원본 보기</span>
-                                  </div>
-                                  <span className="absolute bottom-1 right-1 text-[9px] font-black bg-black/70 text-white px-1.5 py-0.5 rounded">
-                                    {myTeamName} 증빙 #{pIdx + 1}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                      {renderAttachedPhotosGallery(act)}
 
                       {/* 유튜브 & SNS 바로가기 */}
                       <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -3983,6 +3955,47 @@ function CrewContent() {
                 )}
               </div>
             </div>
+
+            {/* 🌟 해당 팀의 주간보고 현장 사진 및 경과 */}
+            {(() => {
+              const teamReports = allTeamsFeed.filter(f => {
+                const cleanF = (f.teamName || f.authorName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                const cleanModal = (selectedPlanModal.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
+                return cleanF && cleanModal && (cleanF.includes(cleanModal) || cleanModal.includes(cleanF));
+              });
+
+              if (teamReports.length === 0) return null;
+
+              return (
+                <div className="space-y-4 p-4 bg-blue-50/60 rounded-[16px] border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black text-[#1558C9] flex items-center gap-2">
+                      <ImageIcon size={16} className="text-[#1558C9]" />
+                      <span>📸 {selectedPlanModal.teamName} 주간보고 현장 활동 사진 & 경과 ({teamReports.length}건)</span>
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    {teamReports.map(rep => (
+                      <div key={rep.id} className="p-3.5 bg-white rounded-[12px] border border-slate-200 space-y-2 shadow-sm">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-xs font-black text-[#0F172A]">{rep.title}</h4>
+                          <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                            {rep.week} ({rep.date})
+                          </span>
+                        </div>
+                        {rep.detailContent && (
+                          <p className="text-xs text-slate-700 whitespace-pre-line leading-relaxed font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                            {rep.detailContent}
+                          </p>
+                        )}
+                        {renderAttachedPhotosGallery(rep)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 2. 🎬 숏폼 영상 및 홍보 미디어 */}
             {selectedPlanModal.videoTitle && (

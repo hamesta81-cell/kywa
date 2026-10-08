@@ -15,7 +15,7 @@ export default function ChallengePage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<"submit" | "guide">("submit");
+  const [activeSubTab, setActiveSubTab] = useState<"submit" | "guide">("guide");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🎯 실시간 접수 건수 및 마감 카운트다운 상태
@@ -539,29 +539,11 @@ export default function ChallengePage() {
         </div>
       </section>
 
-      {/* 숏폼 서브 탭 네비게이션 */}
+      {/* 공모요강 & 운영 안내 상세 섹션 헤더 */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
-        <button
-          onClick={() => setActiveSubTab("submit")}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-            activeSubTab === "submit"
-              ? "bg-[#0F172A] text-white shadow-sm"
-              : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-          }`}
-        >
-          📝 숏폼 챌린지 온라인 참가 접수
-        </button>
-
-        <button
-          onClick={() => setActiveSubTab("guide")}
-          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-            activeSubTab === "guide"
-              ? "bg-[#1558C9] text-white shadow-sm"
-              : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-          }`}
-        >
-          📋 공모요강 & 운영 안내 상세 (붙임1 전문)
-        </button>
+        <div className="px-5 py-2.5 rounded-xl text-xs font-black bg-[#1558C9] text-white shadow-sm flex items-center gap-2">
+          <span>📋 공모요강 & 운영 안내 상세 (붙임1 전문)</span>
+        </div>
       </div>
 
       {/* ==================================================================== */}
@@ -1177,7 +1159,7 @@ export default function ChallengePage() {
                 <p className="font-bold text-slate-800 text-sm">신청서 페이지에서 URL 및 정보 등록</p>
                 <ul className="text-slate-600 space-y-1 text-[11px] leading-relaxed">
                   <li>• <strong>최종 접수 마감: 2026. 10. 05.(월) 24:00까지</strong></li>
-                  <li>• 상단 <strong>[온라인 참가 접수]</strong> 탭에서 온라인 참가 신청서 작성</li>
+                  <li>• 온라인 참가 신청서 작성 및 제출</li>
                   <li>• 참가자 기본정보, 업로드된 SNS 영상 URL, 기획 의도 작성</li>
                   <li>• 개인정보 수집·이용 동의 및 저작권 활용 동의 완료 후 제출</li>
                   <li>• 제출 즉시 접수번호 발급 및 안내 이메일 자동 발송</li>

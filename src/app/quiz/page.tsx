@@ -102,7 +102,7 @@ export default function HannunQuizPage() {
             <p className="text-slate-700">접수번호 <strong>{doneId}</strong></p>
             <p className="text-slate-600 text-sm leading-relaxed">
               당첨자는 {Q.announceLabel} 한국청소년활동진흥원 홈페이지에 발표합니다.<br />
-              당첨되시면 입력하신 휴대전화번호로 쿠폰을 보내 드립니다.
+              당첨되시면 입력하신 휴대전화번호로 모바일상품권을 보내 드립니다.
             </p>
           </section>
         ) : status !== "open" ? (
@@ -176,7 +176,7 @@ export default function HannunQuizPage() {
                     className="mt-1 w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-base focus:outline-none focus:border-[#1558C9]" />
                 </label>
                 <label className="block">
-                  <span className="text-sm font-bold text-slate-700">휴대전화번호 <span className="font-normal text-slate-500">(쿠폰 발송용)</span></span>
+                  <span className="text-sm font-bold text-slate-700">휴대전화번호 <span className="font-normal text-slate-500">(상품권 발송용)</span></span>
                   <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="010-1234-5678"
                     className="mt-1 w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-base focus:outline-none focus:border-[#1558C9]" />
                 </label>
@@ -225,7 +225,7 @@ export default function HannunQuizPage() {
                   </thead>
                   <tbody className="text-slate-700">
                     <tr>
-                      <td className="border border-slate-200 bg-white px-2 py-1.5">퀴즈 이벤트 응모 확인, 당첨자 추첨·발표, 경품(모바일 쿠폰) 발송</td>
+                      <td className="border border-slate-200 bg-white px-2 py-1.5">퀴즈 이벤트 응모 확인, 당첨자 추첨·발표, 경품(모바일상품권) 발송</td>
                       <td className="border border-slate-200 bg-white px-2 py-1.5">이름, 휴대전화번호 (만 14세 미만: 보호자 이름·휴대전화번호)</td>
                       <td className="border border-slate-200 bg-white px-2 py-1.5">경품 발송 완료 후 지체 없이 파기</td>
                     </tr>

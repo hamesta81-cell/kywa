@@ -18,11 +18,11 @@ export const HANNUN_QUIZ = {
   endsAt: "2026-11-09T23:59:59+09:00",
   periodLabel: "2026. 10. 30.(금) ~ 11. 9.(월)",
   announceLabel: "2026. 11. 12.(목)",
-  prize: "스타벅스 커피쿠폰(4,700원 상당)",
+  prize: "CU 편의점 모바일상품권(5,000원 상당)",
   winners: 100,
   contact: "청소년 안전문화 확산 운영사무국 02-2088-8456",
   hint: "한국청소년활동진흥원 홈페이지 › 알림마당 › 공지사항 › ‘안전’ 카테고리의 한눈정보",
-  popupImage: "/images/quiz/hannun_quiz_popup_800.png",
+  popupImage: "/images/quiz/hannun_quiz_popup_800_cu.png",
   questions: [
     {
       no: 1,

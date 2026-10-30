@@ -18,6 +18,13 @@ export async function GET(
       return new NextResponse("Forbidden", { status: 403 });
     }
 
+    // 영구 디스크에는 접수·계정 JSON도 함께 있으므로 사진·음원·영상·PDF만 내보낸다.
+    const ALLOWED_EXT = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".avif", ".mp3", ".mp4", ".webm", ".pdf"];
+    const firstSeg = relPath.split("/")[0];
+    if (!ALLOWED_EXT.includes(path.extname(relPath).toLowerCase()) || firstSeg === "private" || firstSeg.startsWith(".")) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+
     const candidatePaths = [
       path.join(process.cwd(), "public", "uploads", relPath),
       path.join(getPersistentDataDir(), "uploads", relPath),
@@ -36,7 +43,11 @@ export async function GET(
         else if (ext === ".gif") contentType = "image/gif";
         else if (ext === ".webp") contentType = "image/webp";
         else if (ext === ".svg") contentType = "image/svg+xml";
+        else if (ext === ".avif") contentType = "image/avif";
         else if (ext === ".mp3") contentType = "audio/mpeg";
+        else if (ext === ".mp4") contentType = "video/mp4";
+        else if (ext === ".webm") contentType = "video/webm";
+        else if (ext === ".pdf") contentType = "application/pdf";
 
         return new NextResponse(buffer, {
           status: 200,

@@ -101,8 +101,19 @@ export default function Header() {
               <span>안전 미션 덱</span>
             </Link>
 
-            <Link 
-              href="https://kywasafe.kr/contest?tab=vote" 
+            <Link
+              href="/quiz"
+              className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#E8322B] hover:bg-red-50 rounded-full transition-all"
+            >
+              <Megaphone className="h-3.5 w-3.5 text-[#E8322B]" />
+              <span>한눈정보 퀴즈</span>
+              <span className="px-1.5 py-0.2 text-[9px] font-black bg-[#FFD83D] text-[#142B63] border border-[#142B63]/30 rounded-full">
+                EVENT
+              </span>
+            </Link>
+
+            <Link
+              href="https://kywasafe.kr/contest?tab=vote"
               className="flex items-center space-x-1.5 px-3 py-2 text-xs font-bold text-slate-700 hover:text-amber-600 hover:bg-amber-50 rounded-full transition-all group"
             >
               <Trophy className="h-3.5 w-3.5 text-amber-600 group-hover:scale-110 transition-transform" />

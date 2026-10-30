@@ -5,20 +5,39 @@ import {
   Play, BookOpen, Compass, Gamepad2, Award, Users, ArrowRight, 
   ShieldCheck, MapPin, Sparkles, Trophy, CheckCircle2, ChevronRight, 
   Zap, Target, Lock, Clock, Heart, AlertTriangle, Radio, Flame, 
-  Smartphone, CloudRain, Activity, Smile, Share2, Eye
+  Smartphone, CloudRain, Activity, Smile, Share2, Eye, X
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { HANNUN_QUIZ, quizStatus } from "@/data/hannunQuiz";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showQuizPopup, setShowQuizPopup] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedUser = sessionStorage.getItem("user") || localStorage.getItem("user");
       if (savedUser) setIsLoggedIn(true);
+
+      // 한눈정보 퀴즈 이벤트 팝업: 응모 기간에만, '오늘 하루 보지 않기' 존중
+      try {
+        const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+        if (quizStatus() === "open" && localStorage.getItem("hide_hannun_quiz_popup") !== today) {
+          setShowQuizPopup(true);
+        }
+      } catch {}
     }
   }, []);
+
+  const closeQuizPopup = (hideToday: boolean) => {
+    if (hideToday) {
+      try {
+        localStorage.setItem("hide_hannun_quiz_popup", new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }));
+      } catch {}
+    }
+    setShowQuizPopup(false);
+  };
 
   const safetyZones = [
     {
@@ -180,7 +199,28 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-[#1558C9] selection:text-white">
-      
+
+      {/* 한눈정보 안전 퀴즈 이벤트 팝업 */}
+      {showQuizPopup && (
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4" onClick={() => closeQuizPopup(false)}>
+          <div className="relative w-full max-w-[400px] bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <button onClick={() => closeQuizPopup(false)} className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60" aria-label="팝업 닫기">
+              <X size={18} />
+            </button>
+            <Link href="/quiz" onClick={() => closeQuizPopup(false)} className="block relative w-full aspect-square">
+              <Image src={HANNUN_QUIZ.popupImage} alt={`${HANNUN_QUIZ.title}. 기간 ${HANNUN_QUIZ.periodLabel}, 추첨 ${HANNUN_QUIZ.winners}명 ${HANNUN_QUIZ.prize}`} fill sizes="400px" className="object-cover" priority />
+            </Link>
+            <Link href="/quiz" onClick={() => closeQuizPopup(false)} className="block py-3 text-center font-black text-white bg-[#142B63] hover:bg-[#1d3a80]">
+              퀴즈 풀고 응모하기
+            </Link>
+            <div className="flex justify-between px-4 py-2.5 text-xs font-bold text-slate-500">
+              <button onClick={() => closeQuizPopup(true)} className="hover:text-slate-900">오늘 하루 보지 않기</button>
+              <button onClick={() => closeQuizPopup(false)} className="hover:text-slate-900">닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 부드러운 화이트/블루 배경 블러 포인트 */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-100/60 rounded-full blur-[100px]" />

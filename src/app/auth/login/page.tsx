@@ -4,40 +4,9 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, Mail, Lock, LogIn, ArrowRight, UserCheck, KeyRound, Sparkles, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
-import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
+import { clearAuthToken, setAuthToken } from "@/lib/clientAuth";
 
-// 공식 단일 소스 모듈 연결 (안전 폴백 배열 포함)
-export const CREW_16_ACCOUNTS = OFFICIAL_16_CREW_TEAMS || [];
-
-// ⚡ [유연 비밀번호 검증 헬퍼] 팀명 특수문자/공백/풀네임 차이(예: 안심ON vs 안심ON ('안전'과 '마음(心)'을 켜다.))를 100% 무결점 보정
-function checkCustomPassword(passes: Record<string, string>, teamName: string, username: string, inputPass: string): boolean {
-  if (!passes || typeof passes !== "object") return false;
-
-  // 1. 단순 정확 매칭
-  if (passes[teamName] === inputPass || passes[username] === inputPass) return true;
-
-  // 2. 정규화 정밀 매칭
-  const normTeam = teamName.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-  const normUser = username.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-
-  for (const [key, val] of Object.entries(passes)) {
-    if (val !== inputPass) continue;
-    const normKey = key.toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-    if (!normKey) continue;
-
-    if (
-      normKey === normTeam ||
-      normKey === normUser ||
-      (normTeam.length > 2 && normKey.includes(normTeam)) ||
-      (normTeam.length > 2 && normTeam.includes(normKey)) ||
-      (normUser.length > 2 && normKey.includes(normUser))
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}
+const ADMIN_USERNAMES = ["admin@kywa.or.kr", "admin", "총괄관리자", "총괄 관리자"];
 
 export default function LoginPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -53,138 +22,71 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (username === "admin@kywa.or.kr" || username === "admin" || username === "총괄관리자" || username === "총괄 관리자") {
-      let isAdminPasswordValid = (password === "admin2026!" || password === "1234");
-
+    if (ADMIN_USERNAMES.includes(username.trim()) || loginMode === "crew") {
+      // 🔒 비밀번호는 서버에서 확인하고, 통과하면 서명된 로그인 토큰을 받는다
+      let data: { success?: boolean; message?: string; token?: string; user?: { name: string; role: string } } = {};
       try {
-        // 1. 클라우드 DB 서버 API 우선 검증
-        const cloudRes = await fetch("/api/crew-passwords", { cache: "no-store" });
-        if (cloudRes.ok) {
-          const cloudJson = await cloudRes.json();
-          const cloudPasses = cloudJson?.passwords || {};
-          if (checkCustomPassword(cloudPasses, "총괄 관리자", "admin", password)) {
-            isAdminPasswordValid = true;
-            if (typeof window !== "undefined") {
-              localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(cloudPasses));
-            }
-          }
+        const res = await fetch("/api/auth/crew-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success || !data.token || !data.user) {
+          alert(data.message || "⚠️ 아이디 또는 비밀번호가 올바르지 않습니다.");
+          return;
         }
+      } catch {
+        alert("⚠️ 서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
+        return;
+      }
+      if (!data.token || !data.user) return;
 
-        // 2. 만약 클라우드 응답 미도달 시 로컬 백업 검증
-        if (!isAdminPasswordValid && typeof window !== "undefined") {
-          const rawCustom = localStorage.getItem("kywa_crew_custom_passwords");
-          if (rawCustom) {
-            const customPasses = JSON.parse(rawCustom);
-            if (checkCustomPassword(customPasses, "총괄 관리자", "admin", password)) {
-              isAdminPasswordValid = true;
-            }
-          }
-        }
-      } catch (e) {}
+      setAuthToken(data.token);
+      sessionStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("user", JSON.stringify(data.user));
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("kywa-user-login"));
 
-      if (!isAdminPasswordValid) {
-        alert("⚠️ 관리자 비밀번호가 올바르지 않습니다.");
+      if (data.user.role === "ADMIN") {
+        alert("🟢 총괄 관리자 권한으로 로그인되었습니다.");
+        if (typeof window !== "undefined") window.location.href = "/admin";
         return;
       }
 
-      const adminObj = { name: "총괄 관리자", role: "ADMIN", teamId: 999 };
-      sessionStorage.setItem("user", JSON.stringify(adminObj));
-      localStorage.setItem("user", JSON.stringify(adminObj));
-      if (typeof window !== "undefined") window.dispatchEvent(new Event("kywa-user-login"));
-
-      alert("🟢 총괄 관리자 권한으로 로그인되었습니다.");
-      if (typeof window !== "undefined") window.location.href = "/admin";
-      return;
-    }
-
-    if (loginMode === "crew") {
-      // 16개 정식 홍보단 매핑 검색
-      const matchedAccount = CREW_16_ACCOUNTS.find(
-        acc => acc.username.toLowerCase() === username.toLowerCase() || 
-               acc.teamName.toLowerCase().includes(username.toLowerCase()) ||
-               username.toLowerCase().includes(acc.teamName.toLowerCase())
-      );
-
-      if (matchedAccount) {
-        // 🌟 홍보단이 직접 변경한 비밀번호 (클라우드 DB 우선 조회 + 로컬 캐시 조합 검증)
-        let isValidPassword = false;
-        try {
-          // 1. 클라우드 DB 서버 API 우선 검증
-          const cloudRes = await fetch("/api/crew-passwords", { cache: "no-store" });
-          if (cloudRes.ok) {
-            const cloudJson = await cloudRes.json();
-            const cloudPasses = cloudJson?.passwords || {};
-            if (checkCustomPassword(cloudPasses, matchedAccount.teamName, matchedAccount.username, password)) {
-              isValidPassword = true;
-              if (typeof window !== "undefined") {
-                localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(cloudPasses));
-              }
-            }
-          }
-
-          // 2. 만약 클라우드 응답 미도달 시 로컬 백업 검증
-          if (!isValidPassword && typeof window !== "undefined") {
-            const rawCustom = localStorage.getItem("kywa_crew_custom_passwords");
-            if (rawCustom) {
-              const customPasses = JSON.parse(rawCustom);
-              if (checkCustomPassword(customPasses, matchedAccount.teamName, matchedAccount.username, password)) {
-                isValidPassword = true;
-              }
-            }
-          }
-        } catch (e) {}
-
-        if (!isValidPassword && matchedAccount.pass !== password && password !== "1234") {
-          alert(`⚠️ [${matchedAccount.teamName}] 비밀번호가 올바르지 않습니다. 확인 후 다시 시도해 주세요.`);
-          return;
-        }
-
-        const crewObj = { 
-          name: matchedAccount.teamName, 
-          role: "CREW", 
-          teamId: matchedAccount.id,
-          level: 25
+      const teamName = data.user.name;
+      // 🌟 로그인 이력 누적 저장 (로컬 + 서버, 서버는 토큰의 팀으로 기록)
+      try {
+        const nowStr = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+        const raw = localStorage.getItem("kywa_crew_login_logs");
+        let logs: Record<string, { count: number; lastLoginTime: string; history: string[] }> = raw ? JSON.parse(raw) : {};
+        const current = logs[teamName] || { count: 0, lastLoginTime: "-", history: [] };
+        logs[teamName] = {
+          count: current.count + 1,
+          lastLoginTime: nowStr,
+          history: [nowStr, ...current.history].slice(0, 10)
         };
-        sessionStorage.setItem("user", JSON.stringify(crewObj));
-        localStorage.setItem("user", JSON.stringify(crewObj));
-        if (typeof window !== "undefined") window.dispatchEvent(new Event("kywa-user-login"));
+        localStorage.setItem("kywa_crew_login_logs", JSON.stringify(logs));
 
-        // 🌟 로그인 이력 누적 저장 (로컬 + 서버 백엔드 API 2중 동기화)
-        try {
-          const nowStr = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
-          const raw = localStorage.getItem("kywa_crew_login_logs");
-          let logs: Record<string, { count: number; lastLoginTime: string; history: string[] }> = raw ? JSON.parse(raw) : {};
-          const current = logs[matchedAccount.teamName] || { count: 0, lastLoginTime: "-", history: [] };
-          logs[matchedAccount.teamName] = {
-            count: current.count + 1,
-            lastLoginTime: nowStr,
-            history: [nowStr, ...current.history].slice(0, 10)
-          };
-          localStorage.setItem("kywa_crew_login_logs", JSON.stringify(logs));
-
-          // 🚀 서버 백엔드 API로 접속 로그 영구 동기화
-          fetch("/api/crew-login-logs", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ teamName: matchedAccount.teamName })
-          }).catch(err => console.error("Server login log POST failed:", err));
-        } catch (e) {
-          console.error(e);
-        }
-
-        alert(`🟢 [${matchedAccount.teamName}] 홍보단 전용 권한으로 로그인되었습니다. 팀 전용 오피스로 이동합니다.`);
-        if (typeof window !== "undefined") window.location.href = "/crew?mode=office";
-      } else {
-        alert("⚠️ 선택한 홍보단 팀 정보를 찾을 수 없습니다.");
+        fetch("/api/crew-login-logs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ teamName })
+        }).catch(err => console.error("Server login log POST failed:", err));
+      } catch (e) {
+        console.error(e);
       }
+
+      alert(`🟢 [${teamName}] 홍보단 전용 권한으로 로그인되었습니다. 팀 전용 오피스로 이동합니다.`);
+      if (typeof window !== "undefined") window.location.href = "/crew?mode=office";
     } else {
       // 일반 회원 로그인
       const displayName = generalName.trim() || username.split("@")[0] || "청소년 서포터즈";
       const youthObj = { 
         name: displayName, 
-        role: "YOUTH", 
-        level: 1 
+        role: "YOUTH",
+        level: 1
       };
+      clearAuthToken();
       sessionStorage.setItem("user", JSON.stringify(youthObj));
       localStorage.setItem("user", JSON.stringify(youthObj));
       if (typeof window !== "undefined") window.dispatchEvent(new Event("kywa-user-login"));
@@ -194,18 +96,9 @@ export default function LoginPage() {
     }
   };
 
-  // 16개 팀 계정 원클릭 간편 선택
-  const handleSelectTeamAccount = (teamIdStr: string) => {
-    const tId = parseInt(teamIdStr);
-    const acc = CREW_16_ACCOUNTS.find(a => a.id === tId);
-    if (acc) {
-      setUsername(acc.username);
-      setPassword(acc.pass);
-    }
-  };
-
   const handleQuickGeneralLogin = (name: string) => {
     const youthObj = { name, role: "YOUTH", level: 12 };
+    clearAuthToken();
     sessionStorage.setItem("user", JSON.stringify(youthObj));
     localStorage.setItem("user", JSON.stringify(youthObj));
     if (typeof window !== "undefined") window.dispatchEvent(new Event("kywa-user-login"));
@@ -356,6 +249,7 @@ export default function LoginPage() {
               if (typeof window !== "undefined") {
                 sessionStorage.clear();
                 localStorage.removeItem("user");
+                clearAuthToken();
                 alert("🧹 브라우저 연결 세션이 초기화되었습니다. 새로고침합니다.");
                 window.location.reload();
               }

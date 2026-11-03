@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authError, readAuth } from "@/lib/serverAuth";
 
 // XML 파싱을 위한 간단한 정규식 파서 (구글 뉴스 RSS 추출용)
 function parseGoogleNewsRss(xmlText: string) {
@@ -51,6 +52,8 @@ function parseGoogleNewsRss(xmlText: string) {
 }
 
 export async function POST(request: Request) {
+  // 로그인한 홍보단·관리자만 (누구나 파일을 올리거나 유료 AI를 쓰지 못하게)
+  if (!readAuth(request)) return authError(401);
   try {
     const { topic } = await request.json();
     const cleanTopic = (topic || '').trim() || '청소년 안전';

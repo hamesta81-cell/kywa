@@ -15,7 +15,6 @@ export interface OfficialCrewTeam {
   membersCount: number; // 팀 총 인원수
   budget: string; // 소요예산
   username: string;
-  pass: string;
   borderLeft: string;
   // 주요 활동 결과물 (카드뉴스, 숏폼 영상, 가이드북, SNS)
   cardnewsGallery: Array<{ title: string; imgUrl: string }>;
@@ -42,7 +41,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 3,
     budget: "2,000,000원",
     username: "safecrew@kywa.or.kr",
-    pass: "safecrew2026!",
     borderLeft: "border-l-4 border-l-[#1558C9]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 경북/경남 안전체험관 현장 탐방", imgUrl: "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?auto=format&fit=crop&w=600&q=80" },
@@ -70,7 +68,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 15,
     budget: "2,000,000원",
     username: "safeframe@kywa.or.kr",
-    pass: "safeframe2026!",
     borderLeft: "border-l-4 border-l-[#7557D9]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 광명청소년미디어센터 사이버폭력 예방", imgUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" },
@@ -98,7 +95,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 21,
     budget: "2,000,000원",
     username: "cheongyu@kywa.or.kr",
-    pass: "cheongyu2026!",
     borderLeft: "border-l-4 border-l-[#10B981]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 인천국민안전체험관 연계 교육 현장", imgUrl: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=600&q=80" },
@@ -126,7 +122,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 3,
     budget: "2,000,000원",
     username: "digitalcomma@kywa.or.kr",
-    pass: "digitalcomma2026!",
     borderLeft: "border-l-4 border-l-[#F59E0B]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 중봉청소년수련관 디지털 디톡스", imgUrl: "https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=600&q=80" },
@@ -154,7 +149,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 9,
     budget: "2,000,000원",
     username: "light@kywa.or.kr",
-    pass: "light2026!",
     borderLeft: "border-l-4 border-l-[#EF4444]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 청원청소년문화의집 개인정보 교재", imgUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" },
@@ -182,7 +176,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 3,
     budget: "2,000,000원",
     username: "safeleaders@kywa.or.kr",
-    pass: "safeleaders2026!",
     borderLeft: "border-l-4 border-l-[#EC4899]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - SAFE LINK AI 웹앱 연동 가이드", imgUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80" },
@@ -210,7 +203,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 14,
     budget: "2,000,000원",
     username: "pine@kywa.or.kr",
-    pass: "pine2026!",
     borderLeft: "border-l-4 border-l-[#6366F1]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 중원유스센터 마음정거장 안내", imgUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80" },
@@ -238,7 +230,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 4,
     budget: "2,000,000원",
     username: "ansimon@kywa.or.kr",
-    pass: "ansimon2026!",
     borderLeft: "border-l-4 border-l-[#8B5CF6]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 마음 ON-도움 ON 예방수칙", imgUrl: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=600&q=80" },
@@ -266,7 +257,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 4,
     budget: "1,200,000원",
     username: "tapandtalk@kywa.or.kr",
-    pass: "tapandtalk2026!",
     borderLeft: "border-l-4 border-l-[#14B8A6]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 영등포구 원룸단지 체크리스트", imgUrl: "https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=600&q=80" },
@@ -294,7 +284,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 6,
     budget: "2,000,000원",
     username: "safezip@kywa.or.kr",
-    pass: "safezip2026!",
     borderLeft: "border-l-4 border-l-[#3B82F6]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 물금청소년문화의집 스탬프 투어", imgUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80" },
@@ -322,7 +311,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 25,
     budget: "2,000,000원",
     username: "yes6th@kywa.or.kr",
-    pass: "yes6th2026!",
     borderLeft: "border-l-4 border-l-[#F97316]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 서울시립청소년활동진흥센터 언론캠페인", imgUrl: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=600&q=80" },
@@ -350,7 +338,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 3,
     budget: "1,000,000원",
     username: "wosongagora@kywa.or.kr",
-    pass: "wosongagora2026!",
     borderLeft: "border-l-4 border-l-[#06B6D4]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 우송대 아고라 멘토링 현장", imgUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80" },
@@ -378,7 +365,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 6,
     budget: "2,000,000원",
     username: "wellbeing@kywa.or.kr",
-    pass: "wellbeing2026!",
     borderLeft: "border-l-4 border-l-[#84CC16]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 웰빙 자가진단 체크리스트", imgUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80" },
@@ -406,7 +392,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 2,
     budget: "900,000원",
     username: "etoos@kywa.or.kr",
-    pass: "etoos2026!",
     borderLeft: "border-l-4 border-l-[#A855F7]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 안전 MBTI 결과 분석표", imgUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80" },
@@ -434,7 +419,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 7,
     budget: "2,000,000원",
     username: "cheongdiguard@kywa.or.kr",
-    pass: "cheongdiguard2026!",
     borderLeft: "border-l-4 border-l-[#38BDF8]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 로블록스 세이프런 5개 맵 안내", imgUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
@@ -462,7 +446,6 @@ export const OFFICIAL_16_CREW_TEAMS: OfficialCrewTeam[] = [
     membersCount: 16,
     budget: "2,000,000원",
     username: "hanrauo@kywa.or.kr",
-    pass: "hanrauo2026!",
     borderLeft: "border-l-4 border-l-[#F43F5E]",
     cardnewsGallery: [
       { title: "카드뉴스 #1 - 강원 4개 시·군 CPR 릴레이 부스", imgUrl: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=600&q=80" },

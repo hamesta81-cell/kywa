@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
 import AdminSystemDiagnosticBadge from "@/components/AdminSystemDiagnosticBadge";
 import { classifyError, ErrorDiagnosticResult } from "@/utils/errorDiagnostic";
+import { getAuthToken } from "@/lib/clientAuth";
 
 function CrewContent() {
   const searchParams = useSearchParams();
@@ -145,8 +146,8 @@ function CrewContent() {
 
   const handleChangeTeamPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPasswordInput || newPasswordInput.trim().length < 4) {
-      alert("⚠️ 새 비밀번호를 최소 4자리 이상 입력해 주세요.");
+    if (!newPasswordInput || newPasswordInput.trim().length < 8) {
+      alert("⚠️ 새 비밀번호를 8자리 이상 입력해 주세요.");
       return;
     }
     if (newPasswordInput !== confirmPasswordInput) {
@@ -154,47 +155,26 @@ function CrewContent() {
       return;
     }
 
+    // 🔒 비밀번호는 서버에만 해시로 저장한다 (브라우저에 원문을 남기지 않음)
     try {
-      const updatedPass = newPasswordInput.trim();
-
-      // 1. 현재 브라우저 local 캐시 100% 즉시 동기화
-      const rawCustom = typeof window !== "undefined" ? localStorage.getItem("kywa_crew_custom_passwords") : null;
-      let customPasses: Record<string, string> = {};
-      if (rawCustom) {
-        try { customPasses = JSON.parse(rawCustom); } catch (e) {}
-      }
-      customPasses[myTeamName] = updatedPass;
-      const cleanTeam = (myTeamName || currentUser?.teamName || "").toLowerCase().replace(/[^a-zA-Z0-9가-힣]/g, "");
-      if (currentUser?.role === "ADMIN" || currentUser?.username === "admin" || cleanTeam.includes("관리자") || cleanTeam.includes("총괄") || cleanTeam.includes("운영본부")) {
-        customPasses["총괄 관리자"] = updatedPass;
-        customPasses["총괄관리자"] = updatedPass;
-        customPasses["admin"] = updatedPass;
-        customPasses["admin@kywa.or.kr"] = updatedPass;
-      }
-      if (typeof window !== "undefined") {
-        localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(customPasses));
-      }
-
-      // 2. 클라우드 DB 서버 API로 비밀번호 원격 영구 저장 및 모든 기기 동기화
-      await fetch("/api/crew-passwords", {
+      const res = await fetch("/api/crew-passwords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          teamName: myTeamName,
-          newPassword: updatedPass,
-          passwords: customPasses
-        })
+        body: JSON.stringify({ teamName: myTeamName, newPassword: newPasswordInput.trim() })
       });
-
-      alert(`🎉 [${myTeamName}] 팀 비밀번호가 클라우드 서버 DB에 안전하게 동기화 저장되었습니다!\n다른 PC나 모바일에서도 변경하신 새 비밀번호로 즉시 로그인할 수 있습니다.`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        alert(`⚠️ ${data.message || "비밀번호를 바꾸지 못했습니다. 다시 로그인한 뒤 시도해 주세요."}`);
+        return;
+      }
+      try { localStorage.removeItem("kywa_crew_custom_passwords"); } catch (e) {}
+      alert(`🎉 [${myTeamName}] 팀 비밀번호를 바꿨습니다.
+다른 PC나 모바일에서도 새 비밀번호로 로그인하세요.`);
       setShowPasswordChangeModal(false);
       setNewPasswordInput("");
       setConfirmPasswordInput("");
     } catch (err) {
-      alert(`🎉 [${myTeamName}] 팀 비밀번호가 안전하게 변경되었습니다!`);
-      setShowPasswordChangeModal(false);
-      setNewPasswordInput("");
-      setConfirmPasswordInput("");
+      alert("⚠️ 서버에 연결하지 못해 비밀번호를 바꾸지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
     }
   };
 
@@ -441,6 +421,15 @@ function CrewContent() {
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
+
+        // 🔒 서버 로그인 토큰 없이 남아 있던 예전 로그인은 다시 로그인하게 한다 (저장 요청을 서버가 거절하므로)
+        if ((parsed.role === "CREW" || parsed.role === "ADMIN") && !getAuthToken()) {
+          sessionStorage.removeItem("user");
+          localStorage.removeItem("user");
+          alert("🔒 보안 강화로 로그인 방식이 바뀌었습니다. 운영사무국에서 받은 새 비밀번호로 다시 로그인해 주세요.");
+          window.location.href = "/auth/login";
+          return;
+        }
         setCurrentUser(parsed);
 
         // 🔒 홍보단 계정이거나 관리자인 경우에만 오피스 탭 진입 허용
@@ -4423,7 +4412,7 @@ function CrewContent() {
                 <label className="block text-slate-700 font-black">• 새 비밀번호 입력:</label>
                 <input
                   type="password"
-                  placeholder="새로운 비밀번호를 입력해 주세요 (최소 4자리)"
+                  placeholder="새로운 비밀번호를 입력해 주세요 (8자리 이상)"
                   value={newPasswordInput}
                   onChange={e => setNewPasswordInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-black text-[#0F172A] focus:outline-none focus:border-[#1558C9]"

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import { getPersistentFilePath } from "@/lib/diskStorage";
+import { authError, readAuth, sameTeam } from "@/lib/serverAuth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-const CLOUD_NOTICES_STORE_ID = "ff8081819f7e10ae019fc58b5c616527";
 
 const DEFAULT_INITIAL_NOTICES = [
   {
@@ -48,26 +49,15 @@ const DEFAULT_INITIAL_NOTICES = [
 const globalCache = globalThis as unknown as { notices: any[] };
 if (!globalCache.notices) globalCache.notices = [];
 
-function mergeNotices(baseNotices: any[], overlayNotices: any[]): any[] {
-  const map = new Map();
-  (baseNotices || []).forEach(item => { if (item && item.id) map.set(String(item.id), item); });
-  (overlayNotices || []).forEach(item => { if (item && item.id) map.set(String(item.id), item); });
-  return Array.from(map.values());
+// 공지는 영구 디스크(notices.json)에 저장한다. 예전 외부 공개 저장소(restful-api.dev)는 누구나 고칠 수 있어 쓰지 않는다.
+function noticesFile() {
+  return getPersistentFilePath("notices.json");
 }
 
 async function fetchCloudNotices(): Promise<any[]> {
   try {
-    const res = await fetch(`https://api.restful-api.dev/objects/${CLOUD_NOTICES_STORE_ID}?t=${Date.now()}`, {
-      cache: "no-store",
-      headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache" }
-    });
-    if (res.ok) {
-      const json = await res.json();
-      const cloudItems = Array.isArray(json?.data?.notices) ? json.data.notices : [];
-      if (cloudItems.length > 0) {
-        globalCache.notices = mergeNotices(DEFAULT_INITIAL_NOTICES, mergeNotices(cloudItems, globalCache.notices));
-      }
-    }
+    const saved = JSON.parse(fs.readFileSync(noticesFile(), "utf-8"));
+    if (Array.isArray(saved)) globalCache.notices = saved;
   } catch (e) {}
 
   if (!globalCache.notices || globalCache.notices.length === 0) {
@@ -79,16 +69,10 @@ async function fetchCloudNotices(): Promise<any[]> {
 
 async function saveCloudNotices(notices: any[]) {
   globalCache.notices = notices;
-  try {
-    await fetch(`https://api.restful-api.dev/objects/${CLOUD_NOTICES_STORE_ID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "KYWA_HUB_NOTICES_V1",
-        data: { notices }
-      })
-    });
-  } catch (e) {}
+  const file = noticesFile();
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(notices, null, 2), "utf-8");
+  fs.renameSync(tmp, file);
 }
 
 const NO_CACHE_HEADERS = {
@@ -105,10 +89,35 @@ export async function GET() {
   }, { headers: NO_CACHE_HEADERS });
 }
 
+// 홍보단은 기존 공지에 자기 팀 이름으로 댓글만 덧붙일 수 있다 (본문·다른 댓글은 그대로 둔다)
+async function appendCrewComments(notice: any, team: string) {
+  const current = await fetchCloudNotices();
+  const idx = current.findIndex((n: any) => String(n.id) === String(notice?.id));
+  if (idx < 0) return authError(403, "공지는 총괄 관리자만 올리거나 고칠 수 있습니다.");
+  const existing = current[idx];
+  const known = new Set((existing.comments || []).map((c: any) => String(c.id)));
+  const added = (Array.isArray(notice.comments) ? notice.comments : [])
+    .filter((c: any) => c && !known.has(String(c.id)) && sameTeam(c.author, team))
+    .map((c: any) => ({ id: c.id, author: team, text: String(c.text || "").slice(0, 1000), time: String(c.time || "") }));
+  const next = [...current];
+  next[idx] = { ...existing, comments: [...(existing.comments || []), ...added] };
+  await saveCloudNotices(next);
+  return NextResponse.json({ success: true, notices: next }, { headers: NO_CACHE_HEADERS });
+}
+
 export async function POST(request: Request) {
+  // 공지 등록·수정·삭제는 총괄 관리자만, 홍보단은 댓글만
+  const user = readAuth(request);
+  if (!user) return authError(401);
+
   try {
     const body = await request.json();
     const { notice, action, id, noticeList } = body;
+
+    if (user.role !== "ADMIN") {
+      if (notice && notice.id && !action && !noticeList) return await appendCrewComments(notice, user.team);
+      return authError(403, "공지는 총괄 관리자만 올리거나 고칠 수 있습니다.");
+    }
 
     let current = await fetchCloudNotices();
 

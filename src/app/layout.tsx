@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import QRCodeWidget from "@/components/QRCodeWidget";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
+import AuthFetchBridge from "@/components/providers/AuthFetchBridge";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+        <AuthFetchBridge />
         <NextAuthProvider>
           <Header />
           <main className="flex-grow">

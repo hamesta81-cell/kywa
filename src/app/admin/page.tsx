@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
 import AdminSystemDiagnosticBadge from "@/components/AdminSystemDiagnosticBadge";
+import { getAuthToken, setAuthToken } from "@/lib/clientAuth";
 
 export default function AdminPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -135,7 +136,8 @@ export default function AdminPage() {
         const sessionUser = sessionStorage.getItem("user");
         if (sessionUser) {
           const userObj = JSON.parse(sessionUser);
-          if (userObj.role === "ADMIN") {
+          // 서버가 발급한 관리자 토큰이 있어야 콘솔을 연다 (자료 요청도 서버가 토큰으로 확인)
+          if (userObj.role === "ADMIN" && getAuthToken()) {
             setIsAdminAuthenticated(true);
           }
         }
@@ -158,10 +160,9 @@ export default function AdminPage() {
         // 🎬 숏폼 챌린지 실시간 접수 데이터 불러오기 (관리자 전용 보안 인증)
         fetch(`/api/challenge/submit?t=${Date.now()}`, {
           cache: "no-store",
-          headers: { 
-            "Cache-Control": "no-cache, no-store, must-revalidate", 
-            "Pragma": "no-cache",
-            "x-admin-key": "kywa_admin_auth_token_2026"
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache"
           }
         })
           .then(res => res.json())
@@ -174,8 +175,14 @@ export default function AdminPage() {
         const savedReports = localStorage.getItem("kywa_safety_reports");
         if (savedReports) setSafetyReports(JSON.parse(savedReports));
 
-        const savedPasses = localStorage.getItem("kywa_crew_custom_passwords");
-        if (savedPasses) setCustomPasswords(JSON.parse(savedPasses));
+        // 🔑 팀이 비밀번호를 직접 바꿨는지만 서버에서 받는다 (비밀번호 값은 서버에도 해시로만 있음)
+        fetch(`/api/crew-passwords?t=${Date.now()}`, { cache: "no-store" })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && Array.isArray(data.changedTeams)) {
+              setCustomPasswords(Object.fromEntries(data.changedTeams.map((t: string) => [t, "변경됨"])));
+            }
+          }).catch(() => {});
 
         // 👥 실시간 방문자 카운트 통계 불러오기
         fetch(`/api/visitors?t=${Date.now()}`, { cache: "no-store" })
@@ -191,19 +198,31 @@ export default function AdminPage() {
     }
   };
 
-  const handleAdminAuthSubmit = (e: React.FormEvent) => {
+  const handleAdminAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputAdminId === "admin" || inputAdminId === "admin@kywa.or.kr") {
-      if (inputAdminPw === "admin2026!" || inputAdminPw === "1234") {
-        const adminObj = { name: "총괄 관리자", role: "ADMIN", teamId: 999 };
-        sessionStorage.setItem("user", JSON.stringify(adminObj));
+    // 🔒 비밀번호는 서버에서 확인하고 관리자 토큰을 받는다
+    try {
+      const res = await fetch("/api/auth/crew-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: inputAdminId, password: inputAdminPw })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && data.user?.role === "ADMIN") {
+        setAuthToken(data.token);
+        sessionStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setInputAdminPw("");
         setIsAdminAuthenticated(true);
         setAuthError("");
         alert("🟢 관리자 인증이 완료되었습니다. 관리자 라이브 콘솔로 입장합니다.");
+        refreshAdminData();
         return;
       }
+      setAuthError(data.message && res.status === 429 ? data.message : "⚠️ 관리자 아이디 또는 비밀번호가 올바르지 않습니다.");
+    } catch (err) {
+      setAuthError("⚠️ 서버에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.");
     }
-    setAuthError("⚠️ 관리자 아이디 또는 비밀번호가 올바르지 않습니다. (기본 계정: admin / 1234 또는 admin2026!)");
   };
 
   useEffect(() => {
@@ -366,23 +385,32 @@ export default function AdminPage() {
   };
 
   const handleInspectPassword = (teamName: string) => {
-    const customPass = customPasswords[teamName];
-    if (customPass) {
-      alert(`🔑 [${teamName}] 팀이 변경한 현재 커스텀 비밀번호: "${customPass}"`);
+    if (customPasswords[teamName]) {
+      alert(`🔑 [${teamName}] 팀은 비밀번호를 직접 바꿔 쓰고 있습니다.\n보안을 위해 비밀번호 값은 서버에도 남기지 않아 볼 수 없습니다. 잊었다면 '초기화'로 처음 발급한 비밀번호로 되돌리세요.`);
     } else {
-      alert(`🔒 [${teamName}] 팀은 아직 비밀번호를 변경하지 않았습니다. (기본 비밀번호: 1234 사용 중)`);
+      alert(`🔒 [${teamName}] 팀은 처음 발급한 비밀번호를 쓰고 있습니다. (운영사무국 보관 목록 참고)`);
     }
   };
 
-  const handleResetPassword = (teamName: string) => {
-    if (confirm(`🔑 정말 [${teamName}] 팀의 비밀번호를 기본 비밀번호(1234)로 초기화하시겠습니까?`)) {
+  const handleResetPassword = async (teamName: string) => {
+    if (!confirm(`🔑 정말 [${teamName}] 팀의 비밀번호를 처음 발급한 비밀번호로 되돌리시겠습니까?`)) return;
+    try {
+      const res = await fetch("/api/crew-passwords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resetTeam: teamName })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        alert(`⚠️ ${data.message || "초기화하지 못했습니다. 다시 로그인해 주세요."}`);
+        return;
+      }
       const updated = { ...customPasswords };
       delete updated[teamName];
       setCustomPasswords(updated);
-      try {
-        localStorage.setItem("kywa_crew_custom_passwords", JSON.stringify(updated));
-      } catch (e) {}
-      alert(`🟢 [${teamName}] 팀의 비밀번호가 성공적으로 기본 비밀번호(1234)로 초기화되었습니다.`);
+      alert(`🟢 [${teamName}] 팀 비밀번호를 처음 발급한 비밀번호로 되돌렸습니다.`);
+    } catch (e) {
+      alert("초기화 중 오류가 발생했습니다.");
     }
   };
 
@@ -395,10 +423,7 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/challenge/submit", {
         method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-admin-key": "kywa_admin_auth_token_2026"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status: nextStatus })
       });
       const result = await res.json();
@@ -416,10 +441,7 @@ export default function AdminPage() {
   const handleDeleteChallengeSubmission = async (id: string) => {
     if (!confirm(`🗑️ 정말 [${id}] 접수 건을 영구 삭제하시겠습니까?`)) return;
     try {
-      const res = await fetch(`/api/challenge/submit?id=${id}`, { 
-        method: "DELETE",
-        headers: { "x-admin-key": "kywa_admin_auth_token_2026" }
-      });
+      const res = await fetch(`/api/challenge/submit?id=${encodeURIComponent(id)}`, { method: "DELETE" });
       const result = await res.json();
       if (result.success) {
         setChallengeSubmissions(prev => prev.filter(s => s.id !== id));
@@ -432,8 +454,23 @@ export default function AdminPage() {
     }
   };
 
-  const handleDownloadChallengeCsv = () => {
-    window.open("/api/challenge/submit?format=csv&admin_key=kywa_admin_auth_token_2026", "_blank");
+  // 개인정보가 든 CSV라 주소에 키를 싣지 않고, 로그인 토큰으로 받아 파일로 저장한다
+  const handleDownloadChallengeCsv = async () => {
+    try {
+      const res = await fetch("/api/challenge/submit?format=csv", { cache: "no-store" });
+      if (!res.ok || !(res.headers.get("content-type") || "").includes("text/csv")) {
+        alert("⚠️ 내려받지 못했습니다. 관리자로 다시 로그인해 주세요.");
+        return;
+      }
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `kywa_shortform_submissions_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      alert("내려받기 중 오류가 발생했습니다.");
+    }
   };
 
 
@@ -1279,19 +1316,19 @@ export default function AdminPage() {
                                   onClick={() => handleInspectPassword(team.teamName)}
                                   className="px-2 py-0.5 bg-amber-950 text-amber-300 border border-amber-500/40 rounded text-[10px] font-black hover:bg-amber-900 transition-colors"
                                 >
-                                  🔑 변경됨 (비밀번호 보기)
+                                  🔑 팀이 변경함
                                 </button>
                                 <button
                                   onClick={() => handleResetPassword(team.teamName)}
                                   className="px-1.5 py-0.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-[10px] font-bold"
-                                  title="기본 비밀번호(1234)로 초기화"
+                                  title="처음 발급한 비밀번호로 되돌리기"
                                 >
                                   초기화
                                 </button>
                               </div>
                             ) : (
                               <span className="text-slate-500 text-[11px] font-medium">
-                                🔒 기본 비번 사용 중 (1234)
+                                🔒 발급 비밀번호 사용 중
                               </span>
                             )}
                           </td>

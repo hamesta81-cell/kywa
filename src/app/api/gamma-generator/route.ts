@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import { authError, readAuth } from "@/lib/serverAuth";
 
 export async function POST(request: Request) {
+  // 로그인한 홍보단·관리자만 (누구나 파일을 올리거나 유료 AI를 쓰지 못하게)
+  if (!readAuth(request)) return authError(401);
   try {
     const { topic, cardnews, news, laws } = await request.json();
     const cleanTopic = (topic || '').trim() || '청소년 안전 수칙';

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { authError, readAuth } from "@/lib/serverAuth";
 
 export async function POST(req: NextRequest) {
+  // 로그인한 홍보단·관리자만 (누구나 파일을 올리거나 유료 AI를 쓰지 못하게)
+  if (!readAuth(req)) return authError(401);
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -12,6 +15,16 @@ export async function POST(req: NextRequest) {
         { success: false, error: "전송된 이미지/첨부파일이 없습니다." },
         { status: 400 }
       );
+    }
+
+    // 사진·영상·음원·PDF만 받는다 (SVG·HTML 등 스크립트가 들어갈 수 있는 파일은 막음)
+    const ext = (file.name.match(/\.[a-zA-Z0-9]+$/)?.[0] || "").toLowerCase();
+    const ALLOWED = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif", ".mp4", ".webm", ".mp3", ".pdf"];
+    if (!ALLOWED.includes(ext)) {
+      return NextResponse.json({ success: false, error: "사진(jpg·png·gif·webp)·영상(mp4·webm)·mp3·PDF 파일만 올릴 수 있습니다." }, { status: 400 });
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      return NextResponse.json({ success: false, error: "파일은 50MB 이하만 올릴 수 있습니다." }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

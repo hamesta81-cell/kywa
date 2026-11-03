@@ -5,6 +5,7 @@ import os from "os";
 import { prisma } from "@/lib/prisma";
 import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
 import { getPersistentFilePath, getPersistentDataDir } from "@/lib/diskStorage";
+import { authError, readAuth, sameTeam } from "@/lib/serverAuth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -529,7 +530,10 @@ export async function GET(request: Request) {
   }, { headers: NO_CACHE_HEADERS });
 }
 
+// 보고서 쓰기·삭제는 로그인한 홍보단(자기 팀 것만)과 관리자만
 export async function POST(request: Request) {
+  const user = readAuth(request);
+  if (!user) return authError(401);
   return fileOperationLock.acquire(async () => {
     try {
       let body: any;
@@ -565,6 +569,11 @@ export async function POST(request: Request) {
       for (const item of incomingList) {
         const targetId = (item.id || item.reportId) ? String(item.id || item.reportId) : `report_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const existingDoc = map.get(targetId);
+        // 홍보단은 자기 팀 보고서만 쓰고 고칠 수 있다 (다른 팀 것은 건너뜀)
+        if (user.role !== "ADMIN") {
+          if (existingDoc && !sameTeam(existingDoc.teamName || existingDoc.authorName, user.team)) continue;
+          if (!sameTeam(item.teamName || item.authorName, user.team)) continue;
+        }
         const sanitized = sanitizeReport({ ...item, id: targetId }, existingDoc);
 
         if (sanitized && sanitized.id && !globalCloudStore.deletedIds.has(sanitized.id)) {
@@ -600,6 +609,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const user = readAuth(request);
+  if (!user) return authError(401);
   return fileOperationLock.acquire(async () => {
     try {
       const { searchParams } = new URL(request.url);
@@ -607,6 +618,13 @@ export async function DELETE(request: Request) {
       if (!id) return NextResponse.json({ success: false, message: "ID 없음" }, { status: 400 });
 
       const targetId = String(id);
+      if (user.role !== "ADMIN") {
+        const { weeklyReports: current } = await fetchCloudData();
+        const target = current.find((r: any) => String(r.id) === targetId || String(r.reportId) === targetId);
+        if (target && !sameTeam(target.teamName || target.authorName, user.team)) {
+          return authError(403, "자기 팀 보고서만 지울 수 있습니다.");
+        }
+      }
       globalCloudStore.deletedIds.add(targetId);
 
       const { weeklyReports } = await fetchCloudData();
@@ -616,7 +634,7 @@ export async function DELETE(request: Request) {
         id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         action: "DELETE_REPORT",
         targetId: targetId,
-        actor: "홍보단/관리자",
+        actor: user.team,
         timestamp: new Date().toISOString()
       });
 

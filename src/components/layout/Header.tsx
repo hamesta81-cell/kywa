@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Shield, Megaphone, Trophy, FolderOpen, Users, LogOut, Search, User, ChevronDown, Sparkles, Award, Lock, LogIn, Target, UserPlus, Zap } from 'lucide-react';
 import { useSession, signOut } from "next-auth/react";
+import { clearAuthToken } from "@/lib/clientAuth";
 
 export default function Header() {
   const { data: session } = useSession();
@@ -56,6 +57,7 @@ export default function Header() {
       sessionStorage.removeItem("kywa_user");
       localStorage.removeItem("user");
       localStorage.removeItem("kywa_user");
+      clearAuthToken();
       window.dispatchEvent(new Event("kywa-user-login"));
     }
     setLocalUser(null);

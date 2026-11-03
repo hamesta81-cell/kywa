@@ -1,119 +1,67 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import os from "os";
-import { getPersistentFilePath } from "@/lib/diskStorage";
+import {
+  authError,
+  changedPasswordTeamIds,
+  clearPasswordOverride,
+  findCrewByTeamName,
+  isAdminUsername,
+  readAuth,
+  sameTeam,
+  setPasswordOverride,
+} from "@/lib/serverAuth";
+import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
 
-function getDiskFilePath(): string {
-  return getPersistentFilePath("permanent_passwords_db.json");
-}
+export const dynamic = "force-dynamic";
 
-const globalPassStore = globalThis as unknown as {
-  passwords: Record<string, string>;
-};
+// 🔒 홍보단·관리자 비밀번호 변경. 비밀번호는 해시로만 저장하고(serverAuth), 값은 누구에게도 돌려주지 않는다.
+// 예전에는 GET으로 모든 팀 비밀번호를 내주고 외부 공개 저장소에 원문을 보관했다.
 
-if (!globalPassStore.passwords) globalPassStore.passwords = {};
-
-function readFromDiskStore(): Record<string, string> {
-  try {
-    const filePath = getDiskFilePath();
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, "utf-8");
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed;
-    }
-  } catch (e) {}
-
-  try {
-    const fallbackPath = path.join(os.tmpdir(), "permanent_passwords_db.json");
-    if (fs.existsSync(fallbackPath)) {
-      const raw = fs.readFileSync(fallbackPath, "utf-8");
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed;
-    }
-  } catch (e) {}
-
-  return {};
-}
-
-function writeToDiskStore(items: Record<string, string>) {
-  try {
-    const filePath = getDiskFilePath();
-    fs.writeFileSync(filePath, JSON.stringify(items, null, 2), "utf-8");
-  } catch (e) {}
-
-  try {
-    const fallbackPath = path.join(os.tmpdir(), "permanent_passwords_db.json");
-    fs.writeFileSync(fallbackPath, JSON.stringify(items, null, 2), "utf-8");
-  } catch (err) {}
-}
-
-const CLOUD_PASSWORDS_STORE_ID = "ff8081819f7e10ae019fc58b5bd46527";
-
-async function fetchCloudPasswords(): Promise<Record<string, string>> {
-  const disk = readFromDiskStore();
-  let cloud: Record<string, string> = {};
-
-  try {
-    const res = await fetch(`https://api.restful-api.dev/objects/${CLOUD_PASSWORDS_STORE_ID}`, {
-      cache: "no-store"
-    });
-    if (res.ok) {
-      const json = await res.json();
-      cloud = (json?.data?.passwords && typeof json.data.passwords === "object") ? json.data.passwords : {};
-    }
-  } catch (e) {}
-
-  const merged = { ...disk, ...globalPassStore.passwords, ...cloud };
-  globalPassStore.passwords = merged;
-  writeToDiskStore(merged);
-  return merged;
-}
-
-async function saveCloudPasswords(passwords: Record<string, string>) {
-  globalPassStore.passwords = { ...globalPassStore.passwords, ...passwords };
-  writeToDiskStore(globalPassStore.passwords);
-
-  try {
-    await fetch(`https://api.restful-api.dev/objects/${CLOUD_PASSWORDS_STORE_ID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "KYWA_HUB_PASSWORDS_V1",
-        data: { passwords: globalPassStore.passwords }
-      })
-    });
-  } catch (e) {}
-}
-
-export async function GET() {
-  const passwords = await fetchCloudPasswords();
+// 관리자: 팀이 직접 비밀번호를 바꿨는지만 확인
+export async function GET(request: Request) {
+  const user = readAuth(request);
+  if (!user) return authError(401);
+  if (user.role !== "ADMIN") return authError(403);
+  const changed = new Set(changedPasswordTeamIds());
   return NextResponse.json({
     success: true,
-    passwords
+    changedTeams: OFFICIAL_16_CREW_TEAMS.filter(t => changed.has(t.id)).map(t => t.teamName),
   });
 }
 
+// { teamName, newPassword }: 자기 팀(관리자는 모든 팀·자기 계정) 비밀번호 변경
+// { resetTeam }: 관리자가 팀 비밀번호를 처음 발급한 값으로 되돌림
 export async function POST(request: Request) {
+  const user = readAuth(request);
+  if (!user) return authError(401);
+
   try {
     const body = await request.json();
-    const { teamName, newPassword, passwords: fullList } = body;
 
-    let currentPasswords = await fetchCloudPasswords();
-
-    if (fullList && typeof fullList === "object") {
-      currentPasswords = { ...currentPasswords, ...fullList };
-    } else if (teamName && newPassword) {
-      currentPasswords[teamName] = newPassword;
+    if (body.resetTeam) {
+      if (user.role !== "ADMIN") return authError(403);
+      const team = findCrewByTeamName(String(body.resetTeam));
+      if (!team) return NextResponse.json({ success: false, message: "팀을 찾을 수 없습니다." }, { status: 404 });
+      clearPasswordOverride(team.id);
+      return NextResponse.json({ success: true, message: `[${team.teamName}] 팀 비밀번호를 처음 발급한 값으로 되돌렸습니다.` });
     }
 
-    await saveCloudPasswords(currentPasswords);
+    const teamName = String(body.teamName || "");
+    const newPassword = String(body.newPassword || "").trim();
+    if (newPassword.length < 8) {
+      return NextResponse.json({ success: false, message: "⚠️ 새 비밀번호는 8자리 이상으로 정해 주세요." }, { status: 400 });
+    }
 
-    return NextResponse.json({
-      success: true,
-      passwords: currentPasswords
-    });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: "Failed to save password to cloud" }, { status: 500 });
+    if (user.role === "ADMIN" && (!teamName || isAdminUsername(teamName) || sameTeam(teamName, user.team))) {
+      await setPasswordOverride("admin", newPassword);
+      return NextResponse.json({ success: true, message: "총괄 관리자 비밀번호를 바꿨습니다." });
+    }
+
+    const team = findCrewByTeamName(teamName || user.team);
+    if (!team) return NextResponse.json({ success: false, message: "팀을 찾을 수 없습니다." }, { status: 404 });
+    if (user.role !== "ADMIN" && team.id !== user.teamId) return authError(403, "자기 팀 비밀번호만 바꿀 수 있습니다.");
+    await setPasswordOverride(team.id, newPassword);
+    return NextResponse.json({ success: true, message: `[${team.teamName}] 팀 비밀번호를 바꿨습니다.` });
+  } catch {
+    return NextResponse.json({ success: false, message: "비밀번호를 저장하지 못했습니다." }, { status: 500 });
   }
 }

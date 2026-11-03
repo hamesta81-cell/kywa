@@ -3,12 +3,15 @@ import { google } from "googleapis";
 import fs from "fs";
 import path from "path";
 import { Readable } from "stream";
+import { authError, readAuth } from "@/lib/serverAuth";
 
 // 구글 드라이브 저장 대상 폴더 ID
 const DRIVE_FOLDER_ID = "1SAwX3TuKy2gtD-BpmT1G8VN05fY1QPGY";
 const DEFAULT_DRIVE_LINK = `https://drive.google.com/drive/folders/${DRIVE_FOLDER_ID}?usp=sharing`;
 
 export async function POST(req: NextRequest) {
+  // 로그인한 홍보단·관리자만 (누구나 파일을 올리거나 유료 AI를 쓰지 못하게)
+  if (!readAuth(req)) return authError(401);
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;

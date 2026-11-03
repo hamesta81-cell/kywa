@@ -53,7 +53,10 @@ export async function GET(
           status: 200,
           headers: {
             "Content-Type": contentType,
-            "Cache-Control": "public, max-age=31536000, immutable"
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "X-Content-Type-Options": "nosniff",
+            // 누구나 올릴 수 있던 SVG 안의 스크립트가 이 사이트 주소로 실행되지 않게 막는다
+            ...(ext === ".svg" ? { "Content-Security-Policy": "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox" } : {})
           }
         });
       }

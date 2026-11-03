@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { authError, readAuth, sameTeam } from "@/lib/serverAuth";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -182,7 +183,10 @@ export async function GET() {
   return NextResponse.json({ success: true, count: qaItems.length, qaItems }, { headers: NO_CACHE_HEADERS });
 }
 
+// Q&A 글·답변·댓글은 로그인한 홍보단과 관리자만
 export async function POST(request: Request) {
+  const user = readAuth(request);
+  if (!user) return authError(401);
   try {
     const body = await request.json();
     let incomingItems: any[] = [];
@@ -229,12 +233,20 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const user = readAuth(request);
+  if (!user) return authError(401);
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ success: false, message: "ID 없음" }, { status: 400 });
 
     const targetId = String(id);
+    if (user.role !== "ADMIN") {
+      const target = (await fetchCloudQa()).find((q: any) => String(q.id) === targetId);
+      if (target && !sameTeam(target.author || target.authorName, user.team)) {
+        return authError(403, "자기 팀이 올린 글만 지울 수 있습니다.");
+      }
+    }
     globalQaStore.deletedQaIds.add(targetId);
 
     const currentQa = await fetchCloudQa();

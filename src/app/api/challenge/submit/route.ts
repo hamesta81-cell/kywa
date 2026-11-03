@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import { getPersistentFilePath } from "@/lib/diskStorage";
 import { sendChallengeNotificationEmail } from "@/lib/mailer";
+import crypto from "crypto";
+import { readAuth } from "@/lib/serverAuth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -32,14 +34,14 @@ function writeSubmissions(submissions: any[]) {
   }
 }
 
-const ADMIN_SECRET_KEY = process.env.ADMIN_API_KEY || "kywa_admin_auth_token_2026";
-
-// 관리자 권한 확인 헬퍼
+// 관리자 권한 확인: 관리자 로그인 토큰(serverAuth). 공개 코드에 적혀 있던 고정 키는 더 이상 받지 않는다.
+// 환경 변수 ADMIN_API_KEY를 따로 정해 둔 경우에만 그 키도 받는다(구글 시트 연동 등).
 function verifyAdmin(req: Request): boolean {
-  const url = new URL(req.url);
-  const headerKey = req.headers.get("x-admin-key") || req.headers.get("authorization")?.replace("Bearer ", "");
-  const queryKey = url.searchParams.get("admin_key");
-  return headerKey === ADMIN_SECRET_KEY || queryKey === ADMIN_SECRET_KEY;
+  if (readAuth(req)?.role === "ADMIN") return true;
+  const envKey = process.env.ADMIN_API_KEY;
+  if (!envKey || envKey === "kywa_admin_auth_token_2026") return false;
+  const headerKey = req.headers.get("x-admin-key") || "";
+  return headerKey.length === envKey.length && crypto.timingSafeEqual(Buffer.from(headerKey), Buffer.from(envKey));
 }
 
 // 숏폼 챌린지 접수 내역 조회 및 CSV 다운로드 API (보안 가드 적용)

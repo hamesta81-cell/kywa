@@ -6,7 +6,6 @@ export interface CrewAccount {
   title: string;
   membersCount: number;
   email: string;
-  password: string;
   role: "CREW" | "ADMIN" | "USER";
 }
 
@@ -18,7 +17,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "SAFE ON! 우리가 만드는 청소년 안전지도",
     membersCount: 3,
     email: "safecrew@kywa.or.kr",
-    password: "safecrew2026!",
     role: "CREW"
   },
   {
@@ -28,7 +26,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "안전한 울타리(safe frame)",
     membersCount: 15,
     email: "safeframe@kywa.or.kr",
-    password: "safeframe2026!",
     role: "CREW"
   },
   {
@@ -38,7 +35,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "청유랑 안전해you",
     membersCount: 21,
     email: "cheongyu@kywa.or.kr",
-    password: "cheongyu2026!",
     role: "CREW"
   },
   {
@@ -48,7 +44,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "스마트폰 과의존 RED RED.",
     membersCount: 3,
     email: "digitalcomma@kywa.or.kr",
-    password: "digitalcomma2026!",
     role: "CREW"
   },
   {
@@ -58,7 +53,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "멈칫! 밀어서 개인정보 해제",
     membersCount: 9,
     email: "light@kywa.or.kr",
-    password: "light2026!",
     role: "CREW"
   },
   {
@@ -68,7 +62,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "SAFE LINK - AI로 연결하는 안전, 청소년이 만드는 안전문화",
     membersCount: 3,
     email: "safeleaders@kywa.or.kr",
-    password: "safeleaders2026!",
     role: "CREW"
   },
   {
@@ -78,7 +71,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "I am Pine, We are Fine",
     membersCount: 14,
     email: "pine@kywa.or.kr",
-    password: "pine2026!",
     role: "CREW"
   },
   {
@@ -88,7 +80,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "디지털 안전 ON, 마음 안전 ON 청소년 디지털 성범죄 예방 및 정서 안전망 구축",
     membersCount: 4,
     email: "ansimon@kywa.or.kr",
-    password: "ansimon2026!",
     role: "CREW"
   },
   {
@@ -98,7 +89,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "안전 밸브를 잠그다 - 여름철 재난·생활안전 홍보 캠페인",
     membersCount: 4,
     email: "tapandtalk@kywa.or.kr",
-    password: "tapandtalk2026!",
     role: "CREW"
   },
   {
@@ -108,7 +98,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "슬기로운 안전 커넥터",
     membersCount: 6,
     email: "safezip@kywa.or.kr",
-    password: "safezip2026!",
     role: "CREW"
   },
   {
@@ -118,7 +107,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "서울특별시립청소년활동진흥센터 「청소년서포터즈 Y.E.S 6기」",
     membersCount: 25,
     email: "yes6th@kywa.or.kr",
-    password: "yes6th2026!",
     role: "CREW"
   },
   {
@@ -128,7 +116,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "대학생과 함께하는 디지털·생활안전 실천 프로젝트 '일상 속 안전, 내가 지킨다'",
     membersCount: 3,
     email: "wosongagora@kywa.or.kr",
-    password: "wosongagora2026!",
     role: "CREW"
   },
   {
@@ -138,7 +125,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "웰빙 크루: 오늘의 나를 지키는 일상 속 웰빙",
     membersCount: 6,
     email: "wellbeing@kywa.or.kr",
-    password: "wellbeing2026!",
     role: "CREW"
   },
   {
@@ -148,7 +134,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "안전 LEVEL UP!",
     membersCount: 2,
     email: "etoos@kywa.or.kr",
-    password: "etoos2026!",
     role: "CREW"
   },
   {
@@ -158,7 +143,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "청디가드 세이프런 : 위험을 넘어 안전으로",
     membersCount: 7,
     email: "cheongdiguard@kywa.or.kr",
-    password: "cheongdiguard2026!",
     role: "CREW"
   },
   {
@@ -168,7 +152,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "스마트폰 멈춰! ‘심쿵!’ 살리는 순간(CPR)",
     membersCount: 16,
     email: "hanrauo@kywa.or.kr",
-    password: "hanrauo2026!",
     role: "CREW"
   },
   {
@@ -178,7 +161,6 @@ export const crewAccounts: CrewAccount[] = [
     title: "KYWA 2026 총괄 관제",
     membersCount: 10,
     email: "admin@kywa.or.kr",
-    password: "admin2026!",
     role: "ADMIN"
   }
 ];

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pill, ShieldCheck, ArrowRight, RefreshCw, ChevronLeft, Award, HelpCircle, Coffee, FileText, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 export default function DrugAbuseCampaignPage() {
   const [selectedCard, setSelectedCard] = useState<"quiz" | "label" | "caffeine">("quiz");
@@ -11,6 +12,7 @@ export default function DrugAbuseCampaignPage() {
   const [quizIdx, setQuizIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  useMissionTracking("drug-abuse", isFinished);
 
   const [caffeineDrinks, setCaffeineDrinks] = useState({ coffee: 0, energy: 0, tea: 0 });
   const totalCaffeine = (caffeineDrinks.coffee * 100) + (caffeineDrinks.energy * 160) + (caffeineDrinks.tea * 40);

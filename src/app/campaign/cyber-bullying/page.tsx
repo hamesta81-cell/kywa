@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Shield, Sparkles, ArrowLeft, RefreshCw, AlertCircle, Heart, PhoneCall, CheckCircle2, MessageSquare, ArrowRight, ChevronLeft, Trophy, Share2 } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 export default function CyberBullyingCampaignPage() {
   const [selectedCard, setSelectedCard] = useState<"rewrite" | "perspective" | "emergency">("rewrite");
@@ -11,6 +12,7 @@ export default function CyberBullyingCampaignPage() {
   const [tempDegree, setTempDegree] = useState(36.5);
   const [showEmergencyCall, setShowEmergencyCall] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false); // 미션 결과 화면 모달
+  useMissionTracking("cyber-bullying", showResultModal);
   const [viewRole, setViewRole] = useState<"victim" | "friend" | "bystander">("bystander");
 
   const handleRewrite = () => {

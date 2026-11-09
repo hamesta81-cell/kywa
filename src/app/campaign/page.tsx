@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Play, CheckCircle2, Lock, RotateCcw, Wrench, ChevronRight, Star, Clock, Zap, Filter, Award } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Play, CheckCircle2, Lock, RotateCcw, Wrench, ChevronRight, Star, Clock, Zap, Filter, Award, Eye, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { trackMissionView } from "@/lib/missionTracking";
 
 export default function CampaignPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -12,6 +13,14 @@ export default function CampaignPage() {
   const [difficultyFilter, setDifficultyFilter] = useState("전체"); // 전체, 쉬움, 보통, 어려움
   const [playTimeFilter, setPlayTimeFilter] = useState("전체"); // 전체, 3분 이하, 5분 이하, 10분 이상
   const [sortOption, setSortOption] = useState("추천순"); // 추천순, 최신순, 인기순, 짧은순
+  const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({});
+
+  useEffect(() => {
+    fetch("/api/missions/stats", { cache: "no-store" })
+      .then(res => res.json())
+      .then(data => { if (data.success) setStats(data.stats); })
+      .catch(() => {});
+  }, []);
 
   // 6대 상태 표현 매트릭스가 반영된 미션 데이터 덱 (유저 요구 100% 반영!)
   const missions = [
@@ -30,7 +39,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/contest_earthquake_app_1777557756490.png",
+      img: "/images/missions/mission_phishing.png",
       href: "/campaign/cyber-bullying",
       borderLeft: "border-l-4 border-l-[#7557D9]",
       tagColor: "bg-purple-50 text-[#7557D9]"
@@ -90,7 +99,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: "Lv.10 달성 시 해금",
       maintenanceInfo: null,
-      img: "/images/archive_camping_safety_1777557771794.png",
+      img: "/images/missions/mission_blind_spot.png",
       href: "/campaign/blind-spot",
       borderLeft: "border-l-4 border-l-[#EA580C]",
       tagColor: "bg-orange-50 text-[#EA580C]"
@@ -150,7 +159,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/cards/card_05_heavy_rain.jpg",
+      img: "/images/missions/mission_flood.png",
       href: "/campaign/disaster-evacuation",
       borderLeft: "border-l-4 border-l-[#2563EB]",
       tagColor: "bg-blue-50 text-[#2563EB]"
@@ -170,7 +179,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/life_zone_safety_hero.png",
+      img: "/images/missions/mission_cpr.png",
       href: "/campaign/cpr-basics",
       borderLeft: "border-l-4 border-l-[#E11D48]",
       tagColor: "bg-rose-50 text-[#E11D48]"
@@ -190,7 +199,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/cards/card_01_heatwave.jpg",
+      img: "/images/missions/mission_fire.png",
       href: "/campaign/fire-escape",
       borderLeft: "border-l-4 border-l-[#EA580C]",
       tagColor: "bg-orange-50 text-[#EA580C]"
@@ -364,6 +373,12 @@ export default function CampaignPage() {
                 <span className="text-[#159A83] font-black">{m.exp}</span>
               </div>
 
+              {/* 조회수 · 참여자수 (집계 전이거나 불러오지 못하면 –) */}
+              <div className="flex items-center gap-4 text-[11px] font-bold text-[#5D6B7E] tabular-nums">
+                <span className="inline-flex items-center gap-1"><Eye size={13} /> 조회 {stats[m.id]?.views.toLocaleString() ?? "–"}</span>
+                <span className="inline-flex items-center gap-1"><Users size={13} /> 참여 {m.status === "종료" ? "–" : stats[m.id] ? `${stats[m.id].participants.toLocaleString()}명` : "–"}</span>
+              </div>
+
               {/* ============================================================== */}
               {/* 🚦 6대 카드 상태 표현 매트릭스 (State Matrix)                */}
               {/* ============================================================== */}
@@ -430,6 +445,7 @@ export default function CampaignPage() {
                 {m.status === "종료" && (
                   <Link
                     href={m.href}
+                    onClick={() => trackMissionView(m.id)}
                     className="krds-public-button w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-[#5D6B7E] font-bold text-xs rounded-[14px] text-center block border border-slate-300 touch-target"
                   >
                     [결과 보기]

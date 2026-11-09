@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MapPin, ShieldCheck, CheckCircle2, ChevronLeft, AlertTriangle, Camera, Upload, Lock, Clock, Send, Eye, ShieldAlert, FileText } from "lucide-react";
 import Link from "next/link";
+import { markMissionJoined, useMissionTracking } from "@/lib/missionTracking";
 import Image from "next/image";
 
 export default function BlindSpotPage() {
@@ -10,6 +11,7 @@ export default function BlindSpotPage() {
   const [selectedReportModal, setSelectedReportModal] = useState<any>(null);
   const [showNewReportModal, setShowNewReportModal] = useState(false);
   const [newReportStep, setNewReportStep] = useState(1); // 6단계 신규 제보 폼
+  useMissionTracking("blind-spot");
 
   // 6대 지도 핀 상태 데이터 덱 (13번 명세 100% 완벽 반영!)
   const reports = [
@@ -341,6 +343,7 @@ export default function BlindSpotPage() {
               ) : (
                 <button
                   onClick={() => {
+                    markMissionJoined("blind-spot");
                     alert("🟢 6단계 신규 안전 제보가 정상 접수되었습니다.");
                     setShowNewReportModal(false);
                   }}

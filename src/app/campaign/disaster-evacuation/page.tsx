@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CloudRain, ShieldCheck, CheckCircle2, XCircle, ArrowRight, RefreshCw, Trophy, ChevronLeft, Zap, AlertTriangle, LifeBuoy, Waves, Car, Footprints, Info } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 interface DisasterStep {
   id: number;
@@ -24,6 +25,7 @@ export default function DisasterEvacuationPage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  useMissionTracking("disaster-evacuation", isFinished);
 
   const steps: DisasterStep[] = [
     {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Flame, ShieldCheck, CheckCircle2, XCircle, ArrowRight, RefreshCw, Trophy, ChevronLeft, Zap, AlertTriangle, Wind, DoorClosed, HelpCircle, Layers } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 interface FireEscapeQuestion {
   id: number;
@@ -23,6 +24,7 @@ export default function FireEscapePage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  useMissionTracking("fire-escape", isFinished);
 
   // 완강기 순서 맞추기 퀘스트 상태 (STEP 4)
   const [wanSequence, setWanSequence] = useState<number[]>([]);

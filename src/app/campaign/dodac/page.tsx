@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Headphones, Send, Music, Sparkles, ChevronLeft, Mic, Sun, CloudRain, Heart, Trash2, ShieldCheck, Lock, PhoneCall, ArrowRight, AlertTriangle, ShieldAlert, Check } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 export default function DodacCampaignPage() {
   const [selectedCard, setSelectedCard] = useState<"chat" | "garden" | "privacy">("chat");
@@ -12,6 +13,7 @@ export default function DodacCampaignPage() {
     { role: "ai", text: "안녕하세요. 여기는 당신만을 위한 비공개 힐링 공간, '도닥'입니다. 오늘 당신의 마음 날씨는 어떤가요?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  useMissionTracking("dodac", messages.some(m => m.role === "user"));
   const [gardenLevel, setGardenLevel] = useState(1);
   const [showEmergency, setShowEmergency] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);

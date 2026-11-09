@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ShieldAlert, ArrowRight, RefreshCw, Trophy, Sparkles, CheckCircle2, ChevronLeft, Users, AlertTriangle, Play, HelpCircle } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 export default function MbtiCampaignPage() {
   const [selectedCard, setSelectedCard] = useState<"mbti_test" | "synergy" | "recommend">("mbti_test");
@@ -11,6 +12,7 @@ export default function MbtiCampaignPage() {
   const [answers, setAnswers] = useState<number[]>([]);
   const [showFeedback, setShowFeedback] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
+  useMissionTracking("mbti", !!result);
   const [friendName, setFriendName] = useState("");
   const [synergyResult, setSynergyResult] = useState<string | null>(null);
 

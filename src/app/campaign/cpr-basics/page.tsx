@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Heart, Activity, ShieldCheck, CheckCircle2, ArrowRight, RefreshCw, Trophy, ChevronLeft, Zap, AlertTriangle, Play, Pause, Info, UserCheck, Flame, Radio } from "lucide-react";
 import Link from "next/link";
+import { useMissionTracking } from "@/lib/missionTracking";
 
 export default function CprBasicsPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -21,6 +22,7 @@ export default function CprBasicsPage() {
   const [pad2Placed, setPad2Placed] = useState(false); // 왼쪽 젖꼭지 아래 겨드랑이선
 
   const [isFinished, setIsFinished] = useState(false);
+  useMissionTracking("cpr-basics", isFinished);
 
   // 심장 박동 메트로놈 효과 (분당 110회 템포)
   useEffect(() => {

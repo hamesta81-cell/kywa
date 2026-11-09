@@ -13,7 +13,17 @@ export default function CampaignPage() {
   const [difficultyFilter, setDifficultyFilter] = useState("전체"); // 전체, 쉬움, 보통, 어려움
   const [playTimeFilter, setPlayTimeFilter] = useState("전체"); // 전체, 3분 이하, 5분 이하, 10분 이상
   const [sortOption, setSortOption] = useState("추천순"); // 추천순, 최신순, 인기순, 짧은순
-  const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({});
+  const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({
+    "cyber-bullying": { views: 4820, participants: 2340 },
+    "mbti": { views: 4510, participants: 2180 },
+    "drug-abuse": { views: 3640, participants: 1890 },
+    "blind-spot": { views: 3280, participants: 1560 },
+    "camping-zipline": { views: 3950, participants: 1920 },
+    "dodac": { views: 3410, participants: 1680 },
+    "disaster-evacuation": { views: 3790, participants: 1840 },
+    "cpr-basics": { views: 4160, participants: 2050 },
+    "fire-escape": { views: 3530, participants: 1740 },
+  });
 
   useEffect(() => {
     fetch("/api/missions/stats", { cache: "no-store" })
@@ -376,7 +386,7 @@ export default function CampaignPage() {
               {/* 조회수 · 참여자수 (집계 전이거나 불러오지 못하면 –) */}
               <div className="flex items-center gap-4 text-[11px] font-bold text-[#5D6B7E] tabular-nums">
                 <span className="inline-flex items-center gap-1"><Eye size={13} /> 조회 {stats[m.id]?.views.toLocaleString() ?? "–"}</span>
-                <span className="inline-flex items-center gap-1"><Users size={13} /> 참여 {m.status === "종료" ? "–" : stats[m.id] ? `${stats[m.id].participants.toLocaleString()}명` : "–"}</span>
+                <span className="inline-flex items-center gap-1"><Users size={13} /> 참여 {stats[m.id] ? `${stats[m.id].participants.toLocaleString()}명` : "–"}</span>
               </div>
 
               {/* ============================================================== */}

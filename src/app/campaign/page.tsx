@@ -59,7 +59,7 @@ export default function CampaignPage() {
       completedDate: "2026.07.20",
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/mbti_safety_quiz_hero.png",
+      img: "/images/missions/mission_mbti.png",
       href: "/campaign/mbti",
       borderLeft: "border-l-4 border-l-[#1558C9]",
       tagColor: "bg-blue-50 text-[#1558C9]"
@@ -79,7 +79,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/drug_abuse_prevention_hero.png",
+      img: "/images/missions/mission_drug.png",
       href: "/campaign/drug-abuse",
       borderLeft: "border-l-4 border-l-[#1558C9]",
       tagColor: "bg-blue-50 text-[#1558C9]"
@@ -119,7 +119,7 @@ export default function CampaignPage() {
       completedDate: "2026.06.30",
       lockReason: null,
       maintenanceInfo: null,
-      img: "/images/archive_camping_safety_1777557771794.png",
+      img: "/images/missions/mission_camping.png",
       href: "/archive",
       borderLeft: "border-l-4 border-l-[#159A83]",
       tagColor: "bg-emerald-50 text-[#159A83]"
@@ -139,7 +139,7 @@ export default function CampaignPage() {
       completedDate: null,
       lockReason: null,
       maintenanceInfo: "7/25 14:00 점검 완료 예정",
-      img: "/images/mind_zone_healing_hero.png",
+      img: "/images/missions/mission_dodac.png",
       href: "/campaign/dodac",
       borderLeft: "border-l-4 border-l-[#EC4899]",
       tagColor: "bg-pink-50 text-[#EC4899]"

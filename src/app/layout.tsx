@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import QRCodeWidget from "@/components/QRCodeWidget";
+import SurveyPopup from "@/components/survey/SurveyPopup";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import AuthFetchBridge from "@/components/providers/AuthFetchBridge";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <QRCodeWidget />
+          <SurveyPopup />
         </NextAuthProvider>
       </body>
     </html>

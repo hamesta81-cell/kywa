@@ -37,13 +37,13 @@ export const SATISFACTION_SURVEY = {
   entryPrefix: "SV-2026",
   csvName: "satisfaction_survey",
   title: "청소년 안전문화 확산 사업 참여자 만족도 조사",
-  // 기간·경품·당첨 인원 미정: 2099년 날짜인 동안은 '조사 기간 전'으로만 보인다. 정해지면 아래 값을 바꾼다.
-  startsAt: "2099-01-01T00:00:00+09:00",
-  endsAt: "2099-12-31T23:59:59+09:00",
-  periodLabel: "미정",
-  announceLabel: "미정",
-  prize: "모바일상품권",
-  winnersLabel: "추첨",
+  startsAt: "2026-11-11T00:00:00+09:00",
+  endsAt: "2026-11-13T23:59:59+09:00",
+  periodLabel: "2026. 11. 11.(수) ~ 11. 13.(금)",
+  announceLabel: "2026. 11. 16.(월)",
+  prize: "CU 편의점 모바일상품권(5,000원 상당)",
+  // 선착순은 경품 응모자 CSV의 응모번호 순서(E00001~E00100)로 가린다.
+  winnersLabel: "선착순 100명 + 추첨 100명",
   contact: "청소년 안전문화 확산 운영사무국 02-2088-8456",
   sections: [
     {

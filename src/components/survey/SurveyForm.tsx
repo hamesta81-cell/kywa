@@ -22,7 +22,8 @@ const isPhone = (v: string) => /^01\d{8,9}$/.test(v.replace(/\D/g, ""));
 export default function SurveyForm() {
   const [status] = useState<"before" | "open" | "closed">(() => surveyStatus(new Date()));
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
-  const [wantEvent, setWantEvent] = useState(false);
+  // 경품 응모는 기본으로 펼쳐 둔다(못 보고 지나치지 않게). 개인정보 동의는 직접 체크해야 한다.
+  const [wantEvent, setWantEvent] = useState(true);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [isUnder14, setIsUnder14] = useState(false);
@@ -69,7 +70,7 @@ export default function SurveyForm() {
       }
     }
     if (wantEvent) {
-      if (!name.trim()) return setError("이름을 입력해 주세요.");
+      if (!name.trim()) return setError("경품을 받으실 분의 이름을 입력해 주세요. (응모하지 않으려면 ‘응모하지 않고 설문만 제출합니다’를 골라 주세요.)");
       if (!isPhone(phone)) return setError("휴대전화번호를 확인해 주세요. (예: 010-1234-5678)");
       if (isUnder14 && (!guardianName.trim() || !isPhone(guardianPhone) || !agreeGuardian))
         return setError("만 14세 미만은 보호자 이름·연락처와 보호자 동의가 필요합니다.");
@@ -257,15 +258,32 @@ export default function SurveyForm() {
             {/* 경품 응모(선택) */}
             <section className="bg-white border border-slate-200 rounded-2xl shadow-sm px-6 sm:px-8 py-7 space-y-5">
               <div>
-                <h2 className="text-xl font-black" style={{ color: NAVY }}>경품 응모 <span className="text-sm font-medium text-slate-500">(선택)</span></h2>
+                <h2 className="text-xl font-black" style={{ color: NAVY }}>경품 응모</h2>
                 <p className="mt-1 text-sm text-slate-600 leading-relaxed break-keep">
-                  응모하지 않아도 설문은 제출됩니다. 응모 정보는 설문 응답과 따로 보관하며, 응답 내용과 연결하지 않습니다.
+                  경품({S.prize}, {S.winnersLabel})을 받으려면 이름과 휴대전화번호가 필요합니다.
+                  응모 정보는 설문 응답과 따로 보관하며, 응답 내용과 연결하지 않습니다.
                 </p>
               </div>
-              <label className="flex items-center gap-2 text-base font-bold text-slate-800 cursor-pointer">
-                <input type="checkbox" checked={wantEvent} onChange={e => setWantEvent(e.target.checked)} className="w-4 h-4" />
-                경품 추첨에 응모합니다
-              </label>
+              <div role="radiogroup" aria-label="경품 응모 여부" className="grid sm:grid-cols-2 gap-2">
+                {[
+                  { value: true, label: "경품에 응모합니다" },
+                  { value: false, label: "응모하지 않고 설문만 제출합니다" },
+                ].map(o => {
+                  const checked = wantEvent === o.value;
+                  return (
+                    <label key={String(o.value)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-colors ${checked ? "bg-[#FFF6CC]" : "bg-white hover:bg-slate-50 border-slate-200"}`}
+                      style={checked ? { borderColor: NAVY } : undefined}>
+                      <input type="radio" name="wantEvent" className="sr-only" checked={checked} onChange={() => setWantEvent(o.value)} />
+                      <span className={`flex items-center justify-center shrink-0 w-5 h-5 border-2 rounded-full ${checked ? "text-white" : "border-slate-300"}`}
+                        style={checked ? { background: NAVY, borderColor: NAVY } : undefined}>
+                        {checked && <span className="text-xs font-black leading-none">✓</span>}
+                      </span>
+                      <span className="text-base font-bold text-slate-800 break-keep">{o.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
 
               {/* 자동 입력 방지(사람에게는 보이지 않음) */}
               <input type="text" name="website" value={website} onChange={e => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />

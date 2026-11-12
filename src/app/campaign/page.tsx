@@ -14,15 +14,15 @@ export default function CampaignPage() {
   const [playTimeFilter, setPlayTimeFilter] = useState("전체"); // 전체, 3분 이하, 5분 이하, 10분 이상
   const [sortOption, setSortOption] = useState("추천순"); // 추천순, 최신순, 인기순, 짧은순
   const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({
-    "cyber-bullying": { views: 4820, participants: 2340 },
-    "mbti": { views: 4510, participants: 2180 },
-    "drug-abuse": { views: 3640, participants: 1890 },
-    "blind-spot": { views: 3280, participants: 1560 },
-    "camping-zipline": { views: 3950, participants: 1920 },
-    "dodac": { views: 3410, participants: 1680 },
-    "disaster-evacuation": { views: 3790, participants: 1840 },
-    "cpr-basics": { views: 4160, participants: 2050 },
-    "fire-escape": { views: 3530, participants: 1740 },
+    "cyber-bullying": { views: 4820, participants: 284 },
+    "mbti": { views: 4510, participants: 276 },
+    "drug-abuse": { views: 3640, participants: 238 },
+    "blind-spot": { views: 3280, participants: 207 },
+    "camping-zipline": { views: 3950, participants: 251 },
+    "dodac": { views: 3410, participants: 218 },
+    "disaster-evacuation": { views: 3790, participants: 242 },
+    "cpr-basics": { views: 4160, participants: 263 },
+    "fire-escape": { views: 3530, participants: 229 },
   });
 
   useEffect(() => {

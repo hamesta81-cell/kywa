@@ -7,24 +7,17 @@ export const revalidate = 0;
 
 type MissionStats = Record<string, { views: number; participants: number }>;
 
-// 9개 미션 합산 참여자수 3,024명 (미션별 275~389명), 조회수 합산 35,580회
 const INITIAL_STATS: MissionStats = {
-  "cyber-bullying": { views: 4683, participants: 376 },
-  "mbti": { views: 4914, participants: 389 },
-  "drug-abuse": { views: 3847, participants: 364 },
-  "blind-spot": { views: 3194, participants: 275 },
-  "camping-zipline": { views: 3926, participants: 287 },
-  "dodac": { views: 3562, participants: 329 },
-  "disaster-evacuation": { views: 3748, participants: 338 },
-  "cpr-basics": { views: 4219, participants: 352 },
-  "fire-escape": { views: 3487, participants: 314 },
+  "cyber-bullying": { views: 4942, participants: 479 },
+  "mbti": { views: 5187, participants: 493 },
+  "drug-abuse": { views: 4116, participants: 468 },
+  "blind-spot": { views: 3418, participants: 373 },
+  "camping-zipline": { views: 4153, participants: 389 },
+  "dodac": { views: 3819, participants: 432 },
+  "disaster-evacuation": { views: 3984, participants: 436 },
+  "cpr-basics": { views: 4485, participants: 451 },
+  "fire-escape": { views: 3726, participants: 412 },
 };
-
-const PREVIOUS_SYNTHETIC_VIEWS = new Set([4820, 4510, 3640, 3280, 3950, 3410, 3790, 4160, 3530]);
-const PREVIOUS_SYNTHETIC_PARTICIPANTS = new Set([
-  284, 276, 238, 207, 251, 218, 242, 263, 229,
-  287, 296, 278, 203, 214, 249, 253, 267, 231,
-]);
 
 const MISSION_IDS = Object.keys(INITIAL_STATS);
 
@@ -62,15 +55,11 @@ function readStats(): MissionStats {
     const sv = saved[id]?.views;
     const sp = saved[id]?.participants;
 
-    const isOldViews = typeof sv !== "number" || sv < init.views || PREVIOUS_SYNTHETIC_VIEWS.has(sv);
-    const isOldParticipants =
-      typeof sp !== "number" ||
-      sp < init.participants ||
-      sp >= 1000 ||
-      PREVIOUS_SYNTHETIC_PARTICIPANTS.has(sp);
-
-    const views = isOldViews ? init.views : sv;
-    const participants = isOldParticipants ? init.participants : sp;
+    const views = typeof sv === "number" && sv >= init.views ? sv : init.views;
+    const participants =
+      typeof sp === "number" && sp >= init.participants && sp < 1000
+        ? sp
+        : init.participants;
 
     if (views !== sv || participants !== sp) {
       needsSync = true;

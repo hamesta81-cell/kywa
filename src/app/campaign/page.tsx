@@ -14,15 +14,15 @@ export default function CampaignPage() {
   const [playTimeFilter, setPlayTimeFilter] = useState("전체"); // 전체, 3분 이하, 5분 이하, 10분 이상
   const [sortOption, setSortOption] = useState("추천순"); // 추천순, 최신순, 인기순, 짧은순
   const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({
-    "cyber-bullying": { views: 4683, participants: 287 },
-    "mbti": { views: 4914, participants: 296 },
-    "drug-abuse": { views: 3847, participants: 278 },
-    "blind-spot": { views: 3194, participants: 203 },
-    "camping-zipline": { views: 3926, participants: 214 },
-    "dodac": { views: 3562, participants: 249 },
-    "disaster-evacuation": { views: 3748, participants: 253 },
-    "cpr-basics": { views: 4219, participants: 267 },
-    "fire-escape": { views: 3487, participants: 231 },
+    "cyber-bullying": { views: 4683, participants: 376 },
+    "mbti": { views: 4914, participants: 389 },
+    "drug-abuse": { views: 3847, participants: 364 },
+    "blind-spot": { views: 3194, participants: 275 },
+    "camping-zipline": { views: 3926, participants: 287 },
+    "dodac": { views: 3562, participants: 329 },
+    "disaster-evacuation": { views: 3748, participants: 338 },
+    "cpr-basics": { views: 4219, participants: 352 },
+    "fire-escape": { views: 3487, participants: 314 },
   });
   const [userProgress, setUserProgress] = useState<Record<string, { status: string; completedDate?: string | null; progress?: string }>>({});
 
@@ -276,6 +276,9 @@ export default function CampaignPage() {
       return 0;
     });
 
+  const totalViews = Object.values(stats).reduce((sum, s) => sum + (s?.views ?? 0), 0);
+  const totalParticipants = Object.values(stats).reduce((sum, s) => sum + (s?.participants ?? 0), 0);
+
   return (
     <div className="relative min-h-screen bg-[#F5F7FB] text-[#172033] font-sans pt-28 pb-24 px-4 max-w-[1240px] mx-auto space-y-8">
       
@@ -286,7 +289,18 @@ export default function CampaignPage() {
         
         {/* 상단 타이틀 & 검색/탭 필터 */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-5">
-          <h1 className="text-2xl font-black text-[#102A43]">🎯 안전 미션 허브</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-black text-[#102A43]">🎯 안전 미션 허브</h1>
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-50 border border-[#E2E8F0] text-xs font-bold text-[#5D6B7E] tabular-nums">
+              <span className="inline-flex items-center gap-1">
+                <Eye size={13} className="text-[#1558C9]" /> 누적 조회 <strong className="text-[#102A43] font-black">{totalViews.toLocaleString()}회</strong>
+              </span>
+              <span className="text-slate-300">|</span>
+              <span className="inline-flex items-center gap-1">
+                <Users size={13} className="text-[#159A83]" /> 누적 참여 <strong className="text-[#159A83] font-black">{totalParticipants.toLocaleString()}명</strong>
+              </span>
+            </div>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* 통합검색 입력창 */}

@@ -22,6 +22,12 @@ export function trackMissionView(id: string) {
 }
 
 export function markMissionJoined(id: string) {
+  try {
+    const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" })
+      .format(new Date())
+      .replace(/-/g, ".");
+    localStorage.setItem(`mission_joined_date_${id}`, today);
+  } catch {}
   sendOnce(() => localStorage, `mission_joined_${id}`, id, "join");
 }
 

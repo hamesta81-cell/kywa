@@ -14,22 +14,43 @@ export default function CampaignPage() {
   const [playTimeFilter, setPlayTimeFilter] = useState("전체"); // 전체, 3분 이하, 5분 이하, 10분 이상
   const [sortOption, setSortOption] = useState("추천순"); // 추천순, 최신순, 인기순, 짧은순
   const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({
-    "cyber-bullying": { views: 4820, participants: 284 },
-    "mbti": { views: 4510, participants: 276 },
-    "drug-abuse": { views: 3640, participants: 238 },
-    "blind-spot": { views: 3280, participants: 207 },
-    "camping-zipline": { views: 3950, participants: 251 },
-    "dodac": { views: 3410, participants: 218 },
-    "disaster-evacuation": { views: 3790, participants: 242 },
-    "cpr-basics": { views: 4160, participants: 263 },
-    "fire-escape": { views: 3530, participants: 229 },
+    "cyber-bullying": { views: 4683, participants: 287 },
+    "mbti": { views: 4914, participants: 296 },
+    "drug-abuse": { views: 3847, participants: 278 },
+    "blind-spot": { views: 3194, participants: 203 },
+    "camping-zipline": { views: 3926, participants: 214 },
+    "dodac": { views: 3562, participants: 249 },
+    "disaster-evacuation": { views: 3748, participants: 253 },
+    "cpr-basics": { views: 4219, participants: 267 },
+    "fire-escape": { views: 3487, participants: 231 },
   });
+  const [userProgress, setUserProgress] = useState<Record<string, { status: string; completedDate?: string | null; progress?: string }>>({});
 
   useEffect(() => {
     fetch("/api/missions/stats", { cache: "no-store" })
       .then(res => res.json())
       .then(data => { if (data.success) setStats(data.stats); })
       .catch(() => {});
+
+    try {
+      const ids = ["cyber-bullying", "mbti", "drug-abuse", "blind-spot", "camping-zipline", "dodac", "disaster-evacuation", "cpr-basics", "fire-escape"];
+      const nextProgress: Record<string, { status: string; completedDate?: string | null; progress?: string }> = {};
+      for (const id of ids) {
+        if (localStorage.getItem(`mission_joined_${id}`)) {
+          nextProgress[id] = {
+            status: "완료",
+            completedDate: localStorage.getItem(`mission_joined_date_${id}`) || "2026.11.12",
+            progress: "100%",
+          };
+        } else if (sessionStorage.getItem(`mission_viewed_${id}`)) {
+          nextProgress[id] = {
+            status: "진행 중",
+            progress: "60%",
+          };
+        }
+      }
+      setUserProgress(nextProgress);
+    } catch {}
   }, []);
 
   // 6대 상태 표현 매트릭스가 반영된 미션 데이터 덱 (유저 요구 100% 반영!)
@@ -104,10 +125,10 @@ export default function CampaignPage() {
       difficulty: "어려움",
       starRating: "★★★",
       exp: "+100 XP",
-      status: "잠금",
+      status: "시작 전",
       progress: "0%",
       completedDate: null,
-      lockReason: "Lv.10 달성 시 해금",
+      lockReason: null,
       maintenanceInfo: null,
       img: "/images/missions/mission_blind_spot.png",
       href: "/campaign/blind-spot",
@@ -216,19 +237,44 @@ export default function CampaignPage() {
     }
   ];
 
-  // 필터링 적용
-  const filteredMissions = missions.filter(m => {
-    const matchesSearch = m.title.includes(searchTerm) || m.desc.includes(searchTerm);
-    const matchesStatus = statusTab === "전체" || 
-      (statusTab === "진행 중" && m.status === "진행 중") ||
-      (statusTab === "완료" && m.status === "완료") ||
-      (statusTab === "내 추천" && (m.status === "시작 전" || m.status === "진행 중"));
-    const matchesField = fieldFilter === "전체" || m.category.includes(fieldFilter);
-    const matchesDiff = difficultyFilter === "전체" || m.difficulty === difficultyFilter;
-    const matchesTime = playTimeFilter === "전체" || m.timeCategory === playTimeFilter;
-
-    return matchesSearch && matchesStatus && matchesField && matchesDiff && matchesTime;
+  // 실제 참여 기록 반영 및 필터링·정렬 적용
+  const resolvedMissions = missions.map(m => {
+    const up = userProgress[m.id];
+    if (!up || m.status === "종료") return m;
+    return {
+      ...m,
+      status: up.status,
+      progress: up.progress ?? m.progress,
+      completedDate: up.completedDate ?? m.completedDate,
+    };
   });
+
+  const filteredMissions = resolvedMissions
+    .filter(m => {
+      const matchesSearch = m.title.includes(searchTerm) || m.desc.includes(searchTerm);
+      const matchesStatus = statusTab === "전체" || 
+        (statusTab === "진행 중" && m.status === "진행 중") ||
+        (statusTab === "완료" && m.status === "완료") ||
+        (statusTab === "내 추천" && (m.status === "시작 전" || m.status === "진행 중"));
+      const matchesField = fieldFilter === "전체" || m.category.includes(fieldFilter);
+      const matchesDiff = difficultyFilter === "전체" || m.difficulty === difficultyFilter;
+      const matchesTime = playTimeFilter === "전체" || m.timeCategory === playTimeFilter;
+
+      return matchesSearch && matchesStatus && matchesField && matchesDiff && matchesTime;
+    })
+    .sort((a, b) => {
+      if (sortOption === "인기순") {
+        return (stats[b.id]?.participants ?? 0) - (stats[a.id]?.participants ?? 0);
+      }
+      if (sortOption === "짧은순") {
+        const parseMin = (t: string) => parseInt(t.replace(/[^0-9]/g, ""), 10) || 0;
+        return parseMin(a.time) - parseMin(b.time);
+      }
+      if (sortOption === "최신순") {
+        return resolvedMissions.indexOf(b) - resolvedMissions.indexOf(a);
+      }
+      return 0;
+    });
 
   return (
     <div className="relative min-h-screen bg-[#F5F7FB] text-[#172033] font-sans pt-28 pb-24 px-4 max-w-[1240px] mx-auto space-y-8">

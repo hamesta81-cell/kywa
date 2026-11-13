@@ -38,8 +38,8 @@ export const SATISFACTION_SURVEY = {
   csvName: "satisfaction_survey",
   title: "청소년 안전문화 확산 사업 참여자 만족도 조사",
   startsAt: "2026-11-11T00:00:00+09:00",
-  endsAt: "2026-11-13T23:59:59+09:00",
-  periodLabel: "2026. 11. 11.(수) ~ 11. 13.(금)",
+  endsAt: "2026-11-14T23:59:59+09:00",
+  periodLabel: "2026. 11. 11.(수) ~ 11. 14.(토)",
   announceLabel: "2026. 11. 16.(월)",
   prize: "CU 편의점 모바일상품권(5,000원 상당)",
   // 선착순은 경품 응모자 CSV의 응모번호 순서(E00001~E00100)로 가린다.

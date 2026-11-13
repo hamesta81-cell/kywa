@@ -19,7 +19,7 @@ export default function QuizWinnersPage() {
     ["문의", W.contact],
   ];
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div className="max-w-3xl mx-auto px-4 pt-28 pb-16">
       <p className="text-sm font-black text-[#E8322B]">공지</p>
       <h1 className="mt-1 text-2xl md:text-3xl font-black text-[#142B63] break-keep">{W.title}</h1>
       <p className="mt-3 text-slate-700 leading-relaxed break-keep">

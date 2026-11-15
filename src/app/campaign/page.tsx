@@ -14,15 +14,15 @@ export default function CampaignPage() {
   const [playTimeFilter, setPlayTimeFilter] = useState("전체"); // 전체, 3분 이하, 5분 이하, 10분 이상
   const [sortOption, setSortOption] = useState("추천순"); // 추천순, 최신순, 인기순, 짧은순
   const [stats, setStats] = useState<Record<string, { views: number; participants: number }>>({
-    "cyber-bullying": { views: 4942, participants: 479 },
-    "mbti": { views: 5187, participants: 493 },
-    "drug-abuse": { views: 4116, participants: 468 },
-    "blind-spot": { views: 3418, participants: 373 },
-    "camping-zipline": { views: 4153, participants: 389 },
-    "dodac": { views: 3819, participants: 432 },
-    "disaster-evacuation": { views: 3984, participants: 436 },
-    "cpr-basics": { views: 4485, participants: 451 },
-    "fire-escape": { views: 3726, participants: 412 },
+    "cyber-bullying": { views: 6084, participants: 627 },
+    "mbti": { views: 6342, participants: 648 },
+    "drug-abuse": { views: 5093, participants: 619 },
+    "blind-spot": { views: 4294, participants: 497 },
+    "camping-zipline": { views: 4627, participants: 486 },
+    "dodac": { views: 4836, participants: 581 },
+    "disaster-evacuation": { views: 4869, participants: 572 },
+    "cpr-basics": { views: 5471, participants: 594 },
+    "fire-escape": { views: 4538, participants: 538 },
   });
   const [userProgress, setUserProgress] = useState<Record<string, { status: string; completedDate?: string | null; progress?: string }>>({});
 

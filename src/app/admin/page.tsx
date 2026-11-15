@@ -63,6 +63,19 @@ export default function AdminPage() {
 
   // 👥 실시간 일일 및 전체 누적 방문자 통계 상태
   const [visitorStats, setVisitorStats] = useState<{ today: number; total: number }>({ today: 0, total: 0 });
+  const [missionOverview, setMissionOverview] = useState<{
+    totalViews: number;
+    totalParticipants: number;
+    totalRecords: number;
+    filteredTotal: number;
+  }>({ totalViews: 0, totalParticipants: 0, totalRecords: 0, filteredTotal: 0 });
+  const [missionRecords, setMissionRecords] = useState<any[]>([]);
+  const [missionDailyTrend, setMissionDailyTrend] = useState<
+    { date: string; label: string; views: number; participants: number }[]
+  >([]);
+  const [selectedMissionFilter, setSelectedMissionFilter] = useState<string>("all");
+  const [missionLogPage, setMissionLogPage] = useState<number>(0);
+  const [missionCsvDownloading, setMissionCsvDownloading] = useState<boolean>(false);
 
   // 🛡️ [만 14세 미만 관리자 5대 기능 전용 상태]
   const [purgeAuditLogs, setPurgeAuditLogs] = useState<any[]>([
@@ -192,9 +205,89 @@ export default function AdminPage() {
               setVisitorStats({ today: data.today, total: data.total });
             }
           }).catch(() => {});
+
+        // 🎯 안전 미션 통계 및 실제 참여 기록 로그 불러오기
+        fetch(`/api/missions/stats?scope=admin&missionId=${encodeURIComponent(selectedMissionFilter)}&limit=30&offset=${missionLogPage * 30}&t=${Date.now()}`, { cache: "no-store" })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              if (Array.isArray(data.missionsSummary)) {
+                setCampaigns(
+                  data.missionsSummary.map((m: any) => ({
+                    id: m.id,
+                    name: m.title,
+                    category: m.category,
+                    date: m.period,
+                    views: m.views,
+                    participantCount: m.participants,
+                    participants: `${Number(m.participants).toLocaleString()}명`,
+                    completionRate: m.completionRate,
+                    avgDurationSec: m.avgDurationSec,
+                    xp: m.xp,
+                    status: m.status === "진행 중" ? "진행중" : m.status,
+                  }))
+                );
+              }
+              setMissionOverview({
+                totalViews: data.totalViews || 0,
+                totalParticipants: data.totalParticipants || 0,
+                totalRecords: data.totalRecords || 0,
+                filteredTotal: data.filteredTotal ?? data.totalRecords ?? 0,
+              });
+              if (Array.isArray(data.records)) setMissionRecords(data.records);
+              if (Array.isArray(data.dailyTrend)) setMissionDailyTrend(data.dailyTrend);
+            }
+          }).catch(() => {});
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const fetchAdminMissionLogs = async (missionFilter: string, pageIdx: number) => {
+    setSelectedMissionFilter(missionFilter);
+    setMissionLogPage(pageIdx);
+    try {
+      const res = await fetch(
+        `/api/missions/stats?scope=admin&missionId=${encodeURIComponent(missionFilter)}&limit=30&offset=${pageIdx * 30}&t=${Date.now()}`,
+        { cache: "no-store" }
+      );
+      const data = await res.json();
+      if (data.success) {
+        setMissionOverview({
+          totalViews: data.totalViews || 0,
+          totalParticipants: data.totalParticipants || 0,
+          totalRecords: data.totalRecords || 0,
+          filteredTotal: data.filteredTotal ?? data.totalRecords ?? 0,
+        });
+        if (Array.isArray(data.records)) setMissionRecords(data.records);
+      }
+    } catch {}
+  };
+
+  const handleDownloadMissionLogsCsv = async () => {
+    if (missionCsvDownloading) return;
+    setMissionCsvDownloading(true);
+    try {
+      const qs = selectedMissionFilter !== "all" ? `&missionId=${encodeURIComponent(selectedMissionFilter)}` : "";
+      const res = await fetch(`/api/missions/stats?format=csv${qs}&t=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) {
+        alert("관리자 인증이 만료되었거나 CSV를 생성하지 못했습니다.");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `kywa_mission_participation_logs_${selectedMissionFilter}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("CSV 다운로드 중 오류가 발생했습니다.");
+    } finally {
+      setMissionCsvDownloading(false);
     }
   };
 
@@ -1031,26 +1124,56 @@ export default function AdminPage() {
         {/* ==================================================================== */}
         {activeNav === "campaign" && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
               <div>
                 <h2 className="text-base font-black text-white flex items-center gap-2">
-                  🎯 대국민 안전 캠페인 설정 및 상태 관리
+                  🎯 대국민 안전 캠페인 설정 및 실제 참여 기록 관리
                 </h2>
-                <p className="text-xs text-slate-400">MBTI 진단, 숏폼 챌린지, 사이버폭력 예방 캠페인의 상태를 변경하거나 신규 등록합니다.</p>
+                <p className="text-xs text-slate-400">
+                  9대 안전 미션별 누적 조회·실제 완료 기록({missionOverview.totalRecords.toLocaleString()}건)과 일자별 참여 로그를 확인합니다.
+                </p>
               </div>
-              <button onClick={() => alert("🎉 신규 캠페인 등록 모달이 열렸습니다.")} className="px-4 py-2 bg-[#1558C9] text-white font-bold rounded-lg flex items-center gap-1.5">
-                <Plus size={15} /> <span>[신규 캠페인 개설]</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleDownloadMissionLogsCsv}
+                  disabled={missionCsvDownloading}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"
+                >
+                  <Download size={14} />
+                  <span>{missionCsvDownloading ? "내보내는 중..." : "참여기록 전체 CSV 다운로드"}</span>
+                </button>
+                <button onClick={() => alert("🎉 신규 캠페인 등록 모달이 열렸습니다.")} className="px-4 py-2 bg-[#1558C9] text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
+                  <Plus size={15} /> <span>[신규 캠페인 개설]</span>
+                </button>
+              </div>
             </div>
 
-            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <div className="text-[11px] font-bold text-slate-400">총 미션 누적 조회수</div>
+                <div className="text-xl font-black text-cyan-400 mt-1">{missionOverview.totalViews.toLocaleString()}회</div>
+              </div>
+              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <div className="text-[11px] font-bold text-slate-400">실제 완료 참여 기록 (1:1 로그 일치)</div>
+                <div className="text-xl font-black text-emerald-400 mt-1">{missionOverview.totalParticipants.toLocaleString()}명 ({missionOverview.totalRecords.toLocaleString()}건)</div>
+              </div>
+              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <div className="text-[11px] font-bold text-slate-400">평균 미션 완료율</div>
+                <div className="text-xl font-black text-amber-400 mt-1">
+                  {missionOverview.totalViews > 0 ? ((missionOverview.totalParticipants / missionOverview.totalViews) * 100).toFixed(1) : "0.0"}%
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-900 border-b border-slate-700 text-slate-400 font-black">
                     <th className="p-3.5">캠페인명</th>
                     <th className="p-3.5">카테고리</th>
                     <th className="p-3.5">진행 기간</th>
-                    <th className="p-3.5">참여 청소년/국민</th>
+                    <th className="p-3.5">조회 / 참여 (완료율)</th>
+                    <th className="p-3.5">평균 소요시간</th>
                     <th className="p-3.5">현재 상태</th>
                     <th className="p-3.5 text-right">관리 조치</th>
                   </tr>
@@ -1061,24 +1184,139 @@ export default function AdminPage() {
                       <td className="p-3.5 font-black text-white">{c.name}</td>
                       <td className="p-3.5 text-cyan-300 font-bold">{c.category}</td>
                       <td className="p-3.5 text-slate-400">{c.date}</td>
-                      <td className="p-3.5 text-emerald-400 font-black">{c.participants}</td>
                       <td className="p-3.5">
-                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${c.status === "진행중" ? "bg-emerald-950 text-emerald-400 border border-emerald-500/40" : "bg-amber-950 text-amber-400 border border-amber-500/40"}`}>
+                        <span className="text-slate-300 font-bold">{Number(c.views || 0).toLocaleString()}회</span>
+                        <span className="mx-1.5 text-slate-500">/</span>
+                        <span className="text-emerald-400 font-black">{c.participants}</span>
+                        {typeof c.completionRate === "number" && (
+                          <span className="ml-1.5 text-[10px] text-amber-300 font-bold">({c.completionRate}%)</span>
+                        )}
+                      </td>
+                      <td className="p-3.5 text-slate-300 font-bold">
+                        {c.avgDurationSec ? `${Math.floor(c.avgDurationSec / 60)}분 ${c.avgDurationSec % 60}초` : "-"}
+                      </td>
+                      <td className="p-3.5">
+                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${c.status === "진행중" ? "bg-emerald-950 text-emerald-400 border border-emerald-500/40" : c.status === "종료" ? "bg-slate-900 text-slate-400 border border-slate-600" : "bg-amber-950 text-amber-400 border border-amber-500/40"}`}>
                           {c.status}
                         </span>
                       </td>
                       <td className="p-3.5 text-right space-x-2">
+                        <button
+                          onClick={() => fetchAdminMissionLogs(String(c.id), 0)}
+                          className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-cyan-300 font-bold"
+                        >
+                          로그 조회
+                        </button>
                         <button onClick={() => setCampaigns(prev => prev.map(item => item.id === c.id ? { ...item, status: item.status === "진행중" ? "일시정지" : "진행중" } : item))} className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-slate-200">
                           {c.status === "진행중" ? "일시정지" : "재개"}
-                        </button>
-                        <button onClick={() => alert(`✏️ '${c.name}' 캠페인 설정 변경 모달`)} className="px-2.5 py-1 bg-[#1558C9] hover:bg-blue-600 rounded text-white font-bold">
-                          수정
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {missionDailyTrend.length > 0 && (
+              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black text-white">📊 최근 14일 일별 미션 참여 추이</h3>
+                  <span className="text-[11px] text-slate-400">
+                    최근 14일 완료 {missionDailyTrend.reduce((s, d) => s + d.participants, 0).toLocaleString()}건
+                  </span>
+                </div>
+                <div className="flex items-end gap-1.5 h-24 pt-2">
+                  {(() => {
+                    const maxP = Math.max(...missionDailyTrend.map(d => d.participants), 1);
+                    return missionDailyTrend.map(day => (
+                      <div
+                        key={day.date}
+                        title={`${day.date}: 참여 ${day.participants}명 / 조회 ${day.views}회`}
+                        className="flex-1 min-w-0 flex flex-col items-center justify-end h-full gap-1"
+                      >
+                        <span className="text-[9px] text-emerald-300 font-bold">{day.participants}</span>
+                        <div
+                          className="w-full bg-emerald-500/80 hover:bg-emerald-400 rounded-t transition-all"
+                          style={{ height: `${Math.max(10, Math.round((day.participants / maxP) * 100))}%` }}
+                        />
+                        <span className="text-[9px] text-slate-400">{day.label.slice(3)}</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+              <div className="p-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-black text-white">
+                    📋 실제 미션 참여 완료 로그 (필터 결과 {missionOverview.filteredTotal.toLocaleString()}건)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    성명·연락처 등 개인식별정보 없이 세션 완료 시각·결과 요약·소요시간만 영구 저장됩니다.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <select
+                    value={selectedMissionFilter}
+                    onChange={(e) => fetchAdminMissionLogs(e.target.value, 0)}
+                    className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2.5 py-1.5 font-bold"
+                  >
+                    <option value="all">전체 9개 미션</option>
+                    {campaigns.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    disabled={missionLogPage === 0}
+                    onClick={() => fetchAdminMissionLogs(selectedMissionFilter, Math.max(0, missionLogPage - 1))}
+                    className="px-2.5 py-1.5 bg-slate-900 border border-slate-600 text-slate-200 rounded-lg font-bold disabled:opacity-40"
+                  >
+                    이전
+                  </button>
+                  <span className="text-slate-300 font-bold px-1">
+                    {missionLogPage + 1} / {Math.max(1, Math.ceil(missionOverview.filteredTotal / 30))}
+                  </span>
+                  <button
+                    disabled={(missionLogPage + 1) * 30 >= missionOverview.filteredTotal}
+                    onClick={() => fetchAdminMissionLogs(selectedMissionFilter, missionLogPage + 1)}
+                    className="px-2.5 py-1.5 bg-slate-900 border border-slate-600 text-slate-200 rounded-lg font-bold disabled:opacity-40"
+                  >
+                    다음
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-900 border-b border-slate-700 text-slate-400 font-black">
+                      <th className="p-3">참여번호</th>
+                      <th className="p-3">완료일시 (KST)</th>
+                      <th className="p-3">미션명</th>
+                      <th className="p-3">참여 결과 요약</th>
+                      <th className="p-3">소요시간</th>
+                      <th className="p-3">획득 XP</th>
+                      <th className="p-3">접속환경</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/60 font-medium">
+                    {missionRecords.map((rec: any) => (
+                      <tr key={rec.id} className="hover:bg-slate-700/40 transition-colors">
+                        <td className="p-3 font-mono text-cyan-300 font-bold">{rec.id}</td>
+                        <td className="p-3 text-slate-300 whitespace-nowrap">{String(rec.completedAt || "").replace("T", " ").replace("+09:00", "")}</td>
+                        <td className="p-3 font-bold text-white">{rec.missionTitle}</td>
+                        <td className="p-3 text-slate-300">{rec.resultSummary}</td>
+                        <td className="p-3 text-slate-300 whitespace-nowrap">
+                          {Math.floor((rec.durationSec || 0) / 60)}분 {(rec.durationSec || 0) % 60}초
+                        </td>
+                        <td className="p-3 text-emerald-400 font-black">+{rec.xpEarned} XP</td>
+                        <td className="p-3 text-slate-400">{rec.device === "mobile" ? "모바일 웹" : "PC 웹"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

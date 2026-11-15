@@ -1,120 +1,143 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import { getPersistentFilePath } from "@/lib/diskStorage";
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-type MissionStats = Record<string, { views: number; participants: number }>;
-
-const INITIAL_STATS: MissionStats = {
-  "cyber-bullying": { views: 6084, participants: 627 },
-  "mbti": { views: 6342, participants: 648 },
-  "drug-abuse": { views: 5093, participants: 619 },
-  "blind-spot": { views: 4294, participants: 497 },
-  "camping-zipline": { views: 4627, participants: 486 },
-  "dodac": { views: 4836, participants: 581 },
-  "disaster-evacuation": { views: 4869, participants: 572 },
-  "cpr-basics": { views: 5471, participants: 594 },
-  "fire-escape": { views: 4538, participants: 538 },
-};
-
-const MISSION_IDS = Object.keys(INITIAL_STATS);
+import { authError, readAuth } from "@/lib/serverAuth";
+import {
+  exportMissionLogsCsv,
+  getAdminMissionSummary,
+  getPublicMissionSummary,
+  isValidMissionId,
+  recordMissionEvent,
+} from "@/lib/missionParticipationStore";
 
 const NO_CACHE_HEADERS = {
-  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
-  "Pragma": "no-cache",
-  "Expires": "0"
+  "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+  Pragma: "no-cache",
 };
 
-function statsFile() {
-  return getPersistentFilePath("mission_stats.json");
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+const RATE_MAX_REQUESTS = 300;
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function getClientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "unknown";
 }
 
-function writeStats(stats: MissionStats) {
-  try {
-    const file = statsFile();
-    const tmp = `${file}.${process.pid}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(stats, null, 2), "utf-8");
-    fs.renameSync(tmp, file);
-  } catch {}
-}
-
-function readStats(): MissionStats {
-  let saved: MissionStats = {};
-  let needsSync = false;
-  try {
-    saved = JSON.parse(fs.readFileSync(statsFile(), "utf-8"));
-  } catch {
-    needsSync = true;
-  }
-
-  const result: MissionStats = {};
-  for (const id of MISSION_IDS) {
-    const init = INITIAL_STATS[id];
-    const sv = saved[id]?.views;
-    const sp = saved[id]?.participants;
-
-    const views = typeof sv === "number" && sv >= init.views ? sv : init.views;
-    const participants =
-      typeof sp === "number" && sp >= init.participants ? sp : init.participants;
-
-    if (views !== sv || participants !== sp) {
-      needsSync = true;
-    }
-    result[id] = { views, participants };
-  }
-
-  if (needsSync) {
-    writeStats(result);
-  }
-
-  return result;
-}
-
-// 같은 접속지에서 숫자를 마구 올리지 못하게 막는다. 학교 전산실은 접속지 하나를 함께 쓰므로 넉넉히 둔다.
-const hits = new Map<string, { count: number; since: number }>();
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_HITS = 300;
-
-function isLimited(req: Request) {
-  const ip = req.headers.get("cf-connecting-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "local";
+function allowRequest(ip: string): boolean {
   const now = Date.now();
-  if (hits.size > 5000) hits.clear();
-  const h = hits.get(ip);
-  if (!h || now - h.since >= WINDOW_MS) {
-    hits.set(ip, { count: 1, since: now });
-    return false;
+  const bucket = rateBuckets.get(ip);
+  if (!bucket || now >= bucket.resetAt) {
+    if (rateBuckets.size > 2000) rateBuckets.clear();
+    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
   }
-  h.count += 1;
-  return h.count > MAX_HITS;
+  if (bucket.count >= RATE_MAX_REQUESTS) return false;
+  bucket.count += 1;
+  return true;
 }
 
-export async function GET() {
-  return NextResponse.json({ success: true, stats: readStats() }, { headers: NO_CACHE_HEADERS });
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const scope = url.searchParams.get("scope");
+    const format = url.searchParams.get("format");
+    const missionId = url.searchParams.get("missionId") || undefined;
+    const limitParam = Number(url.searchParams.get("limit"));
+    const offsetParam = Number(url.searchParams.get("offset"));
+    const recentParam = Number(url.searchParams.get("recent"));
+
+    const user = readAuth(req);
+    const isAdmin = user?.role === "ADMIN";
+
+    if (format === "csv") {
+      if (!isAdmin) {
+        return authError(user ? 403 : 401);
+      }
+      const csv = exportMissionLogsCsv(missionId);
+      const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(new Date());
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          ...NO_CACHE_HEADERS,
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="kywa_mission_participation_logs_${today}.csv"`,
+        },
+      });
+    }
+
+    if (scope === "admin") {
+      if (!isAdmin) {
+        return authError(user ? 403 : 401);
+      }
+      const data = getAdminMissionSummary({
+        missionId,
+        limit: Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50,
+        offset: Number.isFinite(offsetParam) && offsetParam >= 0 ? offsetParam : 0,
+      });
+      return NextResponse.json({ success: true, ...data }, { headers: NO_CACHE_HEADERS });
+    }
+
+    if (isAdmin && scope !== "public") {
+      const data = getAdminMissionSummary({
+        missionId,
+        limit: Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50,
+        offset: Number.isFinite(offsetParam) && offsetParam >= 0 ? offsetParam : 0,
+      });
+      return NextResponse.json({ success: true, ...data }, { headers: NO_CACHE_HEADERS });
+    }
+
+    const recentLimit = Number.isFinite(recentParam) && recentParam > 0 ? recentParam : 20;
+    const publicData = getPublicMissionSummary(recentLimit);
+    return NextResponse.json({ success: true, ...publicData }, { headers: NO_CACHE_HEADERS });
+  } catch (err) {
+    console.error("Mission stats GET error:", err);
+    return NextResponse.json(
+      { success: false, error: "미션 통계를 불러오지 못했습니다." },
+      { status: 500, headers: NO_CACHE_HEADERS }
+    );
+  }
 }
 
 export async function POST(req: Request) {
-  let body: { id?: unknown; type?: unknown };
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ success: false }, { status: 400, headers: NO_CACHE_HEADERS });
-  }
-  const id = String(body.id ?? "");
-  const type = body.type;
-  if (!MISSION_IDS.includes(id) || (type !== "view" && type !== "join")) {
-    return NextResponse.json({ success: false }, { status: 400, headers: NO_CACHE_HEADERS });
-  }
-  if (isLimited(req)) {
-    return NextResponse.json({ success: false }, { status: 429, headers: NO_CACHE_HEADERS });
-  }
+    const ip = getClientIp(req);
+    if (!allowRequest(ip)) {
+      return NextResponse.json(
+        { success: false, error: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." },
+        { status: 429, headers: NO_CACHE_HEADERS }
+      );
+    }
 
-  // 읽기부터 쓰기까지 await 없이 처리해 동시 요청에도 숫자가 꼬이지 않게 한다.
-  const stats = readStats();
-  if (type === "view") stats[id].views += 1;
-  else stats[id].participants += 1;
-  writeStats(stats);
+    const body = await req.json();
+    const id = typeof body?.id === "string" ? body.id.trim() : "";
+    const type = body?.type === "view" || body?.type === "join" ? body.type : null;
 
-  return NextResponse.json({ success: true, stats: stats[id] }, { headers: NO_CACHE_HEADERS });
+    if (!isValidMissionId(id) || !type) {
+      return NextResponse.json(
+        { success: false, error: "유효하지 않은 미션 요청입니다." },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    const durationSec =
+      typeof body?.durationSec === "number" ? body.durationSec : undefined;
+    const resultSummary =
+      typeof body?.resultSummary === "string" ? body.resultSummary : undefined;
+    const device =
+      body?.device === "mobile" || body?.device === "desktop" ? body.device : undefined;
+
+    const updated = recordMissionEvent(id, type, {
+      durationSec,
+      resultSummary,
+      device,
+    });
+
+    return NextResponse.json({ success: true, ...updated }, { headers: NO_CACHE_HEADERS });
+  } catch (err) {
+    console.error("Mission stats POST error:", err);
+    return NextResponse.json(
+      { success: false, error: "미션 참여 기록 저장 중 오류가 발생했습니다." },
+      { status: 500, headers: NO_CACHE_HEADERS }
+    );
+  }
 }

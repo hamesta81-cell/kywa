@@ -343,7 +343,9 @@ export default function BlindSpotPage() {
               ) : (
                 <button
                   onClick={() => {
-                    markMissionJoined("blind-spot");
+                    markMissionJoined("blind-spot", {
+                      resultSummary: "우리 동네 안전사각지대 6단계 신규 제보 접수 완료 (+100 XP)",
+                    });
                     alert("🟢 6단계 신규 안전 제보가 정상 접수되었습니다.");
                     setShowNewReportModal(false);
                   }}

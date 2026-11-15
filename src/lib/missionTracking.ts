@@ -2,42 +2,99 @@
 
 import { useEffect } from "react";
 
-// 안전 미션 조회수·참여자수 집계. 조회는 브라우저 세션마다 1번, 참여는 미션을 끝낸 브라우저마다 1번만 보낸다.
-function sendOnce(getStorage: () => Storage, key: string, id: string, type: "view" | "join") {
+export interface MissionJoinMeta {
+  resultSummary?: string;
+  durationSec?: number;
+}
+
+function detectClientDevice(): "mobile" | "desktop" {
   try {
-    const storage = getStorage();
-    if (storage.getItem(key)) return;
-    storage.setItem(key, "1");
+    if (window.innerWidth < 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      return "mobile";
+    }
   } catch {}
-  fetch("/api/missions/stats", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, type }),
-    keepalive: true,
-  }).catch(() => {});
+  return "desktop";
+}
+
+function getElapsedDurationSec(id: string): number | undefined {
+  try {
+    const raw = sessionStorage.getItem(`mission_started_${id}`);
+    if (!raw) return undefined;
+    const started = Number(raw);
+    if (!Number.isFinite(started) || started <= 0) return undefined;
+    const sec = Math.round((Date.now() - started) / 1000);
+    return Math.min(1800, Math.max(8, sec));
+  } catch {
+    return undefined;
+  }
+}
+
+function sendOnce(
+  getStorage: () => Storage,
+  key: string,
+  payload: Record<string, unknown>
+) {
+  try {
+    const store = getStorage();
+    if (store.getItem(key)) return;
+    store.setItem(key, "1");
+    fetch("/api/missions/stats", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch {
+    // 스토리지가 차단된 환경에서도 페이지 동작에 영향 주지 않음
+  }
 }
 
 export function trackMissionView(id: string) {
-  sendOnce(() => sessionStorage, `mission_viewed_${id}`, id, "view");
+  try {
+    const startKey = `mission_started_${id}`;
+    if (!sessionStorage.getItem(startKey)) {
+      sessionStorage.setItem(startKey, String(Date.now()));
+    }
+  } catch {}
+  sendOnce(() => sessionStorage, `mission_viewed_${id}`, {
+    id,
+    type: "view",
+    device: detectClientDevice(),
+  });
 }
 
-export function markMissionJoined(id: string) {
+export function markMissionJoined(id: string, meta?: MissionJoinMeta) {
   try {
     const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" })
       .format(new Date())
       .replace(/-/g, ".");
     localStorage.setItem(`mission_joined_date_${id}`, today);
+    if (meta?.resultSummary) {
+      localStorage.setItem(`mission_joined_summary_${id}`, meta.resultSummary);
+    }
   } catch {}
-  sendOnce(() => localStorage, `mission_joined_${id}`, id, "join");
+
+  const durationSec = meta?.durationSec ?? getElapsedDurationSec(id);
+  sendOnce(() => localStorage, `mission_joined_${id}`, {
+    id,
+    type: "join",
+    durationSec,
+    resultSummary: meta?.resultSummary,
+    device: detectClientDevice(),
+  });
 }
 
-// 미션 화면에서 호출: 화면을 열면 조회, joined가 참이 되면 참여로 센다.
-export function useMissionTracking(id: string, joined = false) {
+export function useMissionTracking(
+  id: string,
+  joined = false,
+  resultSummary?: string
+) {
   useEffect(() => {
     trackMissionView(id);
   }, [id]);
 
   useEffect(() => {
-    if (joined) markMissionJoined(id);
-  }, [id, joined]);
+    if (joined) {
+      markMissionJoined(id, { resultSummary });
+    }
+  }, [id, joined, resultSummary]);
 }

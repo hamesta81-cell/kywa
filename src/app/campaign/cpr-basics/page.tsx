@@ -22,7 +22,13 @@ export default function CprBasicsPage() {
   const [pad2Placed, setPad2Placed] = useState(false); // 왼쪽 젖꼭지 아래 겨드랑이선
 
   const [isFinished, setIsFinished] = useState(false);
-  useMissionTracking("cpr-basics", isFinished);
+  useMissionTracking(
+    "cpr-basics",
+    isFinished,
+    isFinished
+      ? `골든타임 4분 · 가슴압박 ${pressCount}회 + AED 적용 공식 라이프가디언 (+80 XP)`
+      : undefined
+  );
 
   // 심장 박동 메트로놈 효과 (분당 110회 템포)
   useEffect(() => {

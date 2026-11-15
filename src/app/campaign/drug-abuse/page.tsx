@@ -12,7 +12,13 @@ export default function DrugAbuseCampaignPage() {
   const [quizIdx, setQuizIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  useMissionTracking("drug-abuse", isFinished);
+  useMissionTracking(
+    "drug-abuse",
+    isFinished,
+    isFinished
+      ? `${level === "beginner" ? "초급" : level === "intermediate" ? "중급" : "고급"} 약물 예방 퀴즈 수료 · ${score}점 (+40 XP)`
+      : undefined
+  );
 
   const [caffeineDrinks, setCaffeineDrinks] = useState({ coffee: 0, energy: 0, tea: 0 });
   const totalCaffeine = (caffeineDrinks.coffee * 100) + (caffeineDrinks.energy * 160) + (caffeineDrinks.tea * 40);

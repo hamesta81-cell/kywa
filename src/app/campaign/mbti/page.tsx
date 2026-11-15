@@ -12,7 +12,11 @@ export default function MbtiCampaignPage() {
   const [answers, setAnswers] = useState<number[]>([]);
   const [showFeedback, setShowFeedback] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
-  useMissionTracking("mbti", !!result);
+  useMissionTracking(
+    "mbti",
+    !!result,
+    result ? `${result.typeName} · 생존지수 ${result.score}점 (+50 XP)` : undefined
+  );
   const [friendName, setFriendName] = useState("");
   const [synergyResult, setSynergyResult] = useState<string | null>(null);
 

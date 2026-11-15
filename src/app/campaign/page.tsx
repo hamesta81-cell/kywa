@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Play, CheckCircle2, Lock, RotateCcw, Wrench, ChevronRight, Star, Clock, Zap, Filter, Award, Eye, Users } from "lucide-react";
+import { Search, Play, CheckCircle2, Lock, RotateCcw, Wrench, ChevronRight, Star, Clock, Zap, Filter, Award, Eye, Users, Activity, History } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { trackMissionView } from "@/lib/missionTracking";
@@ -25,11 +25,33 @@ export default function CampaignPage() {
     "fire-escape": { views: 4538, participants: 538 },
   });
   const [userProgress, setUserProgress] = useState<Record<string, { status: string; completedDate?: string | null; progress?: string }>>({});
+  const [recentRecords, setRecentRecords] = useState<
+    {
+      id: string;
+      missionId: string;
+      missionTitle: string;
+      category: string;
+      completedAt: string;
+      durationSec: number;
+      xpEarned: number;
+      resultSummary: string;
+      device: "mobile" | "desktop";
+    }[]
+  >([]);
+  const [dailyTrend, setDailyTrend] = useState<
+    { date: string; label: string; views: number; participants: number }[]
+  >([]);
 
   useEffect(() => {
-    fetch("/api/missions/stats", { cache: "no-store" })
+    fetch("/api/missions/stats?recent=8", { cache: "no-store" })
       .then(res => res.json())
-      .then(data => { if (data.success) setStats(data.stats); })
+      .then(data => {
+        if (data.success) {
+          if (data.stats) setStats(data.stats);
+          if (Array.isArray(data.recentRecords)) setRecentRecords(data.recentRecords);
+          if (Array.isArray(data.dailyTrend)) setDailyTrend(data.dailyTrend);
+        }
+      })
       .catch(() => {});
 
     try {
@@ -543,6 +565,118 @@ export default function CampaignPage() {
           </div>
         ))}
       </div>
+
+      {/* 실시간 미션 참여 기록 & 최근 14일 참여 추이 */}
+      {(recentRecords.length > 0 || dailyTrend.length > 0) && (
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+          <div className="lg:col-span-5 krds-public-card p-5 bg-white space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
+              <div>
+                <h2 className="text-sm font-black text-[#102A43] flex items-center gap-1.5">
+                  <Activity size={16} className="text-[#1558C9]" /> 최근 14일 일별 미션 참여 추이
+                </h2>
+                <p className="text-[11px] text-[#5D6B7E] font-medium mt-0.5">
+                  실제 참여 완료 기록 기반 일자별 참여 건수
+                </p>
+              </div>
+              <span className="text-[11px] font-black text-[#159A83] bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-[8px]">
+                누적 {totalParticipants.toLocaleString()}명
+              </span>
+            </div>
+
+            {dailyTrend.length > 0 && (() => {
+              const maxP = Math.max(...dailyTrend.map(d => d.participants), 1);
+              return (
+                <div className="space-y-2.5">
+                  <div className="flex items-end gap-1.5 h-32 pt-4 px-1">
+                    {dailyTrend.map((day) => {
+                      const pct = Math.max(12, Math.round((day.participants / maxP) * 100));
+                      return (
+                        <div
+                          key={day.date}
+                          title={`${day.date}: 참여 ${day.participants}명 / 조회 ${day.views}회`}
+                          className="flex-1 min-w-0 flex flex-col items-center justify-end h-full gap-1 group"
+                        >
+                          <span className="text-[9px] font-bold text-[#1558C9] opacity-0 group-hover:opacity-100 transition-opacity">
+                            {day.participants}
+                          </span>
+                          <div
+                            className="w-full rounded-t-[4px] bg-[#1558C9]/80 group-hover:bg-[#1558C9] transition-all"
+                            style={{ height: `${pct}%` }}
+                          />
+                          <span className="text-[9px] font-bold text-[#5D6B7E] whitespace-nowrap">
+                            {day.label.slice(3)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-[#5D6B7E] font-semibold bg-[#F8FAFC] px-3 py-2 rounded-[10px] border border-[#E2E8F0]">
+                    <span>최근 14일 합계</span>
+                    <span className="text-[#102A43] font-black">
+                      조회 {dailyTrend.reduce((s, d) => s + d.views, 0).toLocaleString()}회 · 완료{" "}
+                      {dailyTrend.reduce((s, d) => s + d.participants, 0).toLocaleString()}건
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          <div className="lg:col-span-7 krds-public-card p-5 bg-white space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
+              <div>
+                <h2 className="text-sm font-black text-[#102A43] flex items-center gap-1.5">
+                  <History size={16} className="text-[#159A83]" /> 최근 안전 미션 완료 기록
+                </h2>
+                <p className="text-[11px] text-[#5D6B7E] font-medium mt-0.5">
+                  개인정보 없이 미션 완료 시각·소요시간·결과 요약만 안전하게 기록됩니다.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-[#5D6B7E] bg-slate-100 px-2.5 py-1 rounded-[8px]">
+                실시간 비식별 로그
+              </span>
+            </div>
+
+            <div className="divide-y divide-[#E2E8F0]">
+              {recentRecords.slice(0, 6).map((rec) => {
+                const mm = Math.floor(rec.durationSec / 60);
+                const ss = rec.durationSec % 60;
+                const timeText = rec.completedAt.slice(5, 16).replace("-", ".").replace("T", " ");
+                return (
+                  <div
+                    key={rec.id}
+                    className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs"
+                  >
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-black text-[#1558C9] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                          {rec.id}
+                        </span>
+                        <span className="font-black text-[#102A43] truncate">
+                          {rec.missionTitle}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#5D6B7E] font-medium truncate">
+                        {rec.resultSummary}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 text-[11px] font-bold text-[#5D6B7E]">
+                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-[6px] font-black">
+                        +{rec.xpEarned} XP
+                      </span>
+                      <span>
+                        {mm > 0 ? `${mm}분 ${ss}초` : `${ss}초`}
+                      </span>
+                      <span className="text-slate-400">{timeText}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
     </div>
   );

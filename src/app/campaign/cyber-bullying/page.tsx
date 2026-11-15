@@ -12,7 +12,11 @@ export default function CyberBullyingCampaignPage() {
   const [tempDegree, setTempDegree] = useState(36.5);
   const [showEmergencyCall, setShowEmergencyCall] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false); // 미션 결과 화면 모달
-  useMissionTracking("cyber-bullying", showResultModal);
+  useMissionTracking(
+    "cyber-bullying",
+    showResultModal,
+    showResultModal ? `언어 존중 리라이트 완료 · 존중 온도 ${tempDegree}°C (+70 XP)` : undefined
+  );
   const [viewRole, setViewRole] = useState<"victim" | "friend" | "bystander">("bystander");
 
   const handleRewrite = () => {

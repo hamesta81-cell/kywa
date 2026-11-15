@@ -169,7 +169,13 @@ export default function DodacCampaignPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const hasParticipated = messages.some(m => m.role === "user") || gardenLevel > 1;
-  useMissionTracking("dodac", hasParticipated);
+  useMissionTracking(
+    "dodac",
+    hasParticipated,
+    hasParticipated
+      ? `도닥 AI 힐링 상담 완료 · 마음 정원 Lv.${gardenLevel} (+60 XP)`
+      : undefined
+  );
 
   // 기기 저장 옵션 복원
   useEffect(() => {
@@ -226,7 +232,9 @@ export default function DodacCampaignPage() {
     setMessages(prev => [...prev, { role: "user", text }]);
     setInputText("");
     setIsTyping(true);
-    markMissionJoined("dodac");
+    markMissionJoined("dodac", {
+      resultSummary: `도닥 AI 힐링 대화 완료 · 마음 정원 Lv.${Math.min(5, gardenLevel + 1)} (+60 XP)`,
+    });
 
     const replies = generateDodacReply(text, userTurnCount);
 
@@ -246,7 +254,9 @@ export default function DodacCampaignPage() {
   };
 
   const handleNurtureGarden = (actionLabel: string) => {
-    markMissionJoined("dodac");
+    markMissionJoined("dodac", {
+      resultSummary: `도닥 AI 힐링 대화 완료 · 마음 정원 Lv.${Math.min(5, gardenLevel + 1)} (+60 XP)`,
+    });
     setGardenLevel(prev => Math.min(5, prev + 1));
     setMessages(prev => [
       ...prev,
@@ -261,7 +271,9 @@ export default function DodacCampaignPage() {
     e.preventDefault();
     const clean = gardenCheerText.trim();
     if (!clean) return;
-    markMissionJoined("dodac");
+    markMissionJoined("dodac", {
+      resultSummary: `도닥 AI 힐링 대화 완료 · 마음 정원 Lv.${Math.min(5, gardenLevel + 1)} (+60 XP)`,
+    });
     setSavedCheers(prev => [clean, ...prev]);
     setGardenCheerText("");
     setGardenLevel(prev => Math.min(5, prev + 1));

@@ -24,7 +24,13 @@ export default function FireEscapePage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  useMissionTracking("fire-escape", isFinished);
+  useMissionTracking(
+    "fire-escape",
+    isFinished,
+    isFinished
+      ? `화재 대피 ${score}점 + 완강기 4단계 완수 · 화재안전 챔피언 (+100 XP)`
+      : undefined
+  );
 
   // 완강기 순서 맞추기 퀘스트 상태 (STEP 4)
   const [wanSequence, setWanSequence] = useState<number[]>([]);

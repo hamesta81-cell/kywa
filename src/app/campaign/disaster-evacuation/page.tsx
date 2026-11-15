@@ -25,7 +25,13 @@ export default function DisasterEvacuationPage() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  useMissionTracking("disaster-evacuation", isFinished);
+  useMissionTracking(
+    "disaster-evacuation",
+    isFinished,
+    isFinished
+      ? `침수지역 탈출 ${score}점 · ${score >= 75 ? "최우수 생존가디언" : "재난대비 수칙 복습"} (+80 XP)`
+      : undefined
+  );
 
   const steps: DisasterStep[] = [
     {

@@ -66,8 +66,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "디지털",
     status: "진행 중",
     periodLabel: "2026.07.01 ~ 상시 운영",
-    defaultViews: 6084,
-    defaultParticipants: 627,
+    defaultViews: 9363,
+    defaultParticipants: 965,
     xp: 70,
     minDurationSec: 115,
     maxDurationSec: 245,
@@ -85,8 +85,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "심리/건강",
     status: "진행 중",
     periodLabel: "2026.07.01 ~ 상시 운영",
-    defaultViews: 6342,
-    defaultParticipants: 648,
+    defaultViews: 9807,
+    defaultParticipants: 1002,
     xp: 50,
     minDurationSec: 130,
     maxDurationSec: 280,
@@ -105,8 +105,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "심리/건강",
     status: "진행 중",
     periodLabel: "2026.07.01 ~ 상시 운영",
-    defaultViews: 5093,
-    defaultParticipants: 619,
+    defaultViews: 7735,
+    defaultParticipants: 940,
     xp: 40,
     minDurationSec: 95,
     maxDurationSec: 210,
@@ -124,8 +124,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "환경/기타",
     status: "진행 중",
     periodLabel: "2026.07.01 ~ 상시 운영",
-    defaultViews: 4294,
-    defaultParticipants: 497,
+    defaultViews: 6609,
+    defaultParticipants: 765,
     xp: 100,
     minDurationSec: 140,
     maxDurationSec: 310,
@@ -163,8 +163,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "심리/건강",
     status: "진행 중",
     periodLabel: "2026.07.01 ~ 상시 운영",
-    defaultViews: 4836,
-    defaultParticipants: 581,
+    defaultViews: 7457,
+    defaultParticipants: 896,
     xp: 60,
     minDurationSec: 150,
     maxDurationSec: 340,
@@ -186,8 +186,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "재난/응급",
     status: "진행 중",
     periodLabel: "2026.09.23 ~ 상시 운영",
-    defaultViews: 4869,
-    defaultParticipants: 572,
+    defaultViews: 7439,
+    defaultParticipants: 874,
     xp: 80,
     minDurationSec: 120,
     maxDurationSec: 255,
@@ -205,8 +205,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "재난/응급",
     status: "진행 중",
     periodLabel: "2026.09.23 ~ 상시 운영",
-    defaultViews: 5471,
-    defaultParticipants: 594,
+    defaultViews: 8390,
+    defaultParticipants: 911,
     xp: 80,
     minDurationSec: 125,
     maxDurationSec: 260,
@@ -223,8 +223,8 @@ export const MISSION_CATALOG: MissionCatalogMeta[] = [
     category: "재난/응급",
     status: "진행 중",
     periodLabel: "2026.09.23 ~ 상시 운영",
-    defaultViews: 4538,
-    defaultParticipants: 538,
+    defaultViews: 6941,
+    defaultParticipants: 823,
     xp: 100,
     minDurationSec: 135,
     maxDurationSec: 275,
@@ -402,7 +402,12 @@ function allocateCountsByWeights(total: number, weights: number[]): number[] {
   return ints;
 }
 
-function buildDayWeights(meta: MissionCatalogMeta, todayDate: string, rand: () => number): { date: string; weight: number }[] {
+function buildDayWeights(
+  meta: MissionCatalogMeta,
+  todayDate: string,
+  rand: () => number,
+  preferRecent = false
+): { date: string; weight: number }[] {
   const maxEnd = meta.endDate && meta.endDate < todayDate ? meta.endDate : todayDate;
   const dates = listDatesInclusive(meta.startDate, maxEnd);
   return dates.map((date, idx) => {
@@ -415,6 +420,10 @@ function buildDayWeights(meta: MissionCatalogMeta, todayDate: string, rand: () =
     // 개설 초기 유입 및 학교 연계 참여 반영
     if (idx < 7) w *= 1.35;
     if (meta.boostStart && date >= meta.boostStart) w *= 1.85;
+    if (preferRecent) {
+      if (date >= "2026-10-15") w *= 1.85;
+      if (date >= "2026-11-01") w *= 1.45;
+    }
     // 자연스러운 일별 변동
     w *= 0.78 + rand() * 0.44;
     return { date, weight: w };
@@ -424,11 +433,12 @@ function buildDayWeights(meta: MissionCatalogMeta, todayDate: string, rand: () =
 function generateDeficitRecordsForMission(
   meta: MissionCatalogMeta,
   count: number,
-  kstNow: { date: string; secondsOfDay: number }
+  kstNow: { date: string; secondsOfDay: number },
+  existingCount = 0
 ): MissionParticipationRecord[] {
   if (count <= 0) return [];
-  const rand = mulberry32(hashSeed(`kywa-mission-${meta.id}-records-v1`));
-  const weightedDays = buildDayWeights(meta, kstNow.date, rand);
+  const rand = mulberry32(hashSeed(`kywa-mission-${meta.id}-records-v2-${existingCount}-${count}`));
+  const weightedDays = buildDayWeights(meta, kstNow.date, rand, existingCount > 0);
   const dailyCounts = allocateCountsByWeights(
     count,
     weightedDays.map((d) => d.weight)
@@ -491,18 +501,30 @@ function assignSequentialIdsAndSortDesc(records: MissionParticipationRecord[]): 
     if (!r.date && r.completedAt) {
       r.date = r.completedAt.slice(0, 10);
     }
-    const yymmdd = r.date.replace(/-/g, "").slice(2);
-    if (r.id && !existingIds.has(r.id)) {
-      existingIds.add(r.id);
-      const match = /^MS-\d{6}-(\d+)$/.exec(r.id);
-      const seqNum = match ? Number(match[1]) : 0;
-      dailySeq[r.date] = Math.max(dailySeq[r.date] || 0, seqNum);
-    } else {
-      const next = (dailySeq[r.date] || 0) + 1;
-      dailySeq[r.date] = next;
-      r.id = `MS-${yymmdd}-${String(next).padStart(4, "0")}`;
-      existingIds.add(r.id);
+    if (r.id) {
+      if (existingIds.has(r.id)) {
+        r.id = "";
+      } else {
+        existingIds.add(r.id);
+        const match = /^MS-\d{6}-(\d+)$/.exec(r.id);
+        const seqNum = match ? Number(match[1]) : 0;
+        dailySeq[r.date] = Math.max(dailySeq[r.date] || 0, seqNum);
+      }
     }
+  }
+
+  for (const r of asc) {
+    if (r.id) continue;
+    const yymmdd = r.date.replace(/-/g, "").slice(2);
+    let next = (dailySeq[r.date] || 0) + 1;
+    let candidate = `MS-${yymmdd}-${String(next).padStart(4, "0")}`;
+    while (existingIds.has(candidate)) {
+      next += 1;
+      candidate = `MS-${yymmdd}-${String(next).padStart(4, "0")}`;
+    }
+    dailySeq[r.date] = next;
+    r.id = candidate;
+    existingIds.add(candidate);
   }
 
   // Keep newest first for fast UI/API slices
@@ -654,7 +676,12 @@ function ensureStore(): StoreCache {
     const targetCount = stats[meta.id].participants;
     if (existingForMission.length < targetCount) {
       const deficit = targetCount - existingForMission.length;
-      const generated = generateDeficitRecordsForMission(meta, deficit, kstNow);
+      const generated = generateDeficitRecordsForMission(
+        meta,
+        deficit,
+        kstNow,
+        existingForMission.length
+      );
       combinedLogs.push(...generated);
       logsChanged = true;
     } else if (existingForMission.length > targetCount) {

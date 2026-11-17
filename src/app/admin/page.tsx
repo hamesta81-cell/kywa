@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { OFFICIAL_16_CREW_TEAMS } from "@/data/officialCrewData";
 import AdminSystemDiagnosticBadge from "@/components/AdminSystemDiagnosticBadge";
+import AdminPrivacyVaultPanel from "@/components/AdminPrivacyVaultPanel";
 import { getAuthToken, setAuthToken } from "@/lib/clientAuth";
 
 export default function AdminPage() {
@@ -76,6 +77,7 @@ export default function AdminPage() {
   const [selectedMissionFilter, setSelectedMissionFilter] = useState<string>("all");
   const [missionLogPage, setMissionLogPage] = useState<number>(0);
   const [missionCsvDownloading, setMissionCsvDownloading] = useState<boolean>(false);
+  const [activePrivacyCount, setActivePrivacyCount] = useState<number>(0);
 
   // 🛡️ [만 14세 미만 관리자 5대 기능 전용 상태]
   const [purgeAuditLogs, setPurgeAuditLogs] = useState<any[]>([
@@ -238,6 +240,22 @@ export default function AdminPage() {
               if (Array.isArray(data.dailyTrend)) setMissionDailyTrend(data.dailyTrend);
             }
           }).catch(() => {});
+
+        // 🔐 개인정보 백업·파기 대상 실시간 건수 동기화
+        const adminToken = getAuthToken();
+        if (adminToken) {
+          fetch(`/api/admin/privacy?t=${Date.now()}`, {
+            cache: "no-store",
+            headers: { "x-kywa-auth": adminToken }
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && Array.isArray(data.inventory)) {
+                const total = data.inventory.reduce((sum: number, item: any) => sum + (Number(item?.piiRecords) || 0), 0);
+                setActivePrivacyCount(total);
+              }
+            }).catch(() => {});
+        }
       }
     } catch (e) {
       console.error(e);
@@ -678,6 +696,7 @@ export default function AdminPage() {
             { key: "crew_logs", label: "🔑 홍보단 접속·로그인 관제" },
             { key: "report", label: "🚨 안전제보 조치 관제" },
             { key: "user", label: "👤 사용자 · EXP · 보상" },
+            { key: "privacy", label: "🔐 개인정보 백업·파기", badge: activePrivacyCount },
             { key: "audit", label: "🔒 AI · 민감 콘텐츠 검수" },
             { key: "stats", label: "📈 통계 · 성과 보고서" }
           ].map(item => (
@@ -721,6 +740,14 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+            <button
+              onClick={() => setActiveNav("privacy")}
+              className="px-3 py-1.5 bg-rose-700 hover:bg-rose-600 text-white font-black rounded-lg text-xs flex items-center gap-1 shadow transition-all border border-rose-400"
+              title="사이트 내 개인정보 별도 백업 ZIP 다운로드 및 영구 파기"
+            >
+              <Lock size={13} />
+              <span>[🔐 개인정보 백업·파기{activePrivacyCount > 0 ? ` (${activePrivacyCount.toLocaleString()})` : ""}]</span>
+            </button>
             <button
               onClick={handleDownloadChallengeCsv}
               className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black rounded-lg text-xs flex items-center gap-1 shadow transition-all border border-amber-400"
@@ -2156,6 +2183,13 @@ export default function AdminPage() {
               )}
             </div>
           </div>
+        )}
+
+        {/* ==================================================================== */}
+        {/* TAB: 🔐 개인정보 별도 백업 및 영구 파기 콘솔                         */}
+        {/* ==================================================================== */}
+        {activeNav === "privacy" && (
+          <AdminPrivacyVaultPanel onPurgeSuccess={refreshAdminData} />
         )}
 
         {/* ==================================================================== */}
